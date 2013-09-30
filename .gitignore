@@ -1,0 +1,11 @@
+.eunit
+deps
+*.o
+*.beam
+*.plt
+*.dump
+*.app
+*~
+doc/*
+!doc/overview.edoc
+!doc/*.md

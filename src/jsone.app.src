@@ -1,0 +1,12 @@
+%% -*- erlang -*-
+{application, jsone,
+ [
+  {description, "Erlang JSON Library"},
+  {vsn, "0.0.1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
