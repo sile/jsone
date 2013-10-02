@@ -1,7 +1,7 @@
 -module(jsone_decode).
 
 -compile(native).
--compile(bin_opt_info).
+%-compile(bin_opt_info).
 
 -export([
          decode/2
@@ -106,58 +106,57 @@ unicode_to_utf8(Code, Acc) ->
     D = 2#10000000 bor (Code band 2#111111),
     [D, C, B, A | Acc].
 
-number(<<Bin/binary>>, Nexts) ->
-    %% XXX:
-    number(Bin, 0, Nexts).
+%% number(<<Bin/binary>>, Nexts) ->
+%%     %% XXX:
+%%     number(Bin, 0, Nexts).
 
-number(<<C, Bin/binary>>, N, Nexts) when $0 =< C, C =< $9 ->
-    number(Bin, N * 10 + C - $0, Nexts);
-number(<<Bin/binary>>, N, Nexts) -> next(Bin, N, Nexts).
+%% number(<<C, Bin/binary>>, N, Nexts) when $0 =< C, C =< $9 ->
+%%     number(Bin, N * 10 + C - $0, Nexts);
+%% number(<<Bin/binary>>, N, Nexts) -> next(Bin, N, Nexts).
 
+number(<<$-, Bin/binary>>, Nexts) -> number_integer_part(Bin, -1, Nexts);
+number(<<Bin/binary>>,     Nexts) -> number_integer_part(Bin,  1, Nexts).
 
-%% decode_number(<<$-, Bin/binary>>) -> {Num, Bin2} = decode_number_impl(Bin),
-%%                                      {-Num, Bin2};
-%% decode_number(<<$ , Bin/binary>>) -> decode_number(Bin);
-%% decode_number(<<$\t,Bin/binary>>) -> decode_number(Bin);
-%% decode_number(<<$\r,Bin/binary>>) -> decode_number(Bin);
-%% decode_number(<<$\n,Bin/binary>>) -> decode_number(Bin);
-%% decode_number(<<Bin/binary>>)     -> decode_number_impl(Bin).
+number_integer_part(<<$0, Bin/binary>>, Sign, Nexts) ->
+    number_fraction_part(Bin, Sign, 0, Nexts);
+number_integer_part(<<C, Bin/binary>>, Sign, Nexts) when $1 =< C, C =< $9 ->
+    number_integer_part_rest(Bin, C - $0, Sign, Nexts).
 
-%% decode_number_impl(<<$0, Bin/binary>>) -> decode_fraction(Bin, 0);
-%% decode_number_impl(<<C, Bin/binary>>) when $1 =< C, C =< $9 -> decode_int(Bin, C - $0).
+number_integer_part_rest(<<C, Bin/binary>>, N, Sign, Nexts) when $0 =< C, C =< $9 ->
+    number_integer_part_rest(Bin, N * 10 + C - $0, Sign, Nexts);
+number_integer_part_rest(<<Bin/binary>>, N, Sign, Nexts) ->
+    number_fraction_part(Bin, Sign, N, Nexts).
 
-%% decode_int(<<C, Bin/binary>>, Acc) when $0 =< C, C =< $9 ->
-%%     decode_int(Bin, (Acc*10) + (C-$0));
-%% decode_int(<<Bin/binary>>, Acc) ->
-%%     decode_fraction(Bin, Acc).
+number_fraction_part(<<$., Bin/binary>>, Sign, Int, Nexts) ->
+    number_fraction_part_rest(Bin, Sign, Int, 0, Nexts);
+number_fraction_part(<<Bin/binary>>, Sign, Int, Nexts) ->
+    number_exponation_part(Bin, Sign * Int, 0, Nexts).
 
-%% decode_fraction(<<$., Bin/binary>>, Acc) ->
-%%     {Digit, Bin2} = decode_digit(Bin),
-%%     Frac  = Digit / (math:pow(10, byte_size(Bin) - byte_size(Bin2))),
-%%     decode_exponation(Bin2, Acc + Frac);
-%% decode_fraction(<<Bin/binary>>, Acc) ->
-%%     {Acc, Bin}.
+number_fraction_part_rest(<<C, Bin/binary>>, Sign, N, DecimalOffset, Nexts) when $0 =< C, C =< $9 ->
+    number_fraction_part_rest(Bin, Sign, N * 10 + C - $0, DecimalOffset + 1, Nexts);
+number_fraction_part_rest(<<Bin/binary>>, Sign, N, DecimalOffset, Nexts) when DecimalOffset > 0 ->
+    number_exponation_part(Bin, Sign * N, DecimalOffset, Nexts).
 
-%% decode_exponation(<<$e, $+, Bin/binary>>, Acc) -> decode_exponation(Bin, Acc, plus);
-%% decode_exponation(<<$E, $+, Bin/binary>>, Acc) -> decode_exponation(Bin, Acc, plus);
-%% decode_exponation(<<$e, $-, Bin/binary>>, Acc) -> decode_exponation(Bin, Acc, minus);
-%% decode_exponation(<<$E, $-, Bin/binary>>, Acc) -> decode_exponation(Bin, Acc, minus);
-%% decode_exponation(<<$e,     Bin/binary>>, Acc) -> decode_exponation(Bin, Acc, plus);
-%% decode_exponation(<<$E,     Bin/binary>>, Acc) -> decode_exponation(Bin, Acc, plus);
-%% decode_exponation(<<Bin/binary>>, Acc)         -> {Acc, Bin}.
+number_exponation_part(<<$e, $+, Bin/binary>>, N, DecimalOffset, Nexts) ->
+    number_exponation_part(Bin, N, DecimalOffset, 1, 0, true, Nexts);
+number_exponation_part(<<$E, $+, Bin/binary>>, N, DecimalOffset, Nexts) ->
+    number_exponation_part(Bin, N, DecimalOffset, 1, 0, true, Nexts);
+number_exponation_part(<<$e, $-, Bin/binary>>, N, DecimalOffset, Nexts) ->
+    number_exponation_part(Bin, N, DecimalOffset, -1, 0, true, Nexts);
+number_exponation_part(<<$E, $-, Bin/binary>>, N, DecimalOffset, Nexts) ->
+    number_exponation_part(Bin, N, DecimalOffset, -1, 0, true, Nexts);
+number_exponation_part(<<$e, Bin/binary>>, N, DecimalOffset, Nexts) ->
+    number_exponation_part(Bin, N, DecimalOffset, 1, 0, true, Nexts);
+number_exponation_part(<<$E, Bin/binary>>, N, DecimalOffset, Nexts) ->
+    number_exponation_part(Bin, N, DecimalOffset, 1, 0, true, Nexts);
+number_exponation_part(<<Bin/binary>>, N, DecimalOffset, Nexts) ->
+    case DecimalOffset of
+        0 -> next(Bin, N, Nexts);
+        _ -> next(Bin, N / math:pow(10, DecimalOffset), Nexts)
+    end.
 
-%% decode_exponation(<<Bin/binary>>, Acc, Sign) ->
-%%     {Digit, Bin2} = decode_digit(Bin),
-%%     Num = case Sign of
-%%               plus  -> Acc * math:pow(10, Digit);
-%%               minus -> Acc / math:pow(10, Digit)
-%%           end,
-%%     {Num, Bin2}.
-
-%% decode_digit(<<C, Bin/binary>>) when $0 =< C, C =< $9 -> 
-%%     decode_digit(Bin, C - $0).
-
-%% decode_digit(<<C, Bin/binary>>, Acc) when $0 =< C, C =< $9 ->
-%%     decode_digit(Bin, (Acc*10) - (C-$0));
-%% decode_digit(<<Bin/binary>>, Acc) ->
-%%     {Acc, Bin}.
+number_exponation_part(<<C, Bin/binary>>, N, DecimalOffset, ExpSign, Exp, _, Nexts) when $0 =< C, C =< $9 ->
+    number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp * 10 + C - $0, false, Nexts);
+number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Nexts) ->
+    Pos = ExpSign * Exp - DecimalOffset,
+    next(Bin, N * math:pow(10, Pos), Nexts).
