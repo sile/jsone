@@ -1,13 +1,14 @@
 -module(jsone_decode).
-
--compile(native).
-%-compile(bin_opt_info).
-
+ 
 -export([
+         decode/1,
          decode/2
         ]).
 
-decode(Bin, _Options) ->
+decode(Bin) ->
+    decode(Bin, []).
+
+decode(Bin, _Options) -> % TODO: delete
     whitespace(Bin, value, []).
 
 next(<<Bin/binary>>, Value, []) ->
@@ -106,21 +107,15 @@ unicode_to_utf8(Code, Acc) ->
     D = 2#10000000 bor (Code band 2#111111),
     [D, C, B, A | Acc].
 
-%% number(<<Bin/binary>>, Nexts) ->
-%%     %% XXX:
-%%     number(Bin, 0, Nexts).
-
-%% number(<<C, Bin/binary>>, N, Nexts) when $0 =< C, C =< $9 ->
-%%     number(Bin, N * 10 + C - $0, Nexts);
-%% number(<<Bin/binary>>, N, Nexts) -> next(Bin, N, Nexts).
-
 number(<<$-, Bin/binary>>, Nexts) -> number_integer_part(Bin, -1, Nexts);
 number(<<Bin/binary>>,     Nexts) -> number_integer_part(Bin,  1, Nexts).
 
 number_integer_part(<<$0, Bin/binary>>, Sign, Nexts) ->
     number_fraction_part(Bin, Sign, 0, Nexts);
 number_integer_part(<<C, Bin/binary>>, Sign, Nexts) when $1 =< C, C =< $9 ->
-    number_integer_part_rest(Bin, C - $0, Sign, Nexts).
+    number_integer_part_rest(Bin, C - $0, Sign, Nexts);
+number_integer_part(<<Bin/binary>>, _Sign, _Nexts) ->
+    error({invalid_json, number_integer_part, Bin}).
 
 number_integer_part_rest(<<C, Bin/binary>>, N, Sign, Nexts) when $0 =< C, C =< $9 ->
     number_integer_part_rest(Bin, N * 10 + C - $0, Sign, Nexts);
