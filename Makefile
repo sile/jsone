@@ -24,9 +24,6 @@ eunit:
 
 edoc:
 	@./rebar doc skip_deps=true
-	find doc -name '*.html' | xargs sed -i.orig 's/ISO-8859-1/UTF-8/'
-	ERL_LIBS=deps/edown deps/edown/make_doc
-	sed -i.org 's_http://github.com/esl/.*doc_doc_' README.md && rm README.md.org
 
 start: compile
 	erl -sname $(NODE) -pz ebin deps/*/ebin \
