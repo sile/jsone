@@ -1,4 +1,5 @@
-%%% @doc JSON decoding/encoding module
+%%% @doc JSON encoding module
+%%% @private
 %%% @end
 %%%
 %%% Copyright (c) 2013, Takeru Ohta <phjgt308@gmail.com>
@@ -24,48 +25,16 @@
 %%% THE SOFTWARE.
 %%%
 %%%---------------------------------------------------------------------------------------
--module(jsone).
+-module(jsone_encode).
 
 %%--------------------------------------------------------------------------------
 %% Exported API
 %%--------------------------------------------------------------------------------
--export([
-         decode/1,
-         encode/1
-        ]).
-
--export_type([
-              json_value/0,
-              json_number/0,
-              json_string/0,
-              json_array/0,
-              json_object/0,
-              json_object_members/0,
-              json_boolean/0
-             ]).
-
-%%--------------------------------------------------------------------------------
-%% Types
-%%--------------------------------------------------------------------------------
--type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null.
--type json_boolean()        :: boolean().
--type json_number()         :: number().
--type json_string()         :: binary().
--type json_array()          :: [json_value()].
--type json_object()         :: {object, json_object_members()}.
--type json_object_members() :: [{json_string(), json_value()}].
+-export([encode/1]).
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
-%% @doc JSONバイナリをデコードする.
-%%
-%% デコードに失敗した場合は`{invalid_json, 失敗位置より後のJSON::binary()}'形式のエラーが送出される.
--spec decode(binary()) -> {json_value(), RestJson::binary()}.
-decode(Json) ->
-    jsone_decode:decode(Json).
-
-%% @doc JSON値をバイナリ形式にエンコードする.
--spec encode(json_value()) -> iodata().
-encode(JsonValue) ->
-    jsone_encode:encode(JsonValue).
+-spec encode(jsone:json_value()) -> iodata().
+encode(_JsonValue) ->
+    [].
