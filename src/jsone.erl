@@ -60,12 +60,14 @@
 %%--------------------------------------------------------------------------------
 %% @doc JSONバイナリをデコードする.
 %%
-%% デコードに失敗した場合は`{invalid_json, 失敗位置より後のJSON::binary()}'形式のエラーが送出される.
+%% デコードに失敗した場合はエラーが送出される
 -spec decode(binary()) -> {json_value(), RestJson::binary()}.
 decode(Json) ->
     jsone_decode:decode(Json).
 
-%% @doc JSON値をバイナリ形式にエンコードする.
+%% @doc JSON値をiodata形式にエンコードする.
+%%
+%% エンコードに失敗した場合はエラーが送出される
 -spec encode(json_value()) -> iodata().
 encode(JsonValue) ->
     jsone_encode:encode(JsonValue).
