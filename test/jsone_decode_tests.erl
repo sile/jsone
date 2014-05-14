@@ -45,7 +45,7 @@ decode_test_() ->
       end},
      {"正の整数の前の'+'記号は許可されない",
       fun () ->
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"+1">>))
+              ?assertError(badarg, jsone_decode:decode(<<"+1">>))
       end},
 
      %% 数値系: 小数
@@ -65,13 +65,13 @@ decode_test_() ->
       end},
      {"不正な形式の小数",
       fun () ->
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<".123">>)),  % 整数部が省略されている
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"0.">>)),    % '.'の後ろに小数部が続かない
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"0.e+3">>)), % '.'の後ろに指数部が来る
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"0.1e">>)),    % 指数部が欠けている
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"0.1e-">>)),   % 指数部が欠けている
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"0.1ee-1">>)), % 'e'が複数ある
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"0.1e--1">>)), % 符号が複数ある
+              ?assertError(badarg, jsone_decode:decode(<<".123">>)),  % 整数部が省略されている
+              ?assertError(badarg, jsone_decode:decode(<<"0.">>)),    % '.'の後ろに小数部が続かない
+              ?assertError(badarg, jsone_decode:decode(<<"0.e+3">>)), % '.'の後ろに指数部が来る
+              ?assertError(badarg, jsone_decode:decode(<<"0.1e">>)),    % 指数部が欠けている
+              ?assertError(badarg, jsone_decode:decode(<<"0.1e-">>)),   % 指数部が欠けている
+              ?assertError(badarg, jsone_decode:decode(<<"0.1ee-1">>)), % 'e'が複数ある
+              ?assertError(badarg, jsone_decode:decode(<<"0.1e--1">>)), % 符号が複数ある
               ?assertEqual({0.1, <<".2">>}, jsone_decode:decode(<<"0.1.2">>))  % '.'が複数ある => 別々のトークンと判断される
       end},
      
@@ -111,11 +111,11 @@ decode_test_() ->
       end},
      {"不正なエスケープ文字",
       fun () ->
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"\"\\z\"">>)),    % '\z'は未定義のエスケープ文字
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"\"\\uab\"">>)),  % '\u'の後ろに続く数値が足りない
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"\"\\ud848\"">>)), % 上位サロゲートが単独で出現
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"\"\\udc49\"">>)), % 下位サロゲーが単独で出現
-              ?assertError({invalid_json, _}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)) % 上位サロゲートの後ろに下位サロゲートが続かない
+              ?assertError(badarg, jsone_decode:decode(<<"\"\\z\"">>)),    % '\z'は未定義のエスケープ文字
+              ?assertError(badarg, jsone_decode:decode(<<"\"\\uab\"">>)),  % '\u'の後ろに続く数値が足りない
+              ?assertError(badarg, jsone_decode:decode(<<"\"\\ud848\"">>)), % 上位サロゲートが単独で出現
+              ?assertError(badarg, jsone_decode:decode(<<"\"\\udc49\"">>)), % 下位サロゲーが単独で出現
+              ?assertError(badarg, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)) % 上位サロゲートの後ろに下位サロゲートが続かない
       end},
 
      %% 配列系
@@ -133,24 +133,24 @@ decode_test_() ->
      {"配列の末尾のカンマは許容されない",
       fun () ->
               Input = <<"[1, 2, \"abc\", null, ]">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"区切り文字のカンマが抜けているとエラーとなる",
       fun () ->
               Input = <<"[1 2, \"abc\", null]">>, % 1と2の間にカンマがない
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"配列が閉じていないとエラー",
       fun () ->
               Input = <<"[1, 2, \"abc\", null">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
 
      %% オブジェクト系
      {"オブジェクトがデコード可能",
       fun () ->
               Input    = <<"{\"1\":2, \"key\":\"value\"}">>,
-              Expected = {object, [{<<"1">>, 2}, {<<"key">>, <<"value">>}]},
+              Expected = {object, [{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               ?assertEqual({Expected, <<"">>}, jsone_decode:decode(Input))
       end},
      {"空オブジェクトがデコード可能",
@@ -162,39 +162,39 @@ decode_test_() ->
       fun () ->
               Input = <<"{\"1\":2, \"key\":\"value\", }">>,
               io:format("~p\n", [catch jsone_decode:decode(Input)]),
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"区切り文字のカンマが抜けているとエラーとなる",
       fun () ->
               Input = <<"{\"1\":2 \"key\":\"value\"}">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"メンバのキーがない場合はエラー",
       fun () ->
               Input = <<"{:2, \"key\":\"value\"}">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"メンバのキーが文字列以外の場合はエラー",
       fun () ->
               Input = <<"{1:2, \"key\":\"value\"}">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"メンバの値がない場合はエラー",
       fun () ->
               Input = <<"{\"1\", \"key\":\"value\"}">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
      {"オブジェクトが閉じていないとエラー",
       fun () ->
               Input = <<"{\"1\":2 \"key\":\"value\"">>,
-              ?assertError({invalid_json, _}, jsone_decode:decode(Input))
+              ?assertError(badarg, jsone_decode:decode(Input))
       end},
 
      %% その他
      {"複雑なデータがデコード可能",
       fun () ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
-              Expected = [true, {object, [{<<"1">>, 2}, {<<"array">>, [[[[1]]], {object, [{<<"ab">>, <<"cd">>}]}, false]}]}, null],
+              Expected = [true, {object, [{<<"array">>, [[[[1]]], {object, [{<<"ab">>, <<"cd">>}]}, false]}, {<<"1">>, 2}]}, null],
               ?assertEqual({Expected, <<"   ">>}, jsone_decode:decode(Input))
       end}
     ].

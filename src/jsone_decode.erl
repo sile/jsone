@@ -35,8 +35,6 @@
 %%--------------------------------------------------------------------------------
 %% Macros & Types
 %%--------------------------------------------------------------------------------
--define(ERROR(Json), error({invalid_json, Json})).
-
 -type next() :: {array_next, [jsone:json_value()]}
               | {object_value, jsone:json_object_members()}
               | {object_next, jsone:json_string(), jsone:json_object_members()}.
@@ -84,7 +82,7 @@ whitespace(<<Bin/binary>>,      Next, Nexts, Buf) ->
         object -> object(Bin, Nexts, Buf);
         string -> case Bin of
                       <<$", Bin2/binary>> -> string(Bin2, byte_size(Buf), Nexts, Buf);
-                      _                   -> ?ERROR(Bin)
+                      _                   -> error(badarg, [Bin, Next, Nexts, Buf])
                   end;
         {array_next, Values}               -> array_next(Bin, Values, Nexts, Buf);
         {object_value, Key, Members}       -> object_value(Bin, Key, Members, Nexts, Buf);
@@ -107,7 +105,7 @@ array(<<Bin/binary>>, Nexts, Buf)     -> whitespace(Bin, value, [{array_next, []
 -spec array_next(binary(), [jsone:json_value()], [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
 array_next(<<$], Bin/binary>>, Values, Nexts, Buf) -> next(Bin, lists:reverse(Values), Nexts, Buf);
 array_next(<<$,, Bin/binary>>, Values, Nexts, Buf) -> whitespace(Bin, value, [{array_next, Values} | Nexts], Buf);
-array_next(<<Bin/binary>>, _Values, _Nexts, _Buf)  -> ?ERROR(Bin).
+array_next(Bin,                Values, Nexts, Buf) -> error(badarg, [Bin, Values, Nexts, Buf]).
 
 -spec object(binary(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
 object(<<$}, Bin/binary>>, Nexts, Buf) -> next(Bin, {object, []}, Nexts, Buf);
@@ -115,12 +113,12 @@ object(<<Bin/binary>>, Nexts, Buf) -> whitespace(Bin, string, [{object_value, []
 
 -spec object_value(binary(), jsone:json_string(), jsone:json_object_members(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
 object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf) -> whitespace(Bin, value, [{object_next, Key, Members} | Nexts], Buf);
-object_value(<<Bin/binary>>, _Key, _Members, _Nexts, _Buf) -> ?ERROR(Bin).
+object_value(Bin,                Key, Members, Nexts, Buf) -> error(badarg, [Bin, Key, Members, Nexts, Buf]).
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {object, lists:reverse(Members)}, Nexts, Buf);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {object, Members}, Nexts, Buf);
 object_next(<<$,, Bin/binary>>, Members, Nexts, Buf) -> whitespace(Bin, string, [{object_value, Members} | Nexts], Buf);
-object_next(<<Bin/binary>>, _Members, _Nexts, _Buf)  -> ?ERROR(Bin).
+object_next(Bin,                Members, Nexts, Buf) -> error(badarg, [Bin, Members, Nexts, Buf]).
 
 -spec string(binary(), non_neg_integer(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
 string(<<$", Bin/binary>>, Start, Nexts, Buf) -> next(Bin, binary:part(Buf, Start, byte_size(Buf) - Start), Nexts, Buf);
@@ -135,7 +133,7 @@ string(<<$\\, B/binary>>,  Start, Nexts, Buf) ->
         <<$r, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\r>>);
         <<$t, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\t>>);
         <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, Buf);
-        _                  -> ?ERROR(B)
+        _                  -> error(badarg, [<<$\\, B/binary>>, Start, Nexts, Buf])
     end;
 string(<<C, Bin/binary>>, Start, Nexts, Buf) when 16#20 =< C ->
     string(Bin, Start, Nexts, <<Buf/binary, C>>).
@@ -151,17 +149,17 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
                         Low when 16#DC00 =< Low, Low =< 16#DFFF ->
                             Unicode = 16#10000 + (High - 16#D800) * 16#400 + (Low - 16#DC00),
                             string(Bin2, Start, Nexts, unicode_to_utf8(Unicode, Buf));
-                        _ -> ?ERROR(Bin)
+                        _ -> error(badarg, [<<N/binary, Bin/binary>>, Start, Nexts, Buf])
                     end;
-                _ -> ?ERROR(Bin)
+                _ -> error(badarg, [<<N/binary, Bin/binary>>, Start, Nexts, Buf])
             end;
         Unicode when 16#DC00 =< Unicode, Unicode =< 16#DFFF ->  % サロゲートペアの後半部分
-            ?ERROR(<<N/binary, Bin/binary>>);
+            error(badarg, [<<N/binary, Bin/binary>>, Start, Nexts, Buf]);
         Unicode -> 
             string(Bin, Start, Nexts, unicode_to_utf8(Unicode, Buf))
     end;
-unicode_string(<<Bin/binary>>, _Acc, _Nexts, _Buf) ->
-    ?ERROR(Bin).
+unicode_string(Bin, Acc, Nexts, Buf) ->
+    error(badarg, [Bin, Acc, Nexts, Buf]).
 
 -spec unicode_to_utf8(0..1114111, binary()) -> binary().
 unicode_to_utf8(Code, Buf) when Code < 16#80 ->
@@ -191,8 +189,8 @@ number_integer_part(<<$0, Bin/binary>>, Sign, Nexts, Buf) ->
     number_fraction_part(Bin, Sign, 0, Nexts, Buf);
 number_integer_part(<<C, Bin/binary>>, Sign, Nexts, Buf) when $1 =< C, C =< $9 ->
     number_integer_part_rest(Bin, C - $0, Sign, Nexts, Buf);
-number_integer_part(<<Bin/binary>>, _Sign, _Nexts, _Buf) ->
-    ?ERROR(Bin).
+number_integer_part(Bin, Sign, Nexts, Buf) ->
+    error(badarg, [Bin, Sign, Nexts, Buf]).
 
 -spec number_integer_part_rest(binary(), non_neg_integer(), 1|-1, [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
 number_integer_part_rest(<<C, Bin/binary>>, N, Sign, Nexts, Buf) when $0 =< C, C =< $9 ->
@@ -211,8 +209,8 @@ number_fraction_part_rest(<<C, Bin/binary>>, Sign, N, DecimalOffset, Nexts, Buf)
     number_fraction_part_rest(Bin, Sign, N * 10 + C - $0, DecimalOffset + 1, Nexts, Buf);
 number_fraction_part_rest(<<Bin/binary>>, Sign, N, DecimalOffset, Nexts, Buf) when DecimalOffset > 0 ->
     number_exponation_part(Bin, Sign * N, DecimalOffset, Nexts, Buf);
-number_fraction_part_rest(<<Bin/binary>>, _Sign, _N, _DecimalOffset, _Nexts, _Buf) ->
-    ?ERROR(Bin).
+number_fraction_part_rest(Bin, Sign, N, DecimalOffset, Nexts, Buf) ->
+    error(badarg, [Bin, Sign, N, DecimalOffset, Nexts, Buf]).
 
 -spec number_exponation_part(binary(), integer(), non_neg_integer(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
 number_exponation_part(<<$e, $+, Bin/binary>>, N, DecimalOffset, Nexts, Buf) ->
@@ -239,5 +237,5 @@ number_exponation_part(<<C, Bin/binary>>, N, DecimalOffset, ExpSign, Exp, _, Nex
 number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Nexts, Buf) ->
     Pos = ExpSign * Exp - DecimalOffset,
     next(Bin, N * math:pow(10, Pos), Nexts, Buf);
-number_exponation_part(<<Bin/binary>>, _N, _DecimalOffset, _ExpSign, _Exp, _IsFirst, _Nexts, _Buf) ->
-    ?ERROR(Bin).
+number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf) ->
+    error(badarg, [Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf]).
