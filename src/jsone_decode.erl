@@ -2,7 +2,7 @@
 %%% @private
 %%% @end
 %%%
-%%% Copyright (c) 2013, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -26,8 +26,6 @@
 %%%
 %%%---------------------------------------------------------------------------------------
 -module(jsone_decode).
-
--compile(inline).
 
 %%--------------------------------------------------------------------------------
 %% Exported API
