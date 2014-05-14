@@ -2,7 +2,7 @@
 %%% @private
 %%% @end
 %%%
-%%% Copyright (c) 2013, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -35,69 +35,116 @@
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
-%% @doc JSON値をiodata形式にエンコードする.
--spec encode(jsone:json_value()) -> iodata().
-encode(null)                         -> <<"null">>;
-encode(false)                        -> <<"false">>;
-encode(true)                         -> <<"true">>;
-encode(Value) when is_integer(Value) -> integer_to_binary(Value);
-encode(Value) when is_float(Value)   -> float_to_binary(Value);
-encode(Value) when is_binary(Value)  -> string(Value);
-encode(Value) when is_list(Value)    -> array(Value);
-encode({object, _} = Value)          -> object(Value);
-encode(Value)                        -> error({invalid_json_value, Value}).
+%% @doc JSON値をバイナリ形式にエンコードする.
+-spec encode(jsone:json_value()) -> binary().
+encode(Value) ->
+    value(Value, <<"">>).
 
 %%--------------------------------------------------------------------------------
 %% Internal Functions
 %%--------------------------------------------------------------------------------
--spec string(jsone:json_string()) -> iodata().
-string(Str) ->
-    %% XXX: 手抜き実装 (一回変換を挟んで無駄)
-    UnicodeStr = unicode:characters_to_list(Str),
-    [$", escape_string(UnicodeStr, []), $"].
+-spec value(jsone:json_value(), binary()) -> binary().
+value(null, <<Buf/binary>>)                         -> <<Buf/binary, "null">>;
+value(false, <<Buf/binary>>)                        -> <<Buf/binary, "false">>;
+value(true, <<Buf/binary>>)                         -> <<Buf/binary, "true">>;
+value(Value, <<Buf/binary>>) when is_integer(Value) -> <<Buf/binary, (integer_to_binary(Value))/binary>>;
+value(Value, <<Buf/binary>>) when is_float(Value)   -> <<Buf/binary, (float_to_binary(Value))/binary>>;
+value(Value, <<Buf/binary>>) when is_binary(Value)  -> string(Value, Buf);
+value(Value, <<Buf/binary>>) when is_list(Value)    -> array(Value, Buf);
+value({object, _} = Value, <<Buf/binary>>)          -> object(Value, Buf);
+value(Value, <<_Buf/binary>>)                       -> error(badarg, [Value]).
 
--spec escape_string(string(), iolist()) -> iodata().
-escape_string([], Acc)         -> lists:reverse(Acc);
-escape_string([$"  | Str], Acc) -> escape_string(Str, [$", $\\ | Acc]);
-escape_string([$\/ | Str], Acc) -> escape_string(Str, [$/, $\\ | Acc]); 
-escape_string([$\\ | Str], Acc) -> escape_string(Str, [$\\,$\\ | Acc]); 
-escape_string([$\b | Str], Acc) -> escape_string(Str, [$b, $\\ | Acc]);
-escape_string([$\f | Str], Acc) -> escape_string(Str, [$f, $\\ | Acc]); 
-escape_string([$\n | Str], Acc) -> escape_string(Str, [$n, $\\ | Acc]);
-escape_string([$\r | Str], Acc) -> escape_string(Str, [$r, $\\ | Acc]); 
-escape_string([$\t | Str], Acc) -> escape_string(Str, [$t, $\\ | Acc]); 
-escape_string([C   | Str], Acc) ->
-    case C < 16#80 of
-        true  -> escape_string(Str, [C | Acc]);
-        false -> escape_string(Str, [escape_unicode_char(C) | Acc])
-    end. 
+-spec string(jsone:json_string(), binary()) -> binary().
+string(<<Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $">>).
 
-%% NOTE: `Unicode'の値が適切であることは`unicode'モジュールが保証してくれていることを期待
--spec escape_unicode_char(char()) -> iodata().
-escape_unicode_char(Unicode) when Unicode =< 16#FFFF ->
-    io_lib:format("\\u~4.16.0b", [Unicode]);
-escape_unicode_char(Unicode) ->
-    %% サロゲートペア (非効率実装)
-    <<High:10, Low:10>> = <<(Unicode - 16#10000):20>>,
-    io_lib:format("\\u~4.16.0b\\u~4.16.0b", [High + 16#D800, Low + 16#DC00]).
+-spec escape_string(binary(), binary()) -> binary().
+escape_string(<<"">>, <<Buf/binary>>) ->
+    <<Buf/binary, $">>;
+escape_string(<<$", Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $">>);
+escape_string(<<$\/, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $\/>>);
+escape_string(<<$\\, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $\\>>);
+escape_string(<<$\b, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $b>>);
+escape_string(<<$\f, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $f>>);
+escape_string(<<$\n, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $n>>);
+escape_string(<<$\r, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $r>>);
+escape_string(<<$\t, Str/binary>>, <<Buf/binary>>) ->
+    escape_string(Str, <<Buf/binary, $\\, $t>>);
+escape_string(<<C, Str/binary>>, <<Buf/binary>>) when C < 16#80 ->
+    escape_string(Str, <<Buf/binary, C>>);
+escape_string(<<2#10:2, _:6, _/binary>> = Str, <<Buf/binary>>) ->
+    error(badarg, [Str, Buf]);
+escape_string(<<2#110:3, B1:5, 2#10:2, B2:6, Str/binary>> = Str0, <<Buf/binary>>) ->
+    case is_redundant_utf8_byte(B1, B2, 5) of
+        true  -> error(badarg, [Str0, Buf]);
+        false -> 
+            Unicode = (B1 bsl 6) + B2,
+            escape_unicode_char(Str, Unicode, Buf)
+    end;
+escape_string(<<2#1110:4, B1:4, 2#10:2, B2:6, 2#10:2, B3:6, Str/binary>> = Str0, <<Buf/binary>>) ->
+    case is_redundant_utf8_byte(B1, B2, 4) of
+        true  -> error(badarg, [Str0, Buf]);
+        false ->
+            Unicode = (B1 bsl 12) + (B2 bsl 6) + B3,
+            escape_unicode_char(Str, Unicode, Buf)
+    end;
+escape_string(<<2#11110:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6, Str/binary>> = Str0, <<Buf/binary>>) ->
+    case is_redundant_utf8_byte(B1, B2, 3) of
+        true  -> error(badarg, [Str0, Buf]);
+        false ->
+            Unicode = (B1 bsl 18) + (B2 bsl 12) + (B3 bsl 6) + B4,
+            escape_unicode_char(Str, Unicode, Buf)
+    end;    
+escape_string(<<Str/binary>>, <<Buf/binary>>) ->
+    error(badarg, [Str, Buf]).
 
--spec array(jsone:json_array()) -> iodata().
-array(List) ->
-    [$[, iodata_join(lists:map(fun encode/1, List), $,), $]].
+-spec is_redundant_utf8_byte(byte(), byte(), 3..5) -> boolean().
+is_redundant_utf8_byte(B1, B2, FirstBitN) ->
+    B1 =:= 0 andalso B2 < (1 bsl (FirstBitN+1)).
 
--spec object(jsone:json_object()) -> iodata().
-object({object, Members} = Object) ->
-    [${,
-     iodata_join([case is_binary(Key) of
-                      false -> error({invalid_json_value, Object});
-                      true  -> [string(Key), $:, encode(Value)]
-                  end || {Key, Value} <- Members],
-                 $,),
-     $}].
+-define(HEX(N, I), (binary:at(<<"0123456789abcdef">>, (N bsr (I * 4)) band 2#1111))).
+-define(UNICODE_TO_HEX(Code), ?HEX(Code, 3), ?HEX(Code, 2), ?HEX(Code, 1), ?HEX(Code, 0)).
 
--spec iodata_join([iodata()], char()) -> iodata().
-iodata_join([], _Delimiter)           -> [];
-iodata_join([Head | Tail], Delimiter) ->
-    lists:foldl(fun (IoData, Acc) -> [Acc, Delimiter, IoData] end,
-                Head,
-                Tail).
+-spec escape_unicode_char(binary(), char(), binary()) -> binary().
+escape_unicode_char(<<Str/binary>>, Unicode, <<Buf/binary>>) when Unicode =< 16#FFFF ->
+    escape_string(Str, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(Unicode)>>);
+escape_unicode_char(<<Str/binary>>, Unicode, <<Buf/binary>>) ->
+    %% サロゲートペア
+    <<High:10, Low:10>> = <<(Unicode - 16#10000):20>>, % 非効率
+    escape_string(Str, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(High + 16#D800), $\\, $u, ?UNICODE_TO_HEX(Low + 16#DC00)>>).
+
+-spec array(jsone:json_array(), binary()) -> binary().
+array(List, <<Buf/binary>>) ->
+    array_values(List, <<Buf/binary, $[>>).
+
+-spec array_values(jsone:json_array(), binary()) -> binary().
+array_values([],       <<Buf/binary>>) -> <<Buf/binary, $]>>;
+array_values([X | Xs], <<Buf/binary>>) ->
+    Buf2 = value(X, Buf),
+    case Xs of
+        [] -> <<Buf2/binary, $]>>;
+        _  -> array_values(Xs, <<Buf2/binary, $,>>)
+    end.
+
+-spec object(jsone:json_object(), binary()) -> binary().
+object({object, Members}, <<Buf/binary>>) ->
+    object_members(Members, <<Buf/binary, ${>>).
+
+-spec object_members(jsone:json_object_members(), binary()) -> binary().
+object_members([],                             <<Buf/binary>>) -> <<Buf/binary, $}>>;
+object_members([{<<Key/binary>>, Value} | Xs], <<Buf/binary>>) ->
+    Buf2 = string(Key, Buf),
+    Buf3 = value(Value, <<Buf2/binary, $:>>),
+    case Xs of
+        [] -> <<Buf3/binary, $}>>;
+        _  -> object_members(Xs, <<Buf3/binary, $,>>)
+    end;
+object_members(Arg, <<Buf/binary>>) ->
+    error(badarg, [Arg, Buf]).

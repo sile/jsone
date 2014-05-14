@@ -1,7 +1,7 @@
 %%% @doc JSON decoding/encoding module
 %%% @end
 %%%
-%%% Copyright (c) 2013, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -65,9 +65,9 @@
 decode(Json) ->
     jsone_decode:decode(Json).
 
-%% @doc JSON値をiodata形式にエンコードする.
+%% @doc JSON値をバイナリ形式にエンコードする.
 %%
 %% エンコードに失敗した場合はエラーが送出される
--spec encode(json_value()) -> iodata().
+-spec encode(json_value()) -> binary().
 encode(JsonValue) ->
     jsone_encode:encode(JsonValue).

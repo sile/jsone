@@ -5,7 +5,7 @@ DIALYZER_OPTS=-Werror_handling -Wrace_conditions -Wunmatched_returns
 
 DEPENDED_APPS=
 
-all: compile xref eunit edoc dialyze
+all: compile xref eunit dialyze
 
 init:
 	@./rebar get-deps compile 
