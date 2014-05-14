@@ -65,9 +65,9 @@
 decode(Json) ->
     jsone_decode:decode(Json).
 
-%% @doc JSON値をiodata形式にエンコードする.
+%% @doc JSON値をバイナリ形式にエンコードする.
 %%
 %% エンコードに失敗した場合はエラーが送出される
--spec encode(json_value()) -> iodata().
+-spec encode(json_value()) -> binary().
 encode(JsonValue) ->
     jsone_encode:encode(JsonValue).

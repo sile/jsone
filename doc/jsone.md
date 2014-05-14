@@ -103,7 +103,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>JSON値をiodata形式にエンコードする.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>JSON値をバイナリ形式にエンコードする.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -133,14 +133,14 @@ JSONバイナリをデコードする.
 
 
 <pre><code>
-encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; iodata()
+encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; binary()
 </code></pre>
 
 <br></br>
 
 
 
-JSON値をiodata形式にエンコードする.
+JSON値をバイナリ形式にエンコードする.
 
 
 エンコードに失敗した場合はエラーが送出される

@@ -163,7 +163,7 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
 unicode_string(<<Bin/binary>>, _Acc, _Nexts, _Buf) ->
     ?ERROR(Bin).
 
--spec unicode_to_utf8(0..1114111, binary()) -> iolist().
+-spec unicode_to_utf8(0..1114111, binary()) -> binary().
 unicode_to_utf8(Code, Buf) when Code < 16#80 ->
     <<Buf/binary, Code>>;
 unicode_to_utf8(Code, Buf) when Code < 16#800 ->
