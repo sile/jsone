@@ -118,7 +118,7 @@ object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf) -> whitespace(Bin, va
 object_value(<<Bin/binary>>, _Key, _Members, _Nexts, _Buf) -> ?ERROR(Bin).
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {object, lists:reverse(Members)}, Nexts, Buf);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {object, Members}, Nexts, Buf);
 object_next(<<$,, Bin/binary>>, Members, Nexts, Buf) -> whitespace(Bin, string, [{object_value, Members} | Nexts], Buf);
 object_next(<<Bin/binary>>, _Members, _Nexts, _Buf)  -> ?ERROR(Bin).
 
