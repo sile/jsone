@@ -108,7 +108,7 @@ array_next(<<$,, Bin/binary>>, Values, Nexts, Buf) -> whitespace(Bin, value, [{a
 array_next(Bin,                Values, Nexts, Buf) -> error(badarg, [Bin, Values, Nexts, Buf]).
 
 -spec object(binary(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
-object(<<$}, Bin/binary>>, Nexts, Buf) -> next(Bin, {object, []}, Nexts, Buf);
+object(<<$}, Bin/binary>>, Nexts, Buf) -> next(Bin, {[]}, Nexts, Buf);
 object(<<Bin/binary>>, Nexts, Buf) -> whitespace(Bin, string, [{object_value, []} | Nexts], Buf).
 
 -spec object_value(binary(), jsone:json_string(), jsone:json_object_members(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
@@ -116,7 +116,7 @@ object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf) -> whitespace(Bin, va
 object_value(Bin,                Key, Members, Nexts, Buf) -> error(badarg, [Bin, Key, Members, Nexts, Buf]).
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary()) -> {jsone:json_value(), Rest::binary()}.
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {object, Members}, Nexts, Buf);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {Members}, Nexts, Buf);
 object_next(<<$,, Bin/binary>>, Members, Nexts, Buf) -> whitespace(Bin, string, [{object_value, Members} | Nexts], Buf);
 object_next(Bin,                Members, Nexts, Buf) -> error(badarg, [Bin, Members, Nexts, Buf]).
 

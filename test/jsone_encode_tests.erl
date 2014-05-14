@@ -93,27 +93,27 @@ encode_test_() ->
      %% オブジェクト系
      {"オブジェクトがエンコード可能",
       fun () ->
-              Input    = {object, [{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Input    = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               Expected = <<"{\"key\":\"value\",\"1\":2}">>,
               ?assertEqual(Expected, jsone_encode:encode(Input))
       end},
      {"空オブジェクトがエンコード可能",
       fun () ->
-              Input    = {object, []},
+              Input    = {[]},
               Expected = <<"{}">>,
               ?assertEqual(Expected, jsone_encode:encode(Input))
       end},
      {"オブジェクトのメンバのキーにはバイナリのみが使用可能",
       fun () ->
-              ?assertError(badarg, jsone_encode:encode({object, [{1, 2}]})),
-              ?assertError(badarg, jsone_encode:encode({object, [{"1", 2}]})),
-              ?assertError(badarg, jsone_encode:encode({object, [{true, 2}]}))
+              ?assertError(badarg, jsone_encode:encode({[{1, 2}]})),
+              ?assertError(badarg, jsone_encode:encode({[{"1", 2}]})),
+              ?assertError(badarg, jsone_encode:encode({[{true, 2}]}))
       end},
 
      %% その他
      {"複雑なデータがエンコード可能",
       fun () ->
-              Input    = [true, {object, [{<<"1">>, 2}, {<<"array">>, [[[[1]]], {object, [{<<"ab">>, <<"cd">>}]}, false]}]}, null],
+              Input    = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
               Expected = <<"[true,{\"1\":2,\"array\":[[[[1]]],{\"ab\":\"cd\"},false]},null]">>,
               ?assertEqual(Expected, jsone_encode:encode(Input))
       end},

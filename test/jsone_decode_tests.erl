@@ -150,13 +150,13 @@ decode_test_() ->
      {"オブジェクトがデコード可能",
       fun () ->
               Input    = <<"{\"1\":2, \"key\":\"value\"}">>,
-              Expected = {object, [{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               ?assertEqual({Expected, <<"">>}, jsone_decode:decode(Input))
       end},
      {"空オブジェクトがデコード可能",
       fun () ->
-              ?assertEqual({{object, []}, <<"">>}, jsone_decode:decode(<<"{}">>)),
-              ?assertEqual({{object, []}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>))
+              ?assertEqual({{[]}, <<"">>}, jsone_decode:decode(<<"{}">>)),
+              ?assertEqual({{[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>))
       end},
      {"オブジェクトの末尾のカンマは許容されない",
       fun () ->
@@ -194,7 +194,7 @@ decode_test_() ->
      {"複雑なデータがデコード可能",
       fun () ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
-              Expected = [true, {object, [{<<"array">>, [[[[1]]], {object, [{<<"ab">>, <<"cd">>}]}, false]}, {<<"1">>, 2}]}, null],
+              Expected = [true, {[{<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}, {<<"1">>, 2}]}, null],
               ?assertEqual({Expected, <<"   ">>}, jsone_decode:decode(Input))
       end}
     ].

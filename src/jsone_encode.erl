@@ -58,7 +58,7 @@ value(Value, Buf) when is_integer(Value) -> <<Buf/binary, (integer_to_binary(Val
 value(Value, Buf) when is_float(Value)   -> <<Buf/binary, (float_to_binary(Value))/binary>>;
 value(Value, Buf) when is_binary(Value)  -> string(Value, Buf);
 value(Value, Buf) when is_list(Value)    -> array(Value, Buf);
-value({object, _} = Value, Buf)          -> object(Value, Buf);
+value({_} = Value, Buf)                  -> object(Value, Buf);
 value(Value, Buf)                        -> error(badarg, [Value, Buf]).
 
 -spec string(jsone:json_string(), binary()) -> binary().
@@ -110,7 +110,7 @@ array_values([X | Xs], Buf) ->
     end.
 
 -spec object(jsone:json_object(), binary()) -> binary().
-object({object, Members}, Buf) ->
+object({Members}, Buf) ->
     object_members(Members, <<Buf/binary, ${>>).
 
 -spec object_members(jsone:json_object_members(), binary()) -> binary().
