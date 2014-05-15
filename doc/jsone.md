@@ -58,7 +58,7 @@ json_number() = number()
 
 
 <pre><code>
-json_object() = {object, <a href="#type-json_object_members">json_object_members()</a>}
+json_object() = {<a href="#type-json_object_members">json_object_members()</a>}
 </code></pre>
 
 
@@ -103,7 +103,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>JSON値をバイナリ形式にエンコードする.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>JSON値をバイナリ形式にエンコードする.</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>JSON値をバイナリ形式にエンコードする.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -116,7 +116,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 
 
 <pre><code>
-decode(Json::binary()) -&gt; {<a href="#type-json_value">json_value()</a>, RestJson::binary()}
+decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
 
 <br></br>
@@ -144,3 +144,29 @@ JSON値をバイナリ形式にエンコードする.
 
 
 エンコードに失敗した場合はエラーが送出される
+<a name="try_decode-1"></a>
+
+### try_decode/1 ###
+
+
+<pre><code>
+try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Rest::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+</code></pre>
+
+<br></br>
+
+
+JSONバイナリをデコードする.
+<a name="try_encode-1"></a>
+
+### try_encode/1 ###
+
+
+<pre><code>
+try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+</code></pre>
+
+<br></br>
+
+
+JSON値をバイナリ形式にエンコードする
