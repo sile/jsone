@@ -31,7 +31,7 @@
 %%--------------------------------------------------------------------------------
 -export([
          decode/1, try_decode/1,
-         encode/1%, try_encode/1
+         encode/1, try_encode/1
         ]).
 
 -export_type([
@@ -63,9 +63,12 @@
 %% デコードに失敗した場合はエラーが送出される
 -spec decode(binary()) -> json_value().
 decode(Json) ->
-    case try_decode(Json) of
-        {ok, Value, _}                -> Value;
-        {error, {Reason, StackTrace}} -> erlang:raise(error, Reason, StackTrace)
+    try
+        {ok, Value, _} = try_decode(Json),
+        Value
+    catch
+        error:{badmatch, {error, {Reason, [StackItem]}}} ->
+            erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
     end.
 
 %% @doc JSONバイナリをデコードする.
@@ -78,4 +81,15 @@ try_decode(Json) ->
 %% エンコードに失敗した場合はエラーが送出される
 -spec encode(json_value()) -> binary().
 encode(JsonValue) ->
+    try
+        {ok, Binary} = try_encode(JsonValue),
+        Binary
+    catch
+        error:{badmatch, {error, {Reason, [StackItem]}}} ->
+            erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
+    end.
+
+%% @doc JSON値をバイナリ形式にエンコードする
+-spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+try_encode(JsonValue) ->
     jsone_encode:encode(JsonValue).
