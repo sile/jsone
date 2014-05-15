@@ -33,24 +33,30 @@
 -export([encode/1]).
 
 %%--------------------------------------------------------------------------------
-%% Macros
+%% Macros & Types
 %%--------------------------------------------------------------------------------
 -define(ERROR(Function, Args), {error, {badarg, [{?MODULE, Function, Args, [{line, ?LINE}]}]}}).
 -define(IS_REDUNDANT_UTF8(B1, B2, FirstBitN), (B1 =:= 0 andalso B2 < (1 bsl (FirstBitN + 1)))).
 -define(HEX(N, I), (binary:at(<<"0123456789abcdef">>, (N bsr (I * 4)) band 2#1111))).
 -define(UNICODE_TO_HEX(Code), ?HEX(Code, 3), ?HEX(Code, 2), ?HEX(Code, 1), ?HEX(Code, 0)).
 
+-type encode_result() :: {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-type next() :: {array_values, [jsone:json_value()]}
+              | {object_value, jsone:json_value(), jsone:json_object_members()}
+              | {object_members, jsone:json_object_members()}.
+
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
 %% @doc JSON値をバイナリ形式にエンコードする.
-% -spec encode(jsone:json_value()) -> binary().
+-spec encode(jsone:json_value()) -> encode_result().
 encode(Value) ->
     value(Value, [], <<"">>).
 
 %%--------------------------------------------------------------------------------
 %% Internal Functions
 %%--------------------------------------------------------------------------------
+-spec next([next()], binary()) -> encode_result().
 next([], Buf)             -> {ok, Buf};
 next([Next | Nexts], Buf) ->
     case Next of
@@ -68,7 +74,7 @@ next([Next | Nexts], Buf) ->
             end
     end.
 
-% -spec value(jsone:json_value(), binary()) -> binary().
+-spec value(jsone:json_value(), [next()], binary()) -> encode_result().
 value(null, Nexts, Buf)                         -> next(Nexts, <<Buf/binary, "null">>);
 value(false, Nexts, Buf)                        -> next(Nexts, <<Buf/binary, "false">>);
 value(true, Nexts, Buf)                         -> next(Nexts, <<Buf/binary, "true">>);
@@ -79,11 +85,11 @@ value(Value, Nexts, Buf) when is_list(Value)    -> array(Value, Nexts, Buf);
 value({_} = Value, Nexts, Buf)                  -> object(Value, Nexts, Buf);
 value(Value, Nexts, Buf)                        -> ?ERROR(value, [Value, Nexts, Buf]).
 
-% -spec string(jsone:json_string(), binary()) -> binary().
+-spec string(jsone:json_string(), [next()], binary()) -> encode_result().
 string(<<Str/binary>>, Nexts, Buf) ->
     escape_string(Str, Nexts, <<Buf/binary, $">>).
 
-% -spec escape_string(binary(), binary()) -> binary().
+-spec escape_string(binary(), [next()], binary()) -> encode_result().
 escape_string(<<"">>,                   Nexts, Buf) -> next(Nexts, <<Buf/binary, $">>);
 escape_string(<<$", Str/binary>>,       Nexts, Buf) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $">>);
 escape_string(<<$\/, Str/binary>>,      Nexts, Buf) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\/>>);
@@ -106,7 +112,7 @@ escape_string(<<2#11110:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6, Str/b
 escape_string(Str, Nexts, Buf) ->
     ?ERROR(escape_string, [Str, Nexts, Buf]).
 
-% -spec escape_unicode_char(binary(), char(), binary()) -> binary().
+-spec escape_unicode_char(binary(), char(), [next()], binary()) -> encode_result().
 escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf) when Unicode =< 16#FFFF ->
     escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(Unicode)>>);
 escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf) ->
@@ -114,22 +120,23 @@ escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf) ->
     <<High:10, Low:10>> = <<(Unicode - 16#10000):20>>, % 非効率
     escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(High + 16#D800), $\\, $u, ?UNICODE_TO_HEX(Low + 16#DC00)>>).
 
-% -spec array(jsone:json_array(), binary()) -> binary().
+-spec array(jsone:json_array(), [next()], binary()) -> encode_result().
 array(List, Nexts, Buf) ->
     array_values(List, Nexts, <<Buf/binary, $[>>).
 
-% -spec array_values(jsone:json_array(), binary()) -> binary().
+-spec array_values(jsone:json_array(), [next()], binary()) -> encode_result().
 array_values([],       Nexts, Buf) -> next(Nexts, <<Buf/binary, $]>>);
 array_values([X | Xs], Nexts, Buf) -> value(X, [{array_values, Xs} | Nexts], Buf).
 
-% -spec object(jsone:json_object(), binary()) -> binary().
+-spec object(jsone:json_object(), [next()], binary()) -> encode_result().
 object({Members}, Nexts, Buf) ->
     object_members(Members, Nexts, <<Buf/binary, ${>>).
 
-% -spec object_members(jsone:json_object_members(), binary()) -> binary().
+-spec object_members(jsone:json_object_members(), [next()], binary()) -> encode_result().
 object_members([],                             Nexts, Buf) -> next(Nexts, <<Buf/binary, $}>>);
 object_members([{<<Key/binary>>, Value} | Xs], Nexts, Buf) -> string(Key, [{object_value, Value, Xs} | Nexts], Buf);
 object_members(Arg, Nexts, Buf)                            -> ?ERROR(object_members, [Arg, Nexts, Buf]).
 
+-spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary()) -> encode_result().
 object_value(Value, Members, Nexts, Buf) ->
     value(Value, [{object_members, Members} | Nexts], <<Buf/binary, $:>>).
