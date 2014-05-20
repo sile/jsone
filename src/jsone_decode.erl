@@ -46,10 +46,10 @@
 -type whitespace_next() :: value
                          | array
                          | object
-                         | string
                          | {array_next, [jsone:json_value()]}
+                         | {object_key, jsone:json_object_members()}
                          | {object_value, jsone:json_string(), jsone:json_object_members()}
-                         | {object_next, jsone:json_string(), jsone:json_value(), jsone:json_object_members()}.
+                         | {object_next, jsone:json_object_members()}.
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
@@ -71,7 +71,7 @@ next(<<Bin/binary>>, Value, [Next | Nexts], Buf) ->
     case Next of
         {array_next, Values}        -> whitespace(Bin, {array_next, [Value | Values]}, Nexts, Buf);
         {object_value, Members}     -> whitespace(Bin, {object_value, Value, Members}, Nexts, Buf);
-        {object_next, Key, Members} -> whitespace(Bin, {object_next, Key, Value, Members}, Nexts, Buf)
+        {object_next, Key, Members} -> whitespace(Bin, {object_next, [{Key, Value} | Members]}, Nexts, Buf)
     end.
 
 -spec whitespace(binary(), whitespace_next(), [next()], binary()) -> decode_result().
@@ -84,13 +84,10 @@ whitespace(<<Bin/binary>>,      Next, Nexts, Buf) ->
         value  -> value(Bin, Nexts, Buf);
         array  -> array(Bin, Nexts, Buf);
         object -> object(Bin, Nexts, Buf);
-        string -> case Bin of
-                      <<$", Bin2/binary>> -> string(Bin2, byte_size(Buf), Nexts, Buf);
-                      _                   -> ?ERROR(whitespace, [Bin, Next, Nexts, Buf])
-                  end;
-        {array_next, Values}               -> array_next(Bin, Values, Nexts, Buf);
-        {object_value, Key, Members}       -> object_value(Bin, Key, Members, Nexts, Buf);
-        {object_next, Key, Value, Members} -> object_next(Bin, [{Key, Value} | Members], Nexts, Buf)
+        {object_key, Members}        -> object_key(Bin, Members, Nexts, Buf);
+        {array_next, Values}         -> array_next(Bin, Values, Nexts, Buf);
+        {object_value, Key, Members} -> object_value(Bin, Key, Members, Nexts, Buf);
+        {object_next, Members}       -> object_next(Bin, Members, Nexts, Buf)
     end.
 
 -spec value(binary(), [next()], binary()) -> decode_result().
@@ -104,7 +101,7 @@ value(<<Bin/binary>>, Nexts, Buf)          -> number(Bin, Nexts, Buf).
 
 -spec array(binary(), [next()], binary()) -> decode_result().
 array(<<$], Bin/binary>>, Nexts, Buf) -> next(Bin, [], Nexts, Buf);
-array(<<Bin/binary>>, Nexts, Buf)     -> whitespace(Bin, value, [{array_next, []} | Nexts], Buf).
+array(<<Bin/binary>>, Nexts, Buf)     -> value(Bin, [{array_next, []} | Nexts], Buf).
 
 -spec array_next(binary(), [jsone:json_value()], [next()], binary()) -> decode_result().
 array_next(<<$], Bin/binary>>, Values, Nexts, Buf) -> next(Bin, lists:reverse(Values), Nexts, Buf);
@@ -113,7 +110,11 @@ array_next(Bin,                Values, Nexts, Buf) -> ?ERROR(array_next, [Bin, V
 
 -spec object(binary(), [next()], binary()) -> decode_result().
 object(<<$}, Bin/binary>>, Nexts, Buf) -> next(Bin, {[]}, Nexts, Buf);
-object(<<Bin/binary>>, Nexts, Buf) -> whitespace(Bin, string, [{object_value, []} | Nexts], Buf).
+object(<<Bin/binary>>, Nexts, Buf)     -> object_key(Bin, [], Nexts, Buf).
+
+-spec object_key(binary(), jsone:json_object_members(), [next()], binary()) -> decode_result().
+object_key(<<$", Bin/binary>>, Members, Nexts, Buf) -> string(Bin, byte_size(Buf), [{object_value, Members} | Nexts], Buf);
+object_key(<<Bin/binary>>, Members, Nexts, Buf)     -> ?ERROR(object_key, [Bin, Members, Nexts, Buf]).
 
 -spec object_value(binary(), jsone:json_string(), jsone:json_object_members(), [next()], binary()) -> decode_result().
 object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf) -> whitespace(Bin, value, [{object_next, Key, Members} | Nexts], Buf);
@@ -121,26 +122,38 @@ object_value(Bin,                Key, Members, Nexts, Buf) -> ?ERROR(object_valu
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary()) -> decode_result().
 object_next(<<$}, Bin/binary>>, Members, Nexts, Buf) -> next(Bin, {Members}, Nexts, Buf);
-object_next(<<$,, Bin/binary>>, Members, Nexts, Buf) -> whitespace(Bin, string, [{object_value, Members} | Nexts], Buf);
+object_next(<<$,, Bin/binary>>, Members, Nexts, Buf) -> whitespace(Bin, {object_key, Members}, Nexts, Buf);
 object_next(Bin,                Members, Nexts, Buf) -> ?ERROR(object_next, [Bin, Members, Nexts, Buf]).
 
 -spec string(binary(), non_neg_integer(), [next()], binary()) -> decode_result().
-string(<<$", Bin/binary>>, Start, Nexts, Buf) -> next(Bin, binary:part(Buf, Start, byte_size(Buf) - Start), Nexts, Buf);
-string(<<$\\, B/binary>>,  Start, Nexts, Buf) ->
-    case B of
-        <<$", Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $">>);
-        <<$/, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $/>>);
-        <<$\\,Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\\>>);
-        <<$b, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\b>>);
-        <<$f, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\f>>);
-        <<$n, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\n>>);
-        <<$r, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\r>>);
-        <<$t, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\t>>);
-        <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, Buf);
-        _                  -> ?ERROR(string, [<<$\\, B/binary>>, Start, Nexts, Buf])
+string(<<Bin/binary>>, Start, Nexts, Buf) ->
+    string(Bin, Bin, Start, Nexts, Buf).
+
+-spec string(binary(), binary(), non_neg_integer(), [next()], binary()) -> decode_result().
+string(<<$", Bin/binary>>, Base, Start, Nexts, Buf) ->
+    Prefix = binary:part(Base, 0, byte_size(Base) - byte_size(Bin) - 1),
+    case Start =:= byte_size(Buf) of
+        true  -> next(Bin, Prefix, Nexts, Buf);
+        false ->
+            Buf2 = <<Buf/binary, Prefix/binary>>,
+            next(Bin, binary:part(Buf2, Start, byte_size(Buf2) - Start), Nexts, Buf2)
     end;
-string(<<C, Bin/binary>>, Start, Nexts, Buf) when 16#20 =< C ->
-    string(Bin, Start, Nexts, <<Buf/binary, C>>).
+string(<<$\\, B/binary>>, Base, Start, Nexts, Buf) ->
+    Prefix = binary:part(Base, 0, byte_size(Base) - byte_size(B) - 1),
+    case B of
+        <<$", Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $">>);
+        <<$/, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $/>>);
+        <<$\\,Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\\>>);
+        <<$b, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\b>>);
+        <<$f, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\f>>);
+        <<$n, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\n>>);
+        <<$r, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\r>>);
+        <<$t, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\t>>);
+        <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, Buf);
+        _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf])
+    end;
+string(<<C, Bin/binary>>, Base, Start, Nexts, Buf) when 16#20 =< C ->
+    string(Bin, Base, Start, Nexts, Buf).
 
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
@@ -162,8 +175,8 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
         Unicode -> 
             string(Bin, Start, Nexts, unicode_to_utf8(Unicode, Buf))
     end;
-unicode_string(Bin, Acc, Nexts, Buf) ->
-    ?ERROR(unicode_string, [Bin, Acc, Nexts, Buf]).
+unicode_string(Bin, Start, Nexts, Buf) ->
+    ?ERROR(unicode_string, [Bin, Start, Nexts, Buf]).
 
 -spec unicode_to_utf8(0..1114111, binary()) -> binary().
 unicode_to_utf8(Code, Buf) when Code < 16#80 ->

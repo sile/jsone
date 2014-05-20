@@ -1,4 +1,4 @@
-jsone (0.2.1)
+jsone (0.2.2)
 =============
 
 Erlangで実装されたJSONのエンコード/デコードライブラリ。
@@ -32,10 +32,6 @@ $ make start
 [1,2,3]
 ```
 
-API
----
-[EDOCドキュメント](doc/jsone.md)
-
 使用例
 -----
 ```erlang
@@ -51,6 +47,23 @@ API
 <<"[1,2,3]">>
 
 ```
+
+Erlangの型とJSONの対応
+----------------------
+
+|         | Erlang                       | JSON            |
+|:-------:|-----------------------------:|----------------:|
+| number  |                          123 |             123 |
+| null    |                         null |            null |
+| boolean |                         true |            true |
+| string  |                    <<"abc">> |           "abc" |
+| array   |                      [1,2,3] |         [1,2,3] |
+| object  | {[{<<"key">>, <<"value">>}]} | {"key":"value"} |
+
+
+API
+---
+[EDOCドキュメント](doc/jsone.md)
 
 参考
 ----

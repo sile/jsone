@@ -121,7 +121,13 @@ decode_test_() ->
      %% 配列系
      {"配列がデコード可能",
       fun () ->
-              Input    = <<"[1, 2, \"abc\", null]">>,
+              Input    = <<"[1,2,\"abc\",null]">>,
+              Expected = [1, 2, <<"abc">>, null],
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
+      end},
+     {"空白文字を含む配列がデコード可能",
+      fun () ->
+              Input    = <<"[  1,\t2, \n \"abc\",\r null]">>,
               Expected = [1, 2, <<"abc">>, null],
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
@@ -149,7 +155,13 @@ decode_test_() ->
      %% オブジェクト系
      {"オブジェクトがデコード可能",
       fun () ->
-              Input    = <<"{\"1\":2, \"key\":\"value\"}">>,
+              Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
+              Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
+      end},
+     {"空白文字を含むオブジェクトがデコード可能",
+      fun () ->
+              Input    = <<"{  \"1\" :\t 2,\n\r\"key\" :   \n  \"value\"}">>,
               Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
