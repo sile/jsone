@@ -124,22 +124,34 @@ object_next(<<$,, Bin/binary>>, Members, Nexts, Buf) -> whitespace(Bin, {object_
 object_next(Bin,                Members, Nexts, Buf) -> ?ERROR(object_next, [Bin, Members, Nexts, Buf]).
 
 -spec string(binary(), non_neg_integer(), [next()], binary()) -> decode_result().
-string(<<$", Bin/binary>>, Start, Nexts, Buf) -> next(Bin, binary:part(Buf, Start, byte_size(Buf) - Start), Nexts, Buf);
-string(<<$\\, B/binary>>,  Start, Nexts, Buf) ->
-    case B of
-        <<$", Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $">>);
-        <<$/, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $/>>);
-        <<$\\,Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\\>>);
-        <<$b, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\b>>);
-        <<$f, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\f>>);
-        <<$n, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\n>>);
-        <<$r, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\r>>);
-        <<$t, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, $\t>>);
-        <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, Buf);
-        _                  -> ?ERROR(string, [<<$\\, B/binary>>, Start, Nexts, Buf])
+string(<<Bin/binary>>, Start, Nexts, Buf) ->
+    string(Bin, Bin, Start, Nexts, Buf).
+
+-spec string(binary(), binary(), non_neg_integer(), [next()], binary()) -> decode_result().
+string(<<$", Bin/binary>>, Base, Start, Nexts, Buf) ->
+    Prefix = binary:part(Base, 0, byte_size(Base) - byte_size(Bin) - 1),
+    case Start =:= byte_size(Buf) of
+        true  -> next(Bin, Prefix, Nexts, Buf);
+        false ->
+            Buf2 = <<Buf/binary, Prefix/binary>>,
+            next(Bin, binary:part(Buf2, Start, byte_size(Buf2) - Start), Nexts, Buf2)
     end;
-string(<<C, Bin/binary>>, Start, Nexts, Buf) when 16#20 =< C ->
-    string(Bin, Start, Nexts, <<Buf/binary, C>>).
+string(<<$\\, B/binary>>, Base, Start, Nexts, Buf) ->
+    Prefix = binary:part(Base, 0, byte_size(Base) - byte_size(B) - 1),
+    case B of
+        <<$", Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $">>);
+        <<$/, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $/>>);
+        <<$\\,Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\\>>);
+        <<$b, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\b>>);
+        <<$f, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\f>>);
+        <<$n, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\n>>);
+        <<$r, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\r>>);
+        <<$t, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\t>>);
+        <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, Buf);
+        _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf])
+    end;
+string(<<C, Bin/binary>>, Base, Start, Nexts, Buf) when 16#20 =< C ->
+    string(Bin, Base, Start, Nexts, Buf).
 
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
@@ -161,8 +173,8 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
         Unicode -> 
             string(Bin, Start, Nexts, unicode_to_utf8(Unicode, Buf))
     end;
-unicode_string(Bin, Acc, Nexts, Buf) ->
-    ?ERROR(unicode_string, [Bin, Acc, Nexts, Buf]).
+unicode_string(Bin, Start, Nexts, Buf) ->
+    ?ERROR(unicode_string, [Bin, Start, Nexts, Buf]).
 
 -spec unicode_to_utf8(0..1114111, binary()) -> binary().
 unicode_to_utf8(Code, Buf) when Code < 16#80 ->
