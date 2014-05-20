@@ -149,7 +149,7 @@ string(<<$\\, B/binary>>, Base, Start, Nexts, Buf) ->
         <<$n, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\n>>);
         <<$r, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\r>>);
         <<$t, Bin/binary>> -> string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary, $\t>>);
-        <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, Buf);
+        <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary>>);
         _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf])
     end;
 string(<<C, Bin/binary>>, Base, Start, Nexts, Buf) when 16#20 =< C ->
