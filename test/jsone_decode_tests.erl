@@ -101,7 +101,12 @@ decode_test_() ->
               %% 日本語以外のマルチバイト文字
               Input3    = <<"\"\\u06DD\\u06DE\\u10AE\\u10AF\"">>,
               Expected3 = <<"۝۞ႮႯ">>,
-              ?assertEqual({ok, Expected3, <<"">>}, jsone_decode:decode(Input3))
+              ?assertEqual({ok, Expected3, <<"">>}, jsone_decode:decode(Input3)),
+
+              %% 日本語と英数字が混在
+              Input4    = <<"\"a\\u30421\\u3044bb\\u304622\\u3048ccc\\u304A333\"">>,
+              Expected4 = <<"aあ1いbbう22えcccお333">>,  % このファイルの文字エンコーディングがUTF-8であることが前提
+              ?assertEqual({ok, Expected4, <<"">>}, jsone_decode:decode(Input4))
       end},
      {"サロゲートペアを含む文字列がデコード可能",
       fun () ->
