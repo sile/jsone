@@ -9,3 +9,4 @@ deps
 doc/*
 !doc/overview.edoc
 !doc/*.md
+.rebar

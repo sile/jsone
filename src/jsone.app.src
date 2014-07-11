@@ -2,7 +2,7 @@
 {application, jsone,
  [
   {description, "Erlang JSON Library"},
-  {vsn, "0.2.2"},
+  {vsn, git},
   {registered, []},
   {applications, [
                   kernel,
