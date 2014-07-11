@@ -103,7 +103,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>JSON値をバイナリ形式にエンコードする.</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>JSONバイナリをデコードする.</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>JSON値をバイナリ形式にエンコードする.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
 
 
 <a name="functions"></a>
@@ -123,10 +123,24 @@ decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
 
 
 
-JSONバイナリをデコードする.
+Decodes an erlang term from json text (a utf8 encoded binary)
 
 
-デコードに失敗した場合はエラーが送出される
+
+Raises an error exception if input is not valid json
+
+
+
+```
+  > jsone:decode(<<"1">>).
+  1
+  > jsone:decode(<<"wrong json">>).
+  ** exception error: bad argument
+      in function  jsone_decode:number_integer_part/4
+         called as jsone_decode:number_integer_part(<<"wrong json">>,1,[],<<>>)
+      in call from jsone:decode/1 (src/jsone.erl, line 71)
+```
+
 <a name="encode-1"></a>
 
 ### encode/1 ###
@@ -140,23 +154,50 @@ encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; binary()
 
 
 
-JSON値をバイナリ形式にエンコードする.
+Encodes an erlang term into json text (a utf8 encoded binary)
 
 
-エンコードに失敗した場合はエラーが送出される
+
+Raises an error exception if input is not an instance of type `json_value()`
+
+
+
+```
+  > jsone:encode([1, null, 2]).
+  <<"[1,null,2]">>
+  > jsone:encode([1, hoge, 2]).  % 'hoge' atom is not a json value
+  ** exception error: bad argument
+       in function  jsone_encode:value/3
+          called as jsone_encode:value(hoge,[{array_values,[2]}],<<"[1,">>)
+       in call from jsone:encode/1 (src/jsone.erl, line 97)
+```
+
 <a name="try_decode-1"></a>
 
 ### try_decode/1 ###
 
 
 <pre><code>
-try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Rest::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
 
 <br></br>
 
 
-JSONバイナリをデコードする.
+
+Decodes an erlang term from json text (a utf8 encoded binary)
+
+
+
+```
+  > jsone:try_decode(<<"[1,2,3] \"next value\"">>).
+  {ok,[1,2,3],<<" \"next value\"">>}
+  > jsone:try_decode(<<"wrong json">>).
+  {error,{badarg,[{jsone_decode,number_integer_part,
+                                [<<"wrong json">>,1,[],<<>>],
+                                [{line,208}]}]}}
+```
+
 <a name="try_encode-1"></a>
 
 ### try_encode/1 ###
@@ -169,4 +210,17 @@ try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, bi
 <br></br>
 
 
-JSON値をバイナリ形式にエンコードする
+
+Encodes an erlang term into json text (a utf8 encoded binary)
+
+
+
+```
+  > jsone:try_encode([1, null, 2]).
+  {ok,<<"[1,null,2]">>}
+  > jsone:try_encode([1, hoge, 2]).  % 'hoge' atom is not a json value
+  {error,{badarg,[{jsone_encode,value,
+                                [hoge,[{array_values,[2]}],<<"[1,">>],
+                                [{line,86}]}]}}
+```
+

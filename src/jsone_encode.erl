@@ -48,7 +48,7 @@
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
-%% @doc JSON値をバイナリ形式にエンコードする.
+%% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 -spec encode(jsone:json_value()) -> encode_result().
 encode(Value) ->
     value(Value, [], <<"">>).
@@ -116,8 +116,8 @@ escape_string(Str, Nexts, Buf) ->
 escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf) when Unicode =< 16#FFFF ->
     escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(Unicode)>>);
 escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf) ->
-    %% サロゲートペア
-    <<High:10, Low:10>> = <<(Unicode - 16#10000):20>>, % 非効率
+    %% Surrogate Pair
+    <<High:10, Low:10>> = <<(Unicode - 16#10000):20>>, % XXX: inefficient
     escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(High + 16#D800), $\\, $u, ?UNICODE_TO_HEX(Low + 16#DC00)>>).
 
 -spec array(jsone:json_array(), [next()], binary()) -> encode_result().

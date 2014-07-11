@@ -54,7 +54,7 @@
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
-%% @doc JSONバイナリをデコードする.
+%% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 -spec decode(binary()) -> decode_result().
 decode(<<Json/binary>>) ->
     whitespace(Json, value, [], <<"">>).
@@ -157,7 +157,7 @@ string(<<C, Bin/binary>>, Base, Start, Nexts, Buf) when 16#20 =< C ->
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
     case binary_to_integer(N, 16) of
         High when 16#D800 =< High, High =< 16#DBFF ->
-            %% サロゲートペア
+            %% surrogate pair
             case Bin of
                 <<$\\, $u, N2:4/binary, Bin2/binary>> ->
                     case binary_to_integer(N2, 16) of
@@ -168,7 +168,7 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf) ->
                     end;
                 _ -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf])
             end;
-        Unicode when 16#DC00 =< Unicode, Unicode =< 16#DFFF ->  % サロゲートペアの後半部分
+        Unicode when 16#DC00 =< Unicode, Unicode =< 16#DFFF ->  % second part of surrogate pair (without first part)
             ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf]);
         Unicode -> 
             string(Bin, Start, Nexts, unicode_to_utf8(Unicode, Buf))
@@ -188,7 +188,7 @@ unicode_to_utf8(Code, Buf) when Code < 16#10000 ->
     B = 2#10000000 bor ((Code bsr 6) band 2#111111),
     C = 2#10000000 bor (Code band 2#111111),
     <<Buf/binary, A, B, C>>;
-unicode_to_utf8(Code, Buf) -> % NOTE: サロゲートペアの仕組み上、コード値が上限を越えることはないので、ここでの範囲チェックは不要
+unicode_to_utf8(Code, Buf) ->
     A = 2#11110000 bor (Code bsr 18),
     B = 2#10000000 bor ((Code bsr 12) band 2#111111),
     C = 2#10000000 bor ((Code bsr  6) band 2#111111),
