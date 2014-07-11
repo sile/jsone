@@ -1,96 +1,97 @@
-%% Copyright (c) 2013, Takeru Ohta <phjgt308@gmail.com>
+%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
+%% coding: latin-1
 -module(jsone_decode_tests).
 
 -include_lib("eunit/include/eunit.hrl").
 
 decode_test_() ->
     [
-     %% シンボル系
-     {"'false'がデコード可能",
+     %% Symbols
+     {"false",
       fun () ->
               ?assertEqual({ok, false, <<"">>}, jsone_decode:decode(<<"false">>))
       end},
-     {"'true'がデコード可能",
+     {"true",
       fun () ->
               ?assertEqual({ok, true, <<"">>}, jsone_decode:decode(<<"true">>))
       end},
-     {"'null'がデコード可能",
+     {"null",
       fun () ->
               ?assertEqual({ok, null, <<"">>}, jsone_decode:decode(<<"null">>))
       end},
-     {"正の整数がデコード可能",
+
+     %% Numbers: Integer
+     {"positive integer",
       fun () ->
               ?assertEqual({ok, 1, <<"">>}, jsone_decode:decode(<<"1">>))
       end},
-
-     %% 数値系: 整数
-     {"0がデコード可能",
+     {"zero",
       fun () ->
               ?assertEqual({ok, 0, <<"">>}, jsone_decode:decode(<<"0">>))
       end},
-     {"負の整数がデコード可能",
+     {"negative integer",
       fun () ->
               ?assertEqual({ok, -1, <<"">>}, jsone_decode:decode(<<"-1">>))
       end},
-     {"整数の値の大きさに制限はなし",
+     {"large integer (no limit on size)",
       fun () ->
               ?assertEqual({ok, 111111111111111111111111111111111111111111111111111111111111111111111111111111, <<"">>},
                            jsone_decode:decode(<<"111111111111111111111111111111111111111111111111111111111111111111111111111111">>))
       end},
-     {"先頭に余計な0がつく場合は、先頭文字とそれ以降が別々のトークンと判断される",
+     {"integer with leading zero (interpreted as zero and remaining binary)",
       fun () ->
               ?assertEqual({ok, 0, <<"0">>}, jsone_decode:decode(<<"00">>)),
               ?assertEqual({ok, 0, <<"1">>}, jsone_decode:decode(<<"01">>)),
               ?assertEqual({ok, 0, <<"1">>}, jsone_decode:decode(<<"-01">>))
       end},
-     {"正の整数の前の'+'記号は許可されない",
+     {"integer can't begin with an explicit plus sign",
       fun () ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"+1">>))
       end},
 
-     %% 数値系: 小数
-     {"小数がデコード可能",
+     %% Numbers: Floats
+     {"float: decimal notation",
       fun () ->
               ?assertEqual({ok, 1.23, <<"">>}, jsone_decode:decode(<<"1.23">>))
       end},
-     {"指数形式の小数がデコード可能",
+     {"float: exponential notation",
       fun () ->
-              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"12345e-3">>)),
-              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"12345E-3">>)), % 'e'は大文字でも可
+              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"12345e-3">>)), % lower case 'e'
+              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"12345E-3">>)), % upper case 'E'
               ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"12345.0e-3">>)),
               ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345E2">>)),
-              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345e+2">>)), % 指数部では'+'をつけても良い
-              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345E+2">>)), % 指数部では'+'をつけても良い
+              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345e+2">>)), % exponent part can begin with plus sign
+              ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345E+2">>)),
               ?assertEqual({ok, -12.345, <<"">>}, jsone_decode:decode(<<"-0.012345e3">>))
       end},
-     {"不正な形式の小数",
+     {"float: invalid format",
       fun () ->
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<".123">>)),  % 整数部が省略されている
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.">>)),    % '.'の後ろに小数部が続かない
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.e+3">>)), % '.'の後ろに指数部が来る
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e">>)),    % 指数部が欠けている
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e-">>)),   % 指数部が欠けている
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1ee-1">>)), % 'e'が複数ある
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e--1">>)), % 符号が複数ある
-              ?assertEqual({ok, 0.1, <<".2">>}, jsone_decode:decode(<<"0.1.2">>))  % '.'が複数ある => 別々のトークンと判断される
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<".123">>)),  % omitted integer part
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.">>)),    % omitted fraction part: EOS
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.e+3">>)), % omitted fraction part: with exponent part
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e">>)),    % imcomplete fraction part
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e-">>)),   % imcomplete fraction part
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1ee-1">>)), % duplicated 'e'
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e--1">>)), % duplicated sign
+              ?assertEqual({ok, 0.1, <<".2">>}, jsone_decode:decode(<<"0.1.2">>))     % duplicated '.': interpreted as individual tokens
       end},
      
-     %% 文字列系
-     {"文字列がデコード可能",
+     %% Strings
+     {"simple string",
       fun () ->
               ?assertEqual({ok, <<"abc">>,  <<"">>}, jsone_decode:decode(<<"\"abc\"">>))
       end},
-     {"各種エスケープ文字がデコード可能",
+     {"string: escaped characters",
       fun () ->
               Input    = list_to_binary([$", [[$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t]], $"]),
               Expected = <<"\"\/\\\b\f\n\r\t">>,
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
-     {"エスケープされたUTF-16文字列がデコード可能",
+     {"string: escaped Unicode characters",
       fun () ->
-              %% 日本語
+              %% japanese
               Input1    = <<"\"\\u3042\\u3044\\u3046\\u3048\\u304A\"">>,
-              Expected1 = <<"あいうえお">>,  % このファイルの文字エンコーディングがUTF-8であることが前提
+              Expected1 = <<"あいうえお">>,  % assumed that the encoding of this file is UTF-8
               ?assertEqual({ok, Expected1, <<"">>}, jsone_decode:decode(Input1)),
 
               %% ascii
@@ -98,117 +99,117 @@ decode_test_() ->
               Expected2 = <<"abc">>,
               ?assertEqual({ok, Expected2, <<"">>}, jsone_decode:decode(Input2)),
 
-              %% 日本語以外のマルチバイト文字
+              %% other multi-byte characters
               Input3    = <<"\"\\u06DD\\u06DE\\u10AE\\u10AF\"">>,
               Expected3 = <<"۝۞ႮႯ">>,
               ?assertEqual({ok, Expected3, <<"">>}, jsone_decode:decode(Input3)),
 
-              %% 日本語と英数字が混在
+              %% mixture of ascii and japanese characters
               Input4    = <<"\"a\\u30421\\u3044bb\\u304622\\u3048ccc\\u304A333\"">>,
-              Expected4 = <<"aあ1いbbう22えcccお333">>,  % このファイルの文字エンコーディングがUTF-8であることが前提
+              Expected4 = <<"aあ1いbbう22えcccお333">>,  % assumed that the encoding of this file is UTF-8
               ?assertEqual({ok, Expected4, <<"">>}, jsone_decode:decode(Input4))
       end},
-     {"サロゲートペアを含む文字列がデコード可能",
+     {"string: surrogate pairs",
       fun () ->
               Input    = <<"\"\\ud848\\udc49\\ud848\\udc9a\\ud848\\udcfc\"">>,
               Expected = <<"𢁉𢂚𢃼">>,
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
-     {"不正なエスケープ文字",
+     {"string: invalid escape characters",
       fun () ->
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\z\"">>)),    % '\z'は未定義のエスケープ文字
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\uab\"">>)),  % '\u'の後ろに続く数値が足りない
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\"">>)), % 上位サロゲートが単独で出現
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\udc49\"">>)), % 下位サロゲーが単独で出現
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)) % 上位サロゲートの後ろに下位サロゲートが続かない
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\z\"">>)),    % '\z' is undefined
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\uab\"">>)),  % too few hex characters
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\"">>)), % high(first) surrogate only
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\udc49\"">>)), % low(second) surrogate only
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)) % missing low(second) surrogate
       end},
 
-     %% 配列系
-     {"配列がデコード可能",
+     %% Arrays
+     {"simple array",
       fun () ->
               Input    = <<"[1,2,\"abc\",null]">>,
               Expected = [1, 2, <<"abc">>, null],
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
-     {"空白文字を含む配列がデコード可能",
+     {"array: contains whitespaces",
       fun () ->
               Input    = <<"[  1,\t2, \n \"abc\",\r null]">>,
               Expected = [1, 2, <<"abc">>, null],
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
-     {"空配列がデコード可能",
+     {"empty array",
       fun () ->
               ?assertEqual({ok, [], <<"">>}, jsone_decode:decode(<<"[]">>)),
               ?assertEqual({ok, [], <<"">>}, jsone_decode:decode(<<"[ \t\r\n]">>))
       end},
-     {"配列の末尾のカンマは許容されない",
+     {"array: trailing comma is disallowed",
       fun () ->
               Input = <<"[1, 2, \"abc\", null, ]">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"区切り文字のカンマが抜けているとエラーとなる",
+     {"array: missing comma",
       fun () ->
-              Input = <<"[1 2, \"abc\", null]">>, % 1と2の間にカンマがない
+              Input = <<"[1 2, \"abc\", null]">>, % a missing comma between '1' and '2'
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"配列が閉じていないとエラー",
+     {"array: missing closing bracket",
       fun () ->
               Input = <<"[1, 2, \"abc\", null">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
 
-     %% オブジェクト系
-     {"オブジェクトがデコード可能",
+     %% Objects
+     {"simple object",
       fun () ->
               Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
               Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
-     {"空白文字を含むオブジェクトがデコード可能",
+     {"object: contains whitespaces",
       fun () ->
               Input    = <<"{  \"1\" :\t 2,\n\r\"key\" :   \n  \"value\"}">>,
               Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
-     {"空オブジェクトがデコード可能",
+     {"empty object",
       fun () ->
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{}">>)),
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>))
       end},
-     {"オブジェクトの末尾のカンマは許容されない",
+     {"object: trailing comma is disallowed",
       fun () ->
               Input = <<"{\"1\":2, \"key\":\"value\", }">>,
               io:format("~p\n", [catch jsone_decode:decode(Input)]),
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"区切り文字のカンマが抜けているとエラーとなる",
+     {"object: missing comma",
       fun () ->
               Input = <<"{\"1\":2 \"key\":\"value\"}">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"メンバのキーがない場合はエラー",
+     {"object: missing field key",
       fun () ->
               Input = <<"{:2, \"key\":\"value\"}">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"メンバのキーが文字列以外の場合はエラー",
+     {"object: non string key",
       fun () ->
               Input = <<"{1:2, \"key\":\"value\"}">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"メンバの値がない場合はエラー",
+     {"object: missing field value",
       fun () ->
               Input = <<"{\"1\", \"key\":\"value\"}">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
-     {"オブジェクトが閉じていないとエラー",
+     {"object: missing closing brace",
       fun () ->
               Input = <<"{\"1\":2 \"key\":\"value\"">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
 
-     %% その他
-     {"複雑なデータがデコード可能",
+     %% Others
+     {"compound data",
       fun () ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
               Expected = [true, {[{<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}, {<<"1">>, 2}]}, null],

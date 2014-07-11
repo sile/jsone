@@ -1,55 +1,101 @@
-jsone (0.2.2)
+jsone (0.2.3)
 =============
 
-Erlangで実装されたJSONのエンコード/デコードライブラリ。
+An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
 
-特徴
-----
-- RFC4627準拠
-- 日本語を含む文字列に対応
-  - ただし文字列はUTF-8のみをサポート
+Features
+--------
+- Provides simple encode/decode function only
+- [RFC4627](http://www.ietf.org/rfc/rfc4627.txt)-compliant
+- Supports UTF-8 encoded binary
 - Pure Erlang
-- デコード処理部を実験的にCPS的に実装
-  - パース途中にサブバイナリが生成されることを極力抑制して最適化
-  - NIFを使わない実装の中ではおそらく最速
+- Highly Efficient
+  - Maybe one of the fastest JSON library (except those which are implemented in NIF)
+      - TODO: benchmark result
+  - Decode function is written in continuation-passing style(CPS)
+      - CPS facilitates application of 'creation of sub binary delayed' optimization
+      - See also [Erlang Efficiency Guide](http://www.erlang.org/doc/efficiency_guide/binaryhandling.html)
 
-ビルド方法
+
+QuickStart
 ----------
-ビルドツールには[rebar](https://github.com/basho/rebar)を使用している。
 
-ビルド手順:
 ```sh
-# ビルド
+# clone
 $ git clone git://github.com/sile/jsone.git
-$ make init
+$ cd jsone
 
-# テスト & dialyzer 実行
-$ make
+# If you want to use HiPE enabled version, please execute following command.
+# $ git checkout hipe
 
-# ロードパスに追加してErlangシェルを起動
+# compile
+$ make compile
+
+# run tests
+$ make eunit
+
+# dialyze
+$ make dialyze
+
+# Erlang shell
 $ make start
 1> jsone:decode(<<"[1,2,3]">>).
 [1,2,3]
 ```
 
-使用例
------
+
+Usage Example
+-------------
+
 ```erlang
-%% デコード
+%% Decode
 > jsone:decode(<<"[1,2,3]">>).
 [1,2,3]
 
-> json:decode(<<"{\"1\":2}">>).
-{[{<<"1">>,2}]}   % オブジェクトは {[Key, Value]} 形式にデコードされる
+> jsone:decode(<<"{\"1\":2}">>).
+{[{<<"1">>,2}]}
 
-%% エンコード
+> jsone:try_decode(<<"[1,2,3] \"next value\"">>). % try_decode/1 returns remaining (unconsumed binary)
+{ok,[1,2,3],<<" \"next value\"">>}
+
+% error: raises exception
+> jsone:decode(<<"1.x">>).
+** exception error: bad argument
+     in function  jsone_decode:number_fraction_part_rest/6
+        called as jsone_decode:number_fraction_part_rest(<<"x">>,1,1,0,[],<<>>)
+     in call from jsone:decode/1 (src/jsone.erl, line 71)
+
+% error: returns {error, Reason}
+> jsone:try_decode(<<"1.x">>).
+{error,{badarg,[{jsone_decode,number_fraction_part_rest,
+                              [<<"x">>,1,1,0,[],<<>>],
+                              [{line,228}]}]}}
+
+
+%% Encode
 > jsone:encode([1,2,3]).
 <<"[1,2,3]">>
 
+> jsone:encode({[{<<"key">>, <<"value">>}]}).
+<<"{\"key\":\"value\"}">>
+
+% error: raises exception
+> jsone:encode({[{key, <<"value">>}]}). % non binary key is not allowed
+** exception error: bad argument
+     in function  jsone_encode:object_members/3
+        called as jsone_encode:object_members([{key,<<"value">>}],[],<<"{">>)
+     in call from jsone:encode/1 (src/jsone.erl, line 97)
+
+% error: returns {error, Reason}
+> jsone:try_encode({[{key, <<"value">>}]}).
+{error,{badarg,[{jsone_encode,object_members,
+                              [[{key,<<"value">>}],[],<<"{">>],
+                              [{line,138}]}]}}
 ```
 
-Erlangの型とJSONの対応
-----------------------
+
+Data Mapping (Erlangの<=> JSON)
+-------------------------------
 
 |         | Erlang                       | JSON            |
 |:-------:|-----------------------------:|----------------:|
@@ -63,9 +109,4 @@ Erlangの型とJSONの対応
 
 API
 ---
-[EDOCドキュメント](doc/jsone.md)
-
-参考
-----
-- [JSON](http://www.json.org/)
-- [RFC4627](http://www.ietf.org/rfc/rfc4627.txt)
+See [EDoc Document](doc/jsone.md)
