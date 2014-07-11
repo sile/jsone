@@ -3,6 +3,7 @@ jsone (0.2.3)
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
 
+
 Features
 --------
 - Provides simple encode/decode function only
@@ -94,7 +95,7 @@ Usage Example
 ```
 
 
-Data Mapping (Erlangの<=> JSON)
+Data Mapping (Erlang <=> JSON)
 -------------------------------
 
 |         | Erlang                       | JSON            |

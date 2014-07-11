@@ -65,7 +65,7 @@
 %% ```
 %% > jsone:decode(<<"1">>).
 %% 1
-%%
+%% 
 %% > jsone:decode(<<"wrong json">>).
 %% ** exception error: bad argument
 %%     in function  jsone_decode:number_integer_part/4
@@ -87,7 +87,7 @@ decode(Json) ->
 %% ```
 %% > jsone:try_decode(<<"[1,2,3] \"next value\"">>).
 %% {ok,[1,2,3],<<" \"next value\"">>}
-%%
+%%  
 %% > jsone:try_decode(<<"wrong json">>).
 %% {error,{badarg,[{jsone_decode,number_integer_part,
 %%                               [<<"wrong json">>,1,[],<<>>],
@@ -104,7 +104,7 @@ try_decode(Json) ->
 %% ```
 %% > jsone:encode([1, null, 2]).
 %% <<"[1,null,2]">>
-%%
+%%  
 %% > jsone:encode([1, hoge, 2]).  % 'hoge' atom is not a json value
 %% ** exception error: bad argument
 %%      in function  jsone_encode:value/3
@@ -126,7 +126,7 @@ encode(JsonValue) ->
 %% ```
 %% > jsone:try_encode([1, null, 2]).
 %% {ok,<<"[1,null,2]">>}
-%%
+%%  
 %% > jsone:try_encode([1, hoge, 2]).  % 'hoge' atom is not a json value
 %% {error,{badarg,[{jsone_encode,value,
 %%                               [hoge,[{array_values,[2]}],<<"[1,">>],
