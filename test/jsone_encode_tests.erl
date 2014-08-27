@@ -64,11 +64,15 @@ encode_test_() ->
               Input1    = <<"あいうえお">>,  % assumed that the encoding of this file is UTF-8
               Expected1 = <<"\"\\u3042\\u3044\\u3046\\u3048\\u304a\"">>,
               ?assertEqual({ok, Expected1}, jsone_encode:encode(Input1)),
+              Expected12 = <<$", Input1/binary, $">>,
+              ?assertEqual({ok, Expected12}, jsone_encode:encode(Input1, [native_utf8])),
 
               %% other multi-byte characters
               Input2    = <<"۝۞ႮႯ">>,
               Expected2 = <<"\"\\u06dd\\u06de\\u10ae\\u10af\"">>,
-              ?assertEqual({ok, Expected2}, jsone_encode:encode(Input2))
+              ?assertEqual({ok, Expected2}, jsone_encode:encode(Input2)),
+              Expected22 = <<$", Input2/binary, $">>,
+              ?assertEqual({ok, Expected22}, jsone_encode:encode(Input2, [native_utf8]))
       end},
      {"string: containts surrogate pairs",
       fun () ->

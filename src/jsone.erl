@@ -31,7 +31,8 @@
 %%--------------------------------------------------------------------------------
 -export([
          decode/1, try_decode/1,
-         encode/1, try_encode/1
+         encode/1, encode/2,
+         try_encode/1, try_encode/2
         ]).
 
 -export_type([
@@ -54,6 +55,11 @@
 -type json_array()          :: [json_value()].
 -type json_object()         :: {json_object_members()}.
 -type json_object_members() :: [{json_string(), json_value()}].
+
+-type option()              :: {atom(), atom()|boolean()}.
+-export_type([option/0]).
+
+-define(DEFAULT_OPTIONS, []).
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -113,8 +119,12 @@ try_decode(Json) ->
 %% '''
 -spec encode(json_value()) -> binary().
 encode(JsonValue) ->
+    encode(JsonValue, ?DEFAULT_OPTIONS).
+
+-spec encode(json_value(), [option()]) -> binary().
+encode(JsonValue, Options) ->
     try
-        {ok, Binary} = try_encode(JsonValue),
+        {ok, Binary} = try_encode(JsonValue, Options),
         Binary
     catch
         error:{badmatch, {error, {Reason, [StackItem]}}} ->
@@ -134,4 +144,8 @@ encode(JsonValue) ->
 %% '''
 -spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 try_encode(JsonValue) ->
-    jsone_encode:encode(JsonValue).
+    jsone_encode:encode(JsonValue, ?DEFAULT_OPTIONS).
+
+-spec try_encode(json_value(), [option()]) -> {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+try_encode(JsonValue, Options) ->
+    jsone_encode:encode(JsonValue, Options).
