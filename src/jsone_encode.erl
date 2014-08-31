@@ -57,7 +57,7 @@
 encode(Value) ->
     jsone:try_encode(Value).
 
--spec encode(jsone:json_value(), [jsone:option()]) -> encode_result().
+-spec encode(jsone:json_value(), [jsone:encode_option()]) -> encode_result().
 encode(Value, Options) ->
     Opt = parse_options(Options),
     value(Value, [], <<"">>, Opt).
@@ -169,7 +169,7 @@ object_value(Value, Members, Nexts, Buf, Opt) ->
     value(Value, [{object_members, Members} | Nexts], <<Buf/binary, $:>>, Opt).
 
 
--spec parse_options([jsone:option()]) -> encode_opt().
+-spec parse_options([jsone:encode_option()]) -> encode_opt().
 parse_options(Options) ->
     parse_option(Options, ?ENCODE_OPT{}).
 
