@@ -17,6 +17,20 @@ JSON decoding/encoding module.
 
 
 
+### <a name="type-encode_option">encode_option()</a> ###
+
+
+
+<pre><code>
+encode_option() = native_utf8
+</code></pre>
+
+
+
+  native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string
+
+
+
 ### <a name="type-json_array">json_array()</a> ###
 
 
@@ -103,7 +117,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
 
 
 <a name="functions"></a>
@@ -148,6 +162,19 @@ Raises an error exception if input is not valid json
 
 <pre><code>
 encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; binary()
+</code></pre>
+
+<br></br>
+
+
+Equivalent to [`encode(JsonValue, [])`](#encode-2).
+<a name="encode-2"></a>
+
+### encode/2 ###
+
+
+<pre><code>
+encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; binary()
 </code></pre>
 
 <br></br>
@@ -205,6 +232,19 @@ Decodes an erlang term from json text (a utf8 encoded binary)
 
 <pre><code>
 try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+</code></pre>
+
+<br></br>
+
+
+Equivalent to [`try_encode(JsonValue, [])`](#try_encode-2).
+<a name="try_encode-2"></a>
+
+### try_encode/2 ###
+
+
+<pre><code>
+try_encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
 
 <br></br>

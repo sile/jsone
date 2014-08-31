@@ -1,4 +1,4 @@
-jsone (0.2.3)
+jsone (0.2.4)
 =============
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
@@ -140,7 +140,7 @@ Benchmark
 - row: data size (bytes)
 - cell: elapsed time (micro seconds)
 
-|                   | jiffy | jsone | jsonerl | jsonx |  jsx  | mochijson2 | yawsjson2 | 
+|                   | jiffy | jsone | jsonerl | jsonx |  jsx  | mochijson2 | yawsjson2 |
 |------------------:|------:|------:|--------:|------:|------:|-----------:|----------:|
 | 559 (1x)          | 12    | 11    | 61      | 7     | 50    | 28         | 37        |
 | 1583 (3x)         | 24    | 25    | 66      | 15    | 134   | 68         | 84        |
@@ -155,7 +155,7 @@ Benchmark
 - row: data size (bytes)
 - cell: elapsed time (micro seconds)
 
-|                   | jiffy | jsone | jsonerl | jsonx |  jsx  | mochijson2 | yawsjson2 | 
+|                   | jiffy | jsone | jsonerl | jsonx |  jsx  | mochijson2 | yawsjson2 |
 |------------------:|------:|------:|--------:|------:|------:|-----------:|----------:|
 | 559 (1x)          | 14    | 19    | 21      | 8     | 83    | 19         | 15        |
 | 1583 (3x)         | 29    | 49    | 65      | 14    | 228   | 61         | 42        |
@@ -163,6 +163,3 @@ Benchmark
 | 13914 (27x)       | 215   | 393   | 737     | 101   | 1993  | 664        | 435       |
 | 41542 (81x)       | 621   | 1172  | 2058    | 300   | 6237  | 2310       | 1192      |
 | 124726 (243x)     | 1830  | 3968  | 5842    | 828   | 17032 | 6979       | 5266      |
-
-
-
