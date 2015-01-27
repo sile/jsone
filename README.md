@@ -101,14 +101,14 @@ Usage Example
 Data Mapping (Erlang <=> JSON)
 -------------------------------
 
-|         | Erlang                             | JSON            |
-|:-------:|-----------------------------------:|----------------:|
-| number  |                                123 |             123 |
-| null    |                               null |            null |
-| boolean |                               true |            true |
-| string  |                          <<"abc">> |           "abc" |
-| array   |                            [1,2,3] |         [1,2,3] |
-| object  | {[{<<"key">> | key, <<"value">>}]} | {"key":"value"} |
+|         | Erlang                                 | JSON                       |
+|:-------:|---------------------------------------:|---------------------------:|
+| number  |                                    123 |                        123 |
+| null    |                                   null |                       null |
+| boolean |                                   true |                       true |
+| string  |                              <<"abc">> |                      "abc" |
+| array   |                                [1,2,3] |                    [1,2,3] |
+| object  | {[{<<"key">>,<<"value">>},{hoge,123}]} | {"key":"value","hoge":123} |
 
 
 API
