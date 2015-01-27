@@ -80,17 +80,20 @@ Usage Example
 > jsone:encode({[{<<"key">>, <<"value">>}]}).
 <<"{\"key\":\"value\"}">>
 
+> jsone:encode({[{key, <<"value">>}]}). % atom key is allowed
+<<"{\"key\":\"value\"}">>
+
 % error: raises exception
-> jsone:encode({[{key, <<"value">>}]}). % non binary key is not allowed
+> jsone:encode({[{123, <<"value">>}]}). % non binary|atom key is not allowed
 ** exception error: bad argument
      in function  jsone_encode:object_members/3
-        called as jsone_encode:object_members([{key,<<"value">>}],[],<<"{">>)
+        called as jsone_encode:object_members([{123,<<"value">>}],[],<<"{">>)
      in call from jsone:encode/1 (src/jsone.erl, line 97)
 
 % error: returns {error, Reason}
-> jsone:try_encode({[{key, <<"value">>}]}).
+> jsone:try_encode({[{123, <<"value">>}]}).
 {error,{badarg,[{jsone_encode,object_members,
-                              [[{key,<<"value">>}],[],<<"{">>],
+                              [[{123,<<"value">>}],[],<<"{">>],
                               [{line,138}]}]}}
 ```
 
@@ -98,14 +101,14 @@ Usage Example
 Data Mapping (Erlang <=> JSON)
 -------------------------------
 
-|         | Erlang                       | JSON            |
-|:-------:|-----------------------------:|----------------:|
-| number  |                          123 |             123 |
-| null    |                         null |            null |
-| boolean |                         true |            true |
-| string  |                    <<"abc">> |           "abc" |
-| array   |                      [1,2,3] |         [1,2,3] |
-| object  | {[{<<"key">>, <<"value">>}]} | {"key":"value"} |
+|         | Erlang                             | JSON            |
+|:-------:|-----------------------------------:|----------------:|
+| number  |                                123 |             123 |
+| null    |                               null |            null |
+| boolean |                               true |            true |
+| string  |                          <<"abc">> |           "abc" |
+| array   |                            [1,2,3] |         [1,2,3] |
+| object  | {[{<<"key">> | key, <<"value">>}]} | {"key":"value"} |
 
 
 API

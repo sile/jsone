@@ -160,9 +160,10 @@ object({Members}, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, <<Buf/binary, ${>>, Opt).
 
 -spec object_members(jsone:json_object_members(), [next()], binary(), encode_opt()) -> encode_result().
-object_members([],                             Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $}>>, Opt);
-object_members([{<<Key/binary>>, Value} | Xs], Nexts, Buf, Opt) -> string(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
-object_members(Arg, Nexts, Buf, _)                            -> ?ERROR(object_members, [Arg, Nexts, Buf]).
+object_members([],                             Nexts, Buf, Opt)        -> next(Nexts, <<Buf/binary, $}>>, Opt);
+object_members([{<<Key/binary>>, Value} | Xs], Nexts, Buf, Opt)        -> string(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
+object_members([{Key, Value} | Xs], Nexts, Buf, Opt) when is_atom(Key) -> string(atom_to_binary(Key, utf8), [{object_value, Value, Xs} | Nexts], Buf, Opt);
+object_members(Arg, Nexts, Buf, _)                                     -> ?ERROR(object_members, [Arg, Nexts, Buf]).
 
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), encode_opt()) -> encode_result().
 object_value(Value, Members, Nexts, Buf, Opt) ->

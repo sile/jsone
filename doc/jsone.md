@@ -79,12 +79,26 @@ json_object() = {<a href="#type-json_object_members">json_object_members()</a>}
 
 
 
+### <a name="type-json_object_key">json_object_key()</a> ###
+
+
+
+<pre><code>
+json_object_key() = <a href="#type-json_string">json_string()</a> | atom()
+</code></pre>
+
+
+
+ NOTE: `decode/1` always returns `json_string()` key
+
+
+
 ### <a name="type-json_object_members">json_object_members()</a> ###
 
 
 
 <pre><code>
-json_object_members() = [{<a href="#type-json_string">json_string()</a>, <a href="#type-json_value">json_value()</a>}]
+json_object_members() = [{<a href="#type-json_object_key">json_object_key()</a>, <a href="#type-json_value">json_value()</a>}]
 </code></pre>
 
 
@@ -132,9 +146,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 <pre><code>
 decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 Decodes an erlang term from json text (a utf8 encoded binary)
@@ -163,9 +175,7 @@ Raises an error exception if input is not valid json
 <pre><code>
 encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 Equivalent to [`encode(JsonValue, [])`](#encode-2).
 <a name="encode-2"></a>
@@ -176,9 +186,7 @@ Equivalent to [`encode(JsonValue, [])`](#encode-2).
 <pre><code>
 encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 Encodes an erlang term into json text (a utf8 encoded binary)
@@ -207,9 +215,7 @@ Raises an error exception if input is not an instance of type `json_value()`
 <pre><code>
 try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 Decodes an erlang term from json text (a utf8 encoded binary)
@@ -233,9 +239,7 @@ Decodes an erlang term from json text (a utf8 encoded binary)
 <pre><code>
 try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
-
-<br></br>
-
+<br />
 
 Equivalent to [`try_encode(JsonValue, [])`](#try_encode-2).
 <a name="try_encode-2"></a>
@@ -246,9 +250,7 @@ Equivalent to [`try_encode(JsonValue, [])`](#try_encode-2).
 <pre><code>
 try_encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 Encodes an erlang term into json text (a utf8 encoded binary)

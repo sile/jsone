@@ -108,11 +108,15 @@ encode_test_() ->
               Expected = <<"{}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
+     {"atom key is allowed",
+      fun () ->
+              Expected = <<"{\"key\":2}">>,
+              ?assertEqual({ok, Expected}, jsone_encode:encode({[{key, 2}]}))
+      end},
      {"non binary object member key is disallowed",
       fun () ->
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{1, 2}]})),
-              ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{"1", 2}]})),
-              ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{true, 2}]}))
+              ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{"1", 2}]}))
       end},
 
      %% Others
