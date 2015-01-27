@@ -33,7 +33,7 @@
 -export([encode/1, encode/2]).
 
 %%--------------------------------------------------------------------------------
-%% Macros & Types
+%% Macros & Records & Types
 %%--------------------------------------------------------------------------------
 -define(ERROR(Function, Args), {error, {badarg, [{?MODULE, Function, Args, [{line, ?LINE}]}]}}).
 -define(IS_REDUNDANT_UTF8(B1, B2, FirstBitN), (B1 =:= 0 andalso B2 < (1 bsl (FirstBitN + 1)))).
@@ -52,10 +52,9 @@
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
-%% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 -spec encode(jsone:json_value()) -> encode_result().
 encode(Value) ->
-    jsone:try_encode(Value).
+    encode(Value, []).
 
 -spec encode(jsone:json_value(), [jsone:encode_option()]) -> encode_result().
 encode(Value, Options) ->

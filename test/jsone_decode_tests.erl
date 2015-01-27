@@ -75,7 +75,7 @@ decode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e--1">>)), % duplicated sign
               ?assertEqual({ok, 0.1, <<".2">>}, jsone_decode:decode(<<"0.1.2">>))     % duplicated '.': interpreted as individual tokens
       end},
-     
+
      %% Strings
      {"simple string",
       fun () ->
@@ -163,7 +163,8 @@ decode_test_() ->
       fun () ->
               Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
               Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
-              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input)),
+              ?assertEqual({ok, element(1, Expected), <<"">>}, jsone_decode:decode(Input, [{format, proplist}]))
       end},
      {"object: contains whitespaces",
       fun () ->
@@ -174,7 +175,8 @@ decode_test_() ->
      {"empty object",
       fun () ->
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{}">>)),
-              ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>))
+              ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
+              ?assertEqual({ok, [{}], <<"">>}, jsone_decode:decode(<<"{}">>, [{format, proplist}]))
       end},
      {"object: trailing comma is disallowed",
       fun () ->

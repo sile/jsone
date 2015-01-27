@@ -30,7 +30,8 @@
 %% Exported API
 %%--------------------------------------------------------------------------------
 -export([
-         decode/1, try_decode/1,
+         decode/1, decode/2,
+         try_decode/1, try_decode/2,
          encode/1, encode/2,
          try_encode/1, try_encode/2
         ]).
@@ -45,7 +46,8 @@
               json_object_key/0,
               json_boolean/0,
 
-              encode_option/0
+              encode_option/0,
+              decode_option/0
              ]).
 
 %%--------------------------------------------------------------------------------
@@ -65,49 +67,63 @@
 -type encode_option() :: native_utf8.
 %% native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string
 
+-type decode_option() :: {format, eep18 | proplist}.
+%% TODO: doc
+
 -define(DEFAULT_ENCODE_OPTIONS, []).
+-define(DEFAULT_DECODE_OPTIONS, []).
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
+%% @equiv decode(Json, [])
+-spec decode(binary()) -> json_value().
+decode(Json) ->
+    decode(Json, ?DEFAULT_DECODE_OPTIONS).
+
 %% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 %%
 %% Raises an error exception if input is not valid json
 %%
 %% ```
-%% > jsone:decode(<<"1">>).
+%% > jsone:decode(<<"1">>, []).
 %% 1
 %%
-%% > jsone:decode(<<"wrong json">>).
+%% > jsone:decode(<<"wrong json">>, []).
 %% ** exception error: bad argument
 %%     in function  jsone_decode:number_integer_part/4
 %%        called as jsone_decode:number_integer_part(<<"wrong json">>,1,[],<<>>)
 %%     in call from jsone:decode/1 (src/jsone.erl, line 71)
 %% '''
--spec decode(binary()) -> json_value().
-decode(Json) ->
+-spec decode(binary(), [decode_option()]) -> json_value().
+decode(Json, Options) ->
     try
-        {ok, Value, _} = try_decode(Json),
+        {ok, Value, _} = try_decode(Json, Options),
         Value
     catch
         error:{badmatch, {error, {Reason, [StackItem]}}} ->
             erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
     end.
 
+%% @equiv try_decode(Json, [])
+-spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+try_decode(Json) ->
+    try_decode(Json, ?DEFAULT_DECODE_OPTIONS).
+
 %% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 %%
 %% ```
-%% > jsone:try_decode(<<"[1,2,3] \"next value\"">>).
+%% > jsone:try_decode(<<"[1,2,3] \"next value\"">>, []).
 %% {ok,[1,2,3],<<" \"next value\"">>}
 %%
-%% > jsone:try_decode(<<"wrong json">>).
+%% > jsone:try_decode(<<"wrong json">>, []).
 %% {error,{badarg,[{jsone_decode,number_integer_part,
 %%                               [<<"wrong json">>,1,[],<<>>],
 %%                               [{line,208}]}]}}
 %% '''
--spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
-try_decode(Json) ->
-    jsone_decode:decode(Json).
+-spec try_decode(binary(), [decode_option()]) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+try_decode(Json, Options) ->
+    jsone_decode:decode(Json, Options).
 
 %% @equiv encode(JsonValue, [])
 -spec encode(json_value()) -> binary().
