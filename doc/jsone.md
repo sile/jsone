@@ -72,7 +72,7 @@ json_number() = number()
 
 
 <pre><code>
-json_object() = {<a href="#type-json_object_members">json_object_members()</a>}
+json_object() = {<a href="#type-json_object_members">json_object_members()</a>} | [{}] | <a href="#type-json_object_members">json_object_members()</a>
 </code></pre>
 
 

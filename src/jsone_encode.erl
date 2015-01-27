@@ -90,8 +90,10 @@ value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary
 value(Value, Nexts, Buf, Opt) when is_integer(Value) -> next(Nexts, <<Buf/binary, (integer_to_binary(Value))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when is_binary(Value)  -> string(Value, Nexts, Buf, Opt);
-value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
 value({_} = Value, Nexts, Buf, Opt)                  -> object(Value, Nexts, Buf, Opt);
+value([{}], Nexts, Buf, Opt)                         -> object({[]}, Nexts, Buf, Opt);
+value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object({Value}, Nexts, Buf, Opt);
+value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, _)                        -> ?ERROR(value, [Value, Nexts, Buf]).
 
 -spec string(jsone:json_string(), [next()], binary(), encode_opt()) -> encode_result().

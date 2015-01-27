@@ -56,7 +56,9 @@
 -type json_number()         :: number().
 -type json_string()         :: binary().
 -type json_array()          :: [json_value()].
--type json_object()         :: {json_object_members()}.
+-type json_object()         :: {json_object_members()}
+                             | [{}]
+                             | json_object_members().
 -type json_object_members() :: [{json_object_key(), json_value()}].
 -type json_object_key()     :: json_string() | atom(). % NOTE: `decode/1' always returns `json_string()' key
 

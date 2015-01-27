@@ -98,15 +98,19 @@ encode_test_() ->
      %% Objects
      {"simple object",
       fun () ->
-              Input    = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Input1   = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Input2   = [{<<"key">>, <<"value">>}, {<<"1">>, 2}],
               Expected = <<"{\"key\":\"value\",\"1\":2}">>,
-              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input1)),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
       end},
      {"empty object",
       fun () ->
-              Input    = {[]},
+              Input1   = {[]},
+              Input2   = [{}],
               Expected = <<"{}">>,
-              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input1)),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
       end},
      {"atom key is allowed",
       fun () ->
