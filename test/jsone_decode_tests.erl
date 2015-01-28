@@ -162,14 +162,14 @@ decode_test_() ->
      {"simple object",
       fun () ->
               Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
-              Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Expected = {[{<<"1">>, 2},{<<"key">>, <<"value">>}]},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input)),
               ?assertEqual({ok, element(1, Expected), <<"">>}, jsone_decode:decode(Input, [{format, proplist}]))
       end},
      {"object: contains whitespaces",
       fun () ->
               Input    = <<"{  \"1\" :\t 2,\n\r\"key\" :   \n  \"value\"}">>,
-              Expected = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Expected = {[{<<"1">>, 2},{<<"key">>, <<"value">>}]},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
      {"empty object",
@@ -214,7 +214,7 @@ decode_test_() ->
      {"compound data",
       fun () ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
-              Expected = [true, {[{<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}, {<<"1">>, 2}]}, null],
+              Expected = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
               ?assertEqual({ok, Expected, <<"   ">>}, jsone_decode:decode(Input))
       end}
     ].

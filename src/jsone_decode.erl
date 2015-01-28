@@ -128,8 +128,8 @@ object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf, Opt) -> whitespace(Bi
 object_value(Bin,                Key, Members, Nexts, Buf, Opt) -> ?ERROR(object_value, [Bin, Key, Members, Nexts, Buf, Opt]).
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt = ?OPT{format = proplist}) -> next(Bin, Members, Nexts, Buf, Opt);
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, {Members}, Nexts, Buf, Opt);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt = ?OPT{format = proplist}) -> next(Bin, lists:reverse(Members), Nexts, Buf, Opt);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, {lists:reverse(Members)}, Nexts, Buf, Opt);
 object_next(<<$,, Bin/binary>>, Members, Nexts, Buf, Opt) -> whitespace(Bin, {object_key, Members}, Nexts, Buf, Opt);
 object_next(Bin,                Members, Nexts, Buf, Opt) -> ?ERROR(object_next, [Bin, Members, Nexts, Buf, Opt]).
 
