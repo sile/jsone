@@ -43,7 +43,6 @@
               json_array/0,
               json_object/0,
               json_object_members/0,
-              json_object_key/0,
               json_boolean/0,
 
               encode_option/0,
@@ -56,13 +55,12 @@
 -type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null.
 -type json_boolean()        :: boolean().
 -type json_number()         :: number().
--type json_string()         :: binary().
+-type json_string()         :: binary() | atom(). % NOTE: `decode/1' always returns `binary()' value
 -type json_array()          :: [json_value()].
 -type json_object()         :: {json_object_members()}
                              | [{}]
                              | json_object_members().
--type json_object_members() :: [{json_object_key(), json_value()}].
--type json_object_key()     :: json_string() | atom(). % NOTE: `decode/1' always returns `json_string()' key
+-type json_object_members() :: [{json_string(), json_value()}].
 
 -type encode_option() :: native_utf8.
 %% native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string

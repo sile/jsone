@@ -52,6 +52,10 @@ encode_test_() ->
       fun () ->
               ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(<<"abc">>))
       end},
+     {"atom is regarded as string",
+      fun () ->
+              ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(abc))
+      end},
      {"string: contains escaped characters",
       fun () ->
               Input    = <<"\"\/\\\b\f\n\r\t">>,

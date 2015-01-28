@@ -17,6 +17,18 @@ JSON decoding/encoding module.
 
 
 
+### <a name="type-decode_option">decode_option()</a> ###
+
+
+
+<pre><code>
+decode_option() = {format, eep18 | proplist}
+</code></pre>
+
+
+
+
+
 ### <a name="type-encode_option">encode_option()</a> ###
 
 
@@ -79,26 +91,12 @@ json_object() = {<a href="#type-json_object_members">json_object_members()</a>} 
 
 
 
-### <a name="type-json_object_key">json_object_key()</a> ###
-
-
-
-<pre><code>
-json_object_key() = <a href="#type-json_string">json_string()</a> | atom()
-</code></pre>
-
-
-
- NOTE: `decode/1` always returns `json_string()` key
-
-
-
 ### <a name="type-json_object_members">json_object_members()</a> ###
 
 
 
 <pre><code>
-json_object_members() = [{<a href="#type-json_object_key">json_object_key()</a>, <a href="#type-json_value">json_value()</a>}]
+json_object_members() = [{<a href="#type-json_string">json_string()</a>, <a href="#type-json_value">json_value()</a>}]
 </code></pre>
 
 
@@ -110,10 +108,12 @@ json_object_members() = [{<a href="#type-json_object_key">json_object_key()</a>,
 
 
 <pre><code>
-json_string() = binary()
+json_string() = binary() | atom()
 </code></pre>
 
 
+
+ NOTE: `decode/1` always returns `binary()` value
 
 
 
@@ -131,7 +131,7 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Equivalent to <a href="#decode-2"><tt>decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#decode-2">decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Equivalent to <a href="#try_decode-2"><tt>try_decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_decode-2">try_decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
 
 
 <a name="functions"></a>
@@ -148,6 +148,17 @@ decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
 <br />
 
+Equivalent to [`decode(Json, [])`](#decode-2).
+<a name="decode-2"></a>
+
+### decode/2 ###
+
+
+<pre><code>
+decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-json_value">json_value()</a>
+</code></pre>
+<br />
+
 
 Decodes an erlang term from json text (a utf8 encoded binary)
 
@@ -158,9 +169,9 @@ Raises an error exception if input is not valid json
 
 
 ```
-  > jsone:decode(<<"1">>).
+  > jsone:decode(<<"1">>, []).
   1
-  > jsone:decode(<<"wrong json">>).
+  > jsone:decode(<<"wrong json">>, []).
   ** exception error: bad argument
       in function  jsone_decode:number_integer_part/4
          called as jsone_decode:number_integer_part(<<"wrong json">>,1,[],<<>>)
@@ -217,15 +228,26 @@ try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a
 </code></pre>
 <br />
 
+Equivalent to [`try_decode(Json, [])`](#try_decode-2).
+<a name="try_decode-2"></a>
+
+### try_decode/2 ###
+
+
+<pre><code>
+try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+</code></pre>
+<br />
+
 
 Decodes an erlang term from json text (a utf8 encoded binary)
 
 
 
 ```
-  > jsone:try_decode(<<"[1,2,3] \"next value\"">>).
+  > jsone:try_decode(<<"[1,2,3] \"next value\"">>, []).
   {ok,[1,2,3],<<" \"next value\"">>}
-  > jsone:try_decode(<<"wrong json">>).
+  > jsone:try_decode(<<"wrong json">>, []).
   {error,{badarg,[{jsone_decode,number_integer_part,
                                 [<<"wrong json">>,1,[],<<>>],
                                 [{line,208}]}]}}

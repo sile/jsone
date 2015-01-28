@@ -86,6 +86,7 @@ next([Next | Nexts], Buf, Opt) ->
 value(null, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "null">>, Opt);
 value(false, Nexts, Buf, Opt)                        -> next(Nexts, <<Buf/binary, "false">>, Opt);
 value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "true">>, Opt);
+value(Value, Nexts, Buf, Opt) when is_atom(Value)    -> string(atom_to_binary(Value, utf8), Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_integer(Value) -> next(Nexts, <<Buf/binary, (integer_to_binary(Value))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when is_binary(Value)  -> string(Value, Nexts, Buf, Opt);
