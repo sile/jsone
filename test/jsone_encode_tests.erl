@@ -52,6 +52,10 @@ encode_test_() ->
       fun () ->
               ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(<<"abc">>))
       end},
+     {"atom is regarded as string",
+      fun () ->
+              ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(abc))
+      end},
      {"string: contains escaped characters",
       fun () ->
               Input    = <<"\"\/\\\b\f\n\r\t">>,
@@ -98,21 +102,29 @@ encode_test_() ->
      %% Objects
      {"simple object",
       fun () ->
-              Input    = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Input1   = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
+              Input2   = [{<<"key">>, <<"value">>}, {<<"1">>, 2}],
               Expected = <<"{\"key\":\"value\",\"1\":2}">>,
-              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input1)),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
       end},
      {"empty object",
       fun () ->
-              Input    = {[]},
+              Input1   = {[]},
+              Input2   = [{}],
               Expected = <<"{}">>,
-              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input1)),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
+      end},
+     {"atom key is allowed",
+      fun () ->
+              Expected = <<"{\"key\":2}">>,
+              ?assertEqual({ok, Expected}, jsone_encode:encode({[{key, 2}]}))
       end},
      {"non binary object member key is disallowed",
       fun () ->
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{1, 2}]})),
-              ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{"1", 2}]})),
-              ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{true, 2}]}))
+              ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{"1", 2}]}))
       end},
 
      %% Others
