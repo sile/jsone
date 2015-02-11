@@ -1,4 +1,4 @@
-jsone (0.2.4)
+jsone (0.3.0)
 =============
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
@@ -101,18 +101,27 @@ Usage Example
 Data Mapping (Erlang <=> JSON)
 -------------------------------
 
-|         | Erlang                                 | JSON                       |
-|:-------:|---------------------------------------:|---------------------------:|
-| number  |                                    123 |                        123 |
-| null    |                                   null |                       null |
-| boolean |                                   true |                       true |
-| string  |                              <<"abc">> |                      "abc" |
-| array   |                                [1,2,3] |                    [1,2,3] |
-| object  | {[{<<"key">>,<<"value">>},{hoge,123}]} | {"key":"value","hoge":123} |
+```
+Erlang                  JSON             Erlang
+=================================================================================================
 
+null                 -> null          -> null
+true                 -> true          -> true
+false                -> false         -> false
+<<"abc">>            -> "abc"         -> <<"abc">>
+abc                  -> "abc"         -> <<"abc">> % non-special atom is regarded as a binary
+123                  -> 123           -> 123
+123.4                -> 123.4         -> 123.4
+[1,2,3]              -> [1,2,3]       -> [1,2,3]
+{[]}                 -> {}            -> {[]}                       % object_format=tuple
+{[{key, <<"val">>}]} -> {"key":"val"} -> {[{<<"key">>, <<"val">>}]} % object_format=tuple
+[{}]                 -> {}            -> [{}]                       % object_format=proplist
+[{<<"key">>, val}]   -> {"key":"val"} -> [{<<"key">>, <<"val">>}]   % object_format=proplist
+```
 
 API
 ---
+
 See [EDoc Document](doc/jsone.md)
 
 

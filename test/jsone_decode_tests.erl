@@ -1,4 +1,4 @@
-%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
+%% Copyright (c) 2013-2015, Takeru Ohta <phjgt308@gmail.com>
 %% coding: latin-1
 -module(jsone_decode_tests).
 
@@ -164,7 +164,7 @@ decode_test_() ->
               Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
               Expected = {[{<<"1">>, 2},{<<"key">>, <<"value">>}]},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input)),
-              ?assertEqual({ok, element(1, Expected), <<"">>}, jsone_decode:decode(Input, [{format, proplist}]))
+              ?assertEqual({ok, element(1, Expected), <<"">>}, jsone_decode:decode(Input, [{object_format, proplist}]))
       end},
      {"object: contains whitespaces",
       fun () ->
@@ -176,7 +176,7 @@ decode_test_() ->
       fun () ->
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{}">>)),
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
-              ?assertEqual({ok, [{}], <<"">>}, jsone_decode:decode(<<"{}">>, [{format, proplist}]))
+              ?assertEqual({ok, [{}], <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, proplist}]))
       end},
      {"object: trailing comma is disallowed",
       fun () ->

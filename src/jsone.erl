@@ -1,7 +1,7 @@
 %%% @doc JSON decoding/encoding module
 %%% @end
 %%%
-%%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2015, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -38,12 +38,14 @@
 
 -export_type([
               json_value/0,
+              json_boolean/0,
               json_number/0,
               json_string/0,
               json_array/0,
               json_object/0,
               json_object_members/0,
-              json_boolean/0,
+              json_object_format_tuple/0,
+              json_object_format_proplist/0,
 
               encode_option/0,
               decode_option/0
@@ -57,19 +59,21 @@
 -type json_number()         :: number().
 -type json_string()         :: binary() | atom(). % NOTE: `decode/1' always returns `binary()' value
 -type json_array()          :: [json_value()].
--type json_object()         :: {json_object_members()}
-                             | [{}]
-                             | json_object_members().
+-type json_object()         :: json_object_format_tuple() | json_object_format_proplist().
 -type json_object_members() :: [{json_string(), json_value()}].
+
+-type json_object_format_tuple() :: {json_object_members()}.
+-type json_object_format_proplist() :: [{}] | json_object_members().
 
 -type encode_option() :: native_utf8.
 %% native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string
 
--type decode_option() :: {format, eep18 | proplist}.
-%% TODO: doc
-
--define(DEFAULT_ENCODE_OPTIONS, []).
--define(DEFAULT_DECODE_OPTIONS, []).
+-type decode_option() :: {object_format, tuple | proplist}.
+%% object_format: <br />
+%%  - Decoded JSON object format <br />
+%%  - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
+%%  - `proplist': An object is decoded as `[{}]' if it is empty, otherwise `[{Key, Value}]'. <br />
+%%  - default: `tuple' <br />
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -77,7 +81,7 @@
 %% @equiv decode(Json, [])
 -spec decode(binary()) -> json_value().
 decode(Json) ->
-    decode(Json, ?DEFAULT_DECODE_OPTIONS).
+    decode(Json, []).
 
 %% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 %%
@@ -106,7 +110,7 @@ decode(Json, Options) ->
 %% @equiv try_decode(Json, [])
 -spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 try_decode(Json) ->
-    try_decode(Json, ?DEFAULT_DECODE_OPTIONS).
+    try_decode(Json, []).
 
 %% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 %%
@@ -126,7 +130,7 @@ try_decode(Json, Options) ->
 %% @equiv encode(JsonValue, [])
 -spec encode(json_value()) -> binary().
 encode(JsonValue) ->
-    encode(JsonValue, ?DEFAULT_ENCODE_OPTIONS).
+    encode(JsonValue, []).
 
 %% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 %%
@@ -155,7 +159,7 @@ encode(JsonValue, Options) ->
 %% @equiv try_encode(JsonValue, [])
 -spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 try_encode(JsonValue) ->
-    jsone_encode:encode(JsonValue, ?DEFAULT_ENCODE_OPTIONS).
+    try_encode(JsonValue, []).
 
 %% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 %%

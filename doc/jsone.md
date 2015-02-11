@@ -22,10 +22,16 @@ JSON decoding/encoding module.
 
 
 <pre><code>
-decode_option() = {format, eep18 | proplist}
+decode_option() = {object_format, tuple | proplist}
 </code></pre>
 
 
+
+  object_format: <br />
+- Decoded JSON object format <br />
+- `tuple`: An object is decoded as `{[]}` if it is empty, otherwise `{[{Key, Value}]}`. <br />
+- `proplist`: An object is decoded as `[{}]` if it is empty, otherwise `[{Key, Value}]`. <br />
+- default: `tuple` <br />
 
 
 
@@ -84,7 +90,31 @@ json_number() = number()
 
 
 <pre><code>
-json_object() = {<a href="#type-json_object_members">json_object_members()</a>} | [{}] | <a href="#type-json_object_members">json_object_members()</a>
+json_object() = <a href="#type-json_object_format_tuple">json_object_format_tuple()</a> | <a href="#type-json_object_format_proplist">json_object_format_proplist()</a>
+</code></pre>
+
+
+
+
+
+### <a name="type-json_object_format_proplist">json_object_format_proplist()</a> ###
+
+
+
+<pre><code>
+json_object_format_proplist() = [{}] | <a href="#type-json_object_members">json_object_members()</a>
+</code></pre>
+
+
+
+
+
+### <a name="type-json_object_format_tuple">json_object_format_tuple()</a> ###
+
+
+
+<pre><code>
+json_object_format_tuple() = {<a href="#type-json_object_members">json_object_members()</a>}
 </code></pre>
 
 

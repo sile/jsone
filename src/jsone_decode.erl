@@ -2,7 +2,7 @@
 %%% @private
 %%% @end
 %%%
-%%% Copyright (c) 2013-2014, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2015, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -51,7 +51,7 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
--record(decode_opt_v1, { format=eep18 :: eep18 | proplist}).
+-record(decode_opt_v1, { object_format=tuple :: tuple | proplist}).
 -define(OPT, #decode_opt_v1).
 -type opt() :: #decode_opt_v1{}.
 
@@ -115,8 +115,7 @@ array_next(<<$,, Bin/binary>>, Values, Nexts, Buf, Opt) -> whitespace(Bin, value
 array_next(Bin,                Values, Nexts, Buf, Opt) -> ?ERROR(array_next, [Bin, Values, Nexts, Buf, Opt]).
 
 -spec object(binary(), [next()], binary(), opt()) -> decode_result().
-object(<<$}, Bin/binary>>, Nexts, Buf, Opt = ?OPT{format = proplist}) -> next(Bin, [{}], Nexts, Buf, Opt);
-object(<<$}, Bin/binary>>, Nexts, Buf, Opt) -> next(Bin, {[]}, Nexts, Buf, Opt);
+object(<<$}, Bin/binary>>, Nexts, Buf, Opt) -> next(Bin, make_object([], Opt), Nexts, Buf, Opt);
 object(<<Bin/binary>>, Nexts, Buf, Opt)     -> object_key(Bin, [], Nexts, Buf, Opt).
 
 -spec object_key(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
@@ -128,8 +127,7 @@ object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf, Opt) -> whitespace(Bi
 object_value(Bin,                Key, Members, Nexts, Buf, Opt) -> ?ERROR(object_value, [Bin, Key, Members, Nexts, Buf, Opt]).
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt = ?OPT{format = proplist}) -> next(Bin, lists:reverse(Members), Nexts, Buf, Opt);
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, {lists:reverse(Members)}, Nexts, Buf, Opt);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, make_object(lists:reverse(Members), Opt), Nexts, Buf, Opt);
 object_next(<<$,, Bin/binary>>, Members, Nexts, Buf, Opt) -> whitespace(Bin, {object_key, Members}, Nexts, Buf, Opt);
 object_next(Bin,                Members, Nexts, Buf, Opt) -> ?ERROR(object_next, [Bin, Members, Nexts, Buf, Opt]).
 
@@ -265,11 +263,16 @@ number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Ne
 number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt) ->
     ?ERROR(number_exponation_part, [Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt]).
 
+-spec make_object(jsone:json_object_members(), opt()) -> jsone:json_object().
+make_object(Members, ?OPT{object_format = tuple}) -> {Members};
+make_object([],      _)                           -> [{}];
+make_object(Members, _)                           -> Members.
+
 -spec parse_options([jsone:decode_option()]) -> opt().
 parse_options(Options) ->
     parse_option(Options, ?OPT{}).
 
 -spec parse_option([jsone:decode_option()], opt()) -> opt().
 parse_option([], Opt) -> Opt;
-parse_option([{format,F}|T], Opt) ->
-    parse_option(T, Opt?OPT{format=F}).
+parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist ->
+    parse_option(T, Opt?OPT{object_format=F}).
