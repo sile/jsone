@@ -22,7 +22,7 @@ JSON decoding/encoding module.
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist}
+decode_option() = {object_format, tuple | proplist | map}
 </code></pre>
 
 
@@ -31,6 +31,7 @@ decode_option() = {object_format, tuple | proplist}
 - Decoded JSON object format <br />
 - `tuple`: An object is decoded as `{[]}` if it is empty, otherwise `{[{Key, Value}]}`. <br />
 - `proplist`: An object is decoded as `[{}]` if it is empty, otherwise `[{Key, Value}]`. <br />
+- `map`: An object is decoded as `#{}` if it is empty, otherwise `#{Key => Value}`. <br />
 - default: `tuple` <br />
 
 
@@ -90,7 +91,19 @@ json_number() = number()
 
 
 <pre><code>
-json_object() = <a href="#type-json_object_format_tuple">json_object_format_tuple()</a> | <a href="#type-json_object_format_proplist">json_object_format_proplist()</a>
+json_object() = <a href="#type-json_object_format_tuple">json_object_format_tuple()</a> | <a href="#type-json_object_format_proplist">json_object_format_proplist()</a> | <a href="#type-json_object_format_map">json_object_format_map()</a>
+</code></pre>
+
+
+
+
+
+### <a name="type-json_object_format_map">json_object_format_map()</a> ###
+
+
+
+<pre><code>
+json_object_format_map() = #{}
 </code></pre>
 
 

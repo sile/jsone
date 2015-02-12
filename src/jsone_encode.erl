@@ -93,6 +93,7 @@ value(Value, Nexts, Buf, Opt) when ?IS_STR(Value)    -> string(Value, Nexts, Buf
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
+value(Value, Nexts, Buf, Opt) when is_map(Value)     -> object(maps:to_list(Value), Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, _)                          -> ?ERROR(value, [Value, Nexts, Buf]).
 

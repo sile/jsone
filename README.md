@@ -1,4 +1,4 @@
-jsone (0.3.0)
+jsone (0.3.1)
 =============
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
@@ -117,6 +117,8 @@ abc                  -> "abc"         -> <<"abc">> % non-special atom is regarde
 {[{key, <<"val">>}]} -> {"key":"val"} -> {[{<<"key">>, <<"val">>}]} % object_format=tuple
 [{}]                 -> {}            -> [{}]                       % object_format=proplist
 [{<<"key">>, val}]   -> {"key":"val"} -> [{<<"key">>, <<"val">>}]   % object_format=proplist
+#{}                  -> {}            -> #{}                        % object_format=map
+#{key => val}        -> {"key":"val"} -> #{<<"key">> => <<"val">>}  % object_format=map
 ```
 
 API

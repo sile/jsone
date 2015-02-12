@@ -46,6 +46,7 @@
               json_object_members/0,
               json_object_format_tuple/0,
               json_object_format_proplist/0,
+              json_object_format_map/0,
 
               encode_option/0,
               decode_option/0
@@ -59,20 +60,24 @@
 -type json_number()         :: number().
 -type json_string()         :: binary() | atom(). % NOTE: `decode/1' always returns `binary()' value
 -type json_array()          :: [json_value()].
--type json_object()         :: json_object_format_tuple() | json_object_format_proplist().
+-type json_object()         :: json_object_format_tuple()
+                             | json_object_format_proplist()
+                             | json_object_format_map().
 -type json_object_members() :: [{json_string(), json_value()}].
 
+-type json_object_format_map() :: map().
 -type json_object_format_tuple() :: {json_object_members()}.
 -type json_object_format_proplist() :: [{}] | json_object_members().
 
 -type encode_option() :: native_utf8.
 %% native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string
 
--type decode_option() :: {object_format, tuple | proplist}.
+-type decode_option() :: {object_format, tuple | proplist | map}.
 %% object_format: <br />
 %%  - Decoded JSON object format <br />
 %%  - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
 %%  - `proplist': An object is decoded as `[{}]' if it is empty, otherwise `[{Key, Value}]'. <br />
+%%  - `map': An object is decoded as `#{}' if it is empty, otherwise `#{Key => Value}'. <br />
 %%  - default: `tuple' <br />
 
 %%--------------------------------------------------------------------------------

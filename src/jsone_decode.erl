@@ -51,7 +51,7 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
--record(decode_opt_v1, { object_format=tuple :: tuple | proplist}).
+-record(decode_opt_v1, { object_format=tuple :: tuple | proplist | map}).
 -define(OPT, #decode_opt_v1).
 -type opt() :: #decode_opt_v1{}.
 
@@ -127,7 +127,7 @@ object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf, Opt) -> whitespace(Bi
 object_value(Bin,                Key, Members, Nexts, Buf, Opt) -> ?ERROR(object_value, [Bin, Key, Members, Nexts, Buf, Opt]).
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
-object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, make_object(lists:reverse(Members), Opt), Nexts, Buf, Opt);
+object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, make_object(Members, Opt), Nexts, Buf, Opt);
 object_next(<<$,, Bin/binary>>, Members, Nexts, Buf, Opt) -> whitespace(Bin, {object_key, Members}, Nexts, Buf, Opt);
 object_next(Bin,                Members, Nexts, Buf, Opt) -> ?ERROR(object_next, [Bin, Members, Nexts, Buf, Opt]).
 
@@ -264,9 +264,10 @@ number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf,
     ?ERROR(number_exponation_part, [Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt]).
 
 -spec make_object(jsone:json_object_members(), opt()) -> jsone:json_object().
-make_object(Members, ?OPT{object_format = tuple}) -> {Members};
+make_object(Members, ?OPT{object_format = tuple}) -> {lists:reverse(Members)};
+make_object(Members, ?OPT{object_format = map})   -> maps:from_list(Members);
 make_object([],      _)                           -> [{}];
-make_object(Members, _)                           -> Members.
+make_object(Members, _)                           -> lists:reverse(Members).
 
 -spec parse_options([jsone:decode_option()]) -> opt().
 parse_options(Options) ->
@@ -274,5 +275,5 @@ parse_options(Options) ->
 
 -spec parse_option([jsone:decode_option()], opt()) -> opt().
 parse_option([], Opt) -> Opt;
-parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist ->
+parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist; F =:= map ->
     parse_option(T, Opt?OPT{object_format=F}).

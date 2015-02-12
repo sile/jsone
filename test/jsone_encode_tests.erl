@@ -116,6 +116,18 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input1)),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
       end},
+     {"simple object: map",
+      fun () ->
+              Input = #{<<"key">> => <<"value">>, <<"1">> => 2},
+              Expected = <<"{\"1\":2,\"key\":\"value\"}">>,
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+      end},
+     {"empty object: map",
+      fun () ->
+              Input = #{},
+              Expected = <<"{}">>,
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+      end},
      {"atom key is allowed",
       fun () ->
               Expected = <<"{\"key\":2}">>,
