@@ -178,6 +178,22 @@ decode_test_() ->
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
               ?assertEqual({ok, [{}], <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, proplist}]))
       end},
+     {"simple object: map",
+      fun () ->
+              Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
+              Expected = #{<<"1">> => 2, <<"key">> => <<"value">>},
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, map}]))
+      end},
+     {"empty object: map",
+      fun () ->
+              ?assertEqual({ok, #{}, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, map}]))
+      end},
+     {"duplicated members: map",
+      fun () ->
+              Input    = <<"{\"1\":\"first\",\"1\":\"second\"}">>,
+              Expected = #{<<"1">> => <<"first">>}, % the first (leftmost) value is used
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, map}]))
+      end},
      {"object: trailing comma is disallowed",
       fun () ->
               Input = <<"{\"1\":2, \"key\":\"value\", }">>,
