@@ -95,7 +95,7 @@ value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, O
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_map(Value)     -> object(maps:to_list(Value), Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
-value(Value, Nexts, Buf, _)                          -> ?ERROR(value, [Value, Nexts, Buf]).
+value(Value, Nexts, Buf, Opt)                        -> ?ERROR(value, [Value, Nexts, Buf, Opt]).
 
 -spec string(jsone:json_string(), [next()], binary(), opt()) -> encode_result().
 string(<<Str/binary>>, Nexts, Buf, Opt) ->
@@ -138,8 +138,8 @@ escape_string(<<2#11110:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6, Str/b
         true ->
             unicode_char(Str, <<2#11000:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6>>, Nexts, Buf, Opt)
     end;
-escape_string(Str, Nexts, Buf, _) ->
-    ?ERROR(escape_string, [Str, Nexts, Buf]).
+escape_string(Str, Nexts, Buf, Opt) ->
+    ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
 
 unicode_char(Str, Char, Nexts, Buf, Opt) ->
     escape_string(Str, Nexts, <<Buf/binary, Char/binary>>, Opt).
@@ -167,7 +167,7 @@ object(Members, Nexts, Buf, Opt) ->
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_members([],                             Nexts, Buf, Opt)        -> next(Nexts, <<Buf/binary, $}>>, Opt);
 object_members([{Key, Value} | Xs], Nexts, Buf, Opt) when ?IS_STR(Key) -> string(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
-object_members(Arg, Nexts, Buf, _)                                     -> ?ERROR(object_members, [Arg, Nexts, Buf]).
+object_members(Arg, Nexts, Buf, Opt)                                   -> ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
 
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_value(Value, Members, Nexts, Buf, Opt) ->
