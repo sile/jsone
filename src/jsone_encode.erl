@@ -48,7 +48,11 @@
               | {object_value, jsone:json_value(), jsone:json_object_members()}
               | {object_members, jsone:json_object_members()}.
 
--record(encode_opt_v1, { native_utf8 = false :: boolean() }).
+-record(encode_opt_v1, {
+          native_utf8 = false :: boolean(),
+          space = 0 :: non_neg_integer(),
+          indent = 0 :: non_neg_integer()
+         }).
 -define(OPT, #encode_opt_v1).
 -type opt() :: #encode_opt_v1{}.
 
@@ -68,20 +72,20 @@ encode(Value, Options) ->
 %% Internal Functions
 %%--------------------------------------------------------------------------------
 -spec next([next()], binary(), opt()) -> encode_result().
-next([], Buf, _)             -> {ok, Buf};
-next([Next | Nexts], Buf, Opt) ->
+next([], Buf, _)                       -> {ok, Buf};
+next(Level = [Next | Nexts], Buf, Opt) ->
     case Next of
         {array_values, Values} ->
             case Values of
                 [] -> array_values(Values, Nexts, Buf, Opt);
-                _  -> array_values(Values, Nexts, <<Buf/binary, $,>>, Opt)
+                _  -> array_values(Values, Nexts, pp_newline_or_space(<<Buf/binary, $,>>, Level, Opt), Opt)
             end;
         {object_value, Value, Members} ->
-            object_value(Value, Members, Nexts, Buf, Opt);
+            object_value(Value, Members, Nexts, pp_space(<<Buf/binary, $:>>, Opt), Opt);
         {object_members, Members} ->
             case Members of
                 [] -> object_members(Members, Nexts, Buf, Opt);
-                _  -> object_members(Members, Nexts, <<Buf/binary, $,>>, Opt)
+                _  -> object_members(Members, Nexts, pp_newline_or_space(<<Buf/binary, $,>>, Level, Opt), Opt)
             end
     end.
 
@@ -97,7 +101,7 @@ value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, O
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_map(Value)     -> object(maps:to_list(Value), Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
-value(Value, Nexts, Buf, _)                          -> ?ERROR(value, [Value, Nexts, Buf]).
+value(Value, Nexts, Buf, Opt)                        -> ?ERROR(value, [Value, Nexts, Buf, Opt]).
 
 -spec string(jsone:json_string(), [next()], binary(), opt()) -> encode_result().
 string(<<Str/binary>>, Nexts, Buf, Opt) ->
@@ -119,10 +123,10 @@ escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) -> escape_string(Str, N
 escape_string(<<2#110:3, B1:5, 2#10:2, B2:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 5) ->
     case Opt?OPT.native_utf8 of
         false ->
-            Unicode = (B1 bsl 6) + B2,
-            escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
-        true ->
-            unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
+             Unicode = (B1 bsl 6) + B2,
+             escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
+         true ->
+             unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
     end;
 escape_string(<<2#1110:4, B1:4, 2#10:2, B2:6, 2#10:2, B3:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 4) ->
     case Opt?OPT.native_utf8 of
@@ -140,8 +144,8 @@ escape_string(<<2#11110:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6, Str/b
         true ->
             unicode_char(Str, <<2#11000:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6>>, Nexts, Buf, Opt)
     end;
-escape_string(Str, Nexts, Buf, _) ->
-    ?ERROR(escape_string, [Str, Nexts, Buf]).
+escape_string(Str, Nexts, Buf, Opt) ->
+    ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
 
 unicode_char(Str, Char, Nexts, Buf, Opt) ->
     escape_string(Str, Nexts, <<Buf/binary, Char/binary>>, Opt).
@@ -156,29 +160,54 @@ escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf, Opt) ->
 
 -spec array(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
 array(List, Nexts, Buf, Opt) ->
-    array_values(List, Nexts, <<Buf/binary, $[>>, Opt).
+    array_values(List, Nexts, pp_newline(<<Buf/binary, $[>>, Nexts, 1, Opt), Opt).
 
 -spec array_values(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
-array_values([],       Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $]>>, Opt);
+array_values([],       Nexts, Buf, Opt) -> next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $]>>, Opt);
 array_values([X | Xs], Nexts, Buf, Opt) -> value(X, [{array_values, Xs} | Nexts], Buf, Opt).
 
 -spec object(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object(Members, Nexts, Buf, Opt) ->
-    object_members(Members, Nexts, <<Buf/binary, ${>>, Opt).
+    object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
-object_members([],                             Nexts, Buf, Opt)        -> next(Nexts, <<Buf/binary, $}>>, Opt);
+object_members([],                             Nexts, Buf, Opt)        -> next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
 object_members([{Key, Value} | Xs], Nexts, Buf, Opt) when ?IS_STR(Key) -> string(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
-object_members(Arg, Nexts, Buf, _)                                     -> ?ERROR(object_members, [Arg, Nexts, Buf]).
+object_members(Arg, Nexts, Buf, Opt)                                   -> ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
 
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_value(Value, Members, Nexts, Buf, Opt) ->
-    value(Value, [{object_members, Members} | Nexts], <<Buf/binary, $:>>, Opt).
+    value(Value, [{object_members, Members} | Nexts], Buf, Opt).
+
+-spec pp_space(binary(), opt()) -> binary().
+pp_space(Buf, Opt) -> padding(Buf, Opt?OPT.space).
+
+-spec pp_newline(binary(), list(), opt()) -> binary().
+pp_newline(Buf, Level, Opt) -> pp_newline(Buf, Level, 0, Opt).
+
+-spec pp_newline(binary(), list(), non_neg_integer(), opt()) -> binary().
+pp_newline(Buf, _, _,     ?OPT{indent = 0}) -> Buf;
+pp_newline(Buf, L, Extra, ?OPT{indent = N}) -> lists:foldl(fun (_, B) -> padding(B, N) end, padding(<<Buf/binary, $\n>>, Extra * N), L).
+
+-spec pp_newline_or_space(binary(), list(), opt()) -> binary().
+pp_newline_or_space(Buf, _, Opt = ?OPT{indent = 0}) -> pp_space(Buf, Opt);
+pp_newline_or_space(Buf, L, Opt)                    -> pp_newline(Buf, L, Opt).
+
+-spec padding(binary(), non_neg_integer()) -> binary().
+padding(Buf, 0) -> Buf;
+padding(Buf, N) -> padding(<<Buf/binary, $ >>, N - 1).
 
 -spec parse_options([jsone:encode_option()]) -> opt().
 parse_options(Options) ->
     parse_option(Options, ?OPT{}).
 
+-spec parse_option([jsone:encode_option()], opt()) -> opt().
 parse_option([], Opt) -> Opt;
 parse_option([native_utf8|T], Opt) ->
-    parse_option(T, Opt?OPT{native_utf8=true}).
+    parse_option(T, Opt?OPT{native_utf8=true});
+parse_option([{space, N}|T], Opt) when is_integer(N), N >= 0 ->
+    parse_option(T, Opt?OPT{space = N});
+parse_option([{indent, N}|T], Opt) when is_integer(N), N >= 0 ->
+    parse_option(T, Opt?OPT{indent = N});
+parse_option(List, Opt) ->
+    error(badarg, [List, Opt]).
