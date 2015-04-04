@@ -121,10 +121,10 @@ escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) -> escape_string(Str, N
 escape_string(<<2#110:3, B1:5, 2#10:2, B2:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 5) ->
     case Opt?OPT.native_utf8 of
         false ->
-             Unicode = (B1 bsl 6) + B2,
-             escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
-         true ->
-             unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
+            Unicode = (B1 bsl 6) + B2,
+            escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
+        true ->
+            unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
     end;
 escape_string(<<2#1110:4, B1:4, 2#10:2, B2:6, 2#10:2, B3:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 4) ->
     case Opt?OPT.native_utf8 of
