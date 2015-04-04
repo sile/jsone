@@ -1,4 +1,4 @@
-jsone (0.3.1)
+jsone (0.3.2)
 =============
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
@@ -95,6 +95,31 @@ Usage Example
 {error,{badarg,[{jsone_encode,object_members,
                               [[{123,<<"value">>}],[],<<"{">>],
                               [{line,138}]}]}}
+
+%% Pretty Print
+> Data = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
+> io:format("~s\n", jsone:encode(Data, [{indent, 1}, {space, 2}])).
+[
+  true,
+  {
+    "1": 2,
+    "array": [
+      [
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      {
+        "ab": "cd"
+      },
+      false
+    ]
+  },
+  null
+]
+ok
 ```
 
 

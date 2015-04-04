@@ -41,12 +41,25 @@ decode_option() = {object_format, tuple | proplist | map}
 
 
 <pre><code>
-encode_option() = native_utf8
+encode_option() = native_utf8 | {space, non_neg_integer()} | {indent, non_neg_integer()}
 </code></pre>
 
 
 
-  native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string
+
+`native_utf8`: <br />
+- Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+
+
+
+`{space, N}`: <br />
+- Inserts `N` spaces after every commna and colon <br />
+- default: `0` <br />
+
+
+`{indent, N}`: <br />
+- Inserts a newline and `N` spaces for each level of indentation <br />
+- default: `0` <br />
 
 
 

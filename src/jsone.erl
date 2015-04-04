@@ -69,8 +69,19 @@
 -type json_object_format_tuple() :: {json_object_members()}.
 -type json_object_format_proplist() :: [{}] | json_object_members().
 
--type encode_option() :: native_utf8.
-%% native_utf8: Encodes UTF-8 characters as a human-readable(non-escaped) string
+-type encode_option() :: native_utf8
+                       | {space, non_neg_integer()}
+                       | {indent, non_neg_integer()}.
+%% `native_utf8': <br />
+%% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+%%
+%% `{space, N}': <br />
+%% - Inserts `N' spaces after every commna and colon <br />
+%% - default: `0' <br />
+%%
+%% `{indent, N}': <br />
+%% - Inserts a newline and `N' spaces for each level of indentation <br />
+%% - default: `0' <br />
 
 -type decode_option() :: {object_format, tuple | proplist | map}.
 %% object_format: <br />
