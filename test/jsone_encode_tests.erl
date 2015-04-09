@@ -46,6 +46,15 @@ encode_test_() ->
               ?assertMatch({ok, _}, jsone_encode:encode(Input)),
               ?assertEqual(Input, binary_to_float(element(2, jsone_encode:encode(Input))))
       end},
+     {"float_format option",
+      fun () ->
+              Input = 1.23,
+              ?assertEqual({ok, <<"1.22999999999999998224e+00">>}, jsone_encode:encode(Input)),
+              ?assertEqual({ok, <<"1.2300e+00">>},                 jsone_encode:encode(Input, [{float_format, [{scientific, 4}]}])),
+              ?assertEqual({ok, <<"1.2e+00">>},                    jsone_encode:encode(Input, [{float_format, [{scientific, 1}]}])),
+              ?assertEqual({ok, <<"1.2300">>},                     jsone_encode:encode(Input, [{float_format, [{decimals, 4}]}])),
+              ?assertEqual({ok, <<"1.23">>},                       jsone_encode:encode(Input, [{float_format, [{decimals, 4}, compact]}]))
+      end},
 
      %% Strings
      {"simple string",

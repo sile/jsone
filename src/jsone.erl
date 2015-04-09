@@ -49,7 +49,8 @@
               json_object_format_map/0,
 
               encode_option/0,
-              decode_option/0
+              decode_option/0,
+              float_format_option/0
              ]).
 
 %%--------------------------------------------------------------------------------
@@ -69,11 +70,45 @@
 -type json_object_format_tuple() :: {json_object_members()}.
 -type json_object_format_proplist() :: [{}] | json_object_members().
 
+-type float_format_option() :: {scientific, Decimals :: 0..249}
+                             | {decimals, Decimals :: 0..253}
+                             | compact.
+%% `scientific': <br />
+%% - The float will be formatted using scientific notation with `Decimals' digits of precision. <br />
+%%
+%% `decimals': <br />
+%% - The encoded string will contain at most `Decimals' number of digits past the decimal point. <br />
+%% - If `compact' is provided the trailing zeros at the end of the string are truncated. <br />
+%%
+%% For more details, see <a href="http://erlang.org/doc/man/erlang.html#float_to_list-2">erlang:flaot_to_list/2</a>.
+%%
+%% ```
+%% > jsone:encode(1.23).
+%% <<"1.22999999999999998224e+00">>
+%%
+%% > jsone:encode(1.23, [{float_format, [{scientific, 4}]}]).
+%% <"1.2300e+00">>
+%%
+%% > jsone:encode(1.23, [{float_format, [{scientific, 1}]}]).
+%% <<"1.2e+00">>
+%%
+%% > jsone:encode(1.23, [{float_format, [{decimals, 4}]}]).
+%% <<"1.2300">>
+%%
+%% > jsone:encode(1.23, [{float_format, [{decimals, 4}, compact]}]).
+%% <<"1.23">>
+%%'''
+
 -type encode_option() :: native_utf8
+                       | {float_format, [float_format_option()]}
                        | {space, non_neg_integer()}
                        | {indent, non_neg_integer()}.
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+%%
+%% `{float_format, Optoins}`:
+%% - Encodes a `float()` value in the format which specified by `Options' <br />
+%% - default: `[{scientific, 20}]' <br />
 %%
 %% `{space, N}': <br />
 %% - Inserts `N' spaces after every commna and colon <br />

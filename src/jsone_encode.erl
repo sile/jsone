@@ -48,6 +48,7 @@
 
 -record(encode_opt_v1, {
           native_utf8 = false :: boolean(),
+          float_format = [{scientific, 20}] :: [jsone:float_format_option()],
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer()
          }).
@@ -92,7 +93,7 @@ value(null, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary
 value(false, Nexts, Buf, Opt)                        -> next(Nexts, <<Buf/binary, "false">>, Opt);
 value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "true">>, Opt);
 value(Value, Nexts, Buf, Opt) when is_integer(Value) -> next(Nexts, <<Buf/binary, (integer_to_binary(Value))/binary>>, Opt);
-value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value))/binary>>, Opt);
+value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value, Opt?OPT.float_format))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when ?IS_STR(Value)    -> string(Value, Nexts, Buf, Opt);
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
@@ -203,6 +204,8 @@ parse_options(Options) ->
 parse_option([], Opt) -> Opt;
 parse_option([native_utf8|T], Opt) ->
     parse_option(T, Opt?OPT{native_utf8=true});
+parse_option([{float_format, F}|T], Opt) when is_list(F) ->
+    parse_option(T, Opt?OPT{float_format = F});
 parse_option([{space, N}|T], Opt) when is_integer(N), N >= 0 ->
     parse_option(T, Opt?OPT{space = N});
 parse_option([{indent, N}|T], Opt) when is_integer(N), N >= 0 ->

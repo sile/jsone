@@ -41,7 +41,7 @@ decode_option() = {object_format, tuple | proplist | map}
 
 
 <pre><code>
-encode_option() = native_utf8 | {space, non_neg_integer()} | {indent, non_neg_integer()}
+encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {space, non_neg_integer()} | {indent, non_neg_integer()}
 </code></pre>
 
 
@@ -49,6 +49,12 @@ encode_option() = native_utf8 | {space, non_neg_integer()} | {indent, non_neg_in
 
 `native_utf8`: <br />
 - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+
+
+
+`{float_format, Optoins}`:
+- Encodes a `float()` value in the format which specified by `Options` <br />
+- default: `[{scientific, 20}]` <br />
 
 
 
@@ -60,6 +66,48 @@ encode_option() = native_utf8 | {space, non_neg_integer()} | {indent, non_neg_in
 `{indent, N}`: <br />
 - Inserts a newline and `N` spaces for each level of indentation <br />
 - default: `0` <br />
+
+
+
+### <a name="type-float_format_option">float_format_option()</a> ###
+
+
+
+<pre><code>
+float_format_option() = {scientific, Decimals::0..249} | {decimals, Decimals::0..253} | compact
+</code></pre>
+
+
+
+
+`scientific`: <br />
+- The float will be formatted using scientific notation with `Decimals` digits of precision. <br />
+
+
+
+`decimals`: <br />
+- The encoded string will contain at most `Decimals` number of digits past the decimal point. <br />
+- If `compact` is provided the trailing zeros at the end of the string are truncated. <br />
+
+
+
+For more details, see [erlang:flaot_to_list/2](http://erlang.org/doc/man/erlang.md#float_to_list-2).
+
+
+
+```
+  > jsone:encode(1.23).
+  <<"1.22999999999999998224e+00">>
+  > jsone:encode(1.23, [{float_format, [{scientific, 4}]}]).
+  <"1.2300e+00">>
+  > jsone:encode(1.23, [{float_format, [{scientific, 1}]}]).
+  <<"1.2e+00">>
+  > jsone:encode(1.23, [{float_format, [{decimals, 4}]}]).
+  <<"1.2300">>
+  > jsone:encode(1.23, [{float_format, [{decimals, 4}, compact]}]).
+  <<"1.23">>
+```
+
 
 
 
