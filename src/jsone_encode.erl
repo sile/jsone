@@ -50,6 +50,7 @@
 
 -record(encode_opt_v1, {
           native_utf8 = false :: boolean(),
+          float_format = [{scientific, 20}] :: [jsone:float_format_option()],
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer()
          }).
@@ -94,7 +95,7 @@ value(null, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary
 value(false, Nexts, Buf, Opt)                        -> next(Nexts, <<Buf/binary, "false">>, Opt);
 value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "true">>, Opt);
 value(Value, Nexts, Buf, Opt) when is_integer(Value) -> next(Nexts, <<Buf/binary, (integer_to_binary(Value))/binary>>, Opt);
-value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value))/binary>>, Opt);
+value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value, Opt?OPT.float_format))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when ?IS_STR(Value)    -> string(Value, Nexts, Buf, Opt);
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
@@ -123,10 +124,10 @@ escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) -> escape_string(Str, N
 escape_string(<<2#110:3, B1:5, 2#10:2, B2:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 5) ->
     case Opt?OPT.native_utf8 of
         false ->
-             Unicode = (B1 bsl 6) + B2,
-             escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
-         true ->
-             unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
+            Unicode = (B1 bsl 6) + B2,
+            escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
+        true ->
+            unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
     end;
 escape_string(<<2#1110:4, B1:4, 2#10:2, B2:6, 2#10:2, B3:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 4) ->
     case Opt?OPT.native_utf8 of
@@ -205,6 +206,8 @@ parse_options(Options) ->
 parse_option([], Opt) -> Opt;
 parse_option([native_utf8|T], Opt) ->
     parse_option(T, Opt?OPT{native_utf8=true});
+parse_option([{float_format, F}|T], Opt) when is_list(F) ->
+    parse_option(T, Opt?OPT{float_format = F});
 parse_option([{space, N}|T], Opt) when is_integer(N), N >= 0 ->
     parse_option(T, Opt?OPT{space = N});
 parse_option([{indent, N}|T], Opt) when is_integer(N), N >= 0 ->

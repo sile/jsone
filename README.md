@@ -1,4 +1,4 @@
-jsone (0.3.2)
+jsone (0.3.3)
 =============
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
@@ -120,6 +120,19 @@ Usage Example
   null
 ]
 ok
+
+%% Number Format
+> jsone:encode(1). % integer
+<<"1">>
+
+> jsone:encode(1.23). % float
+<<"1.22999999999999998224e+00">> % default: scientific notation
+
+> jsone:encode(1.23, [{float_format, [{decimals, 4}]}]). % decimal notation
+<<"1.2300">>
+
+> jsone:encode(1.23, [{float_format, [{decimals, 4}, compact]}]). % compact decimal notation
+<<"1.23">>
 ```
 
 
