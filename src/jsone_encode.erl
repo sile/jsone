@@ -44,11 +44,13 @@
 -type encode_result() :: {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 -type next() :: {array_values, [jsone:json_value()]}
               | {object_value, jsone:json_value(), jsone:json_object_members()}
-              | {object_members, jsone:json_object_members()}.
+              | {object_members, jsone:json_object_members()}
+              | {char, binary()}.
 
 -record(encode_opt_v1, {
           native_utf8 = false :: boolean(),
           float_format = [{scientific, 20}] :: [jsone:float_format_option()],
+          object_key_type = string :: string | scalar | value,
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer()
          }).
@@ -85,7 +87,9 @@ next(Level = [Next | Nexts], Buf, Opt) ->
             case Members of
                 [] -> object_members(Members, Nexts, Buf, Opt);
                 _  -> object_members(Members, Nexts, pp_newline_or_space(<<Buf/binary, $,>>, Level, Opt), Opt)
-            end
+            end;
+        {char, C} ->
+            next(Nexts, <<Buf/binary, C>>, Opt)
     end.
 
 -spec value(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
@@ -107,6 +111,19 @@ string(<<Str/binary>>, Nexts, Buf, Opt) ->
     escape_string(Str, Nexts, <<Buf/binary, $">>, Opt);
 string(Str, Nexts, Buf, Opt) ->
     string(atom_to_binary(Str, utf8), Nexts, Buf, Opt).
+
+-spec object_key(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
+object_key(Key, Nexts, Buf, Opt) when ?IS_STR(Key) ->
+    string(Key, Nexts, Buf, Opt);
+object_key(Key, Nexts, Buf, Opt = ?OPT{object_key_type = scalar}) when is_number(Key) ->
+    value(Key, [{char, $"} | Nexts], <<Buf/binary, $">>, Opt);
+object_key(Key, Nexts, Buf, Opt = ?OPT{object_key_type = value}) ->
+    case value(Key, [], <<>>, Opt) of
+        {error, Reason} -> {error, Reason};
+        {ok, BinaryKey} -> string(BinaryKey, Nexts, Buf, Opt)
+    end;
+object_key(Key, Nexts, Buf, Opt) ->
+    ?ERROR(object_key, [Key, Nexts, Buf, Opt]).
 
 -spec escape_string(binary(), [next()], binary(), opt()) -> encode_result().
 escape_string(<<"">>,                   Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $">>, Opt);
@@ -171,7 +188,7 @@ object(Members, Nexts, Buf, Opt) ->
 
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_members([],                             Nexts, Buf, Opt)        -> next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
-object_members([{Key, Value} | Xs], Nexts, Buf, Opt) when ?IS_STR(Key) -> string(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
+object_members([{Key, Value} | Xs], Nexts, Buf, Opt)                   -> object_key(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
 object_members(Arg, Nexts, Buf, Opt)                                   -> ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
 
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
@@ -210,5 +227,7 @@ parse_option([{space, N}|T], Opt) when is_integer(N), N >= 0 ->
     parse_option(T, Opt?OPT{space = N});
 parse_option([{indent, N}|T], Opt) when is_integer(N), N >= 0 ->
     parse_option(T, Opt?OPT{indent = N});
+parse_option([{object_key_type, Type}|T], Opt) when Type =:= string; Type =:= scalar; Type =:= value ->
+    parse_option(T, Opt?OPT{object_key_type = Type});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).

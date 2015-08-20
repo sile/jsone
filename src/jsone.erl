@@ -47,6 +47,7 @@
               json_object_format_tuple/0,
               json_object_format_proplist/0,
               json_object_format_map/0,
+              json_scalar/0,
 
               encode_option/0,
               decode_option/0,
@@ -69,6 +70,8 @@
 -type json_object_format_map() :: map().
 -type json_object_format_tuple() :: {json_object_members()}.
 -type json_object_format_proplist() :: [{}] | json_object_members().
+
+-type json_scalar() :: json_boolean() | json_number() | json_string().
 
 -type float_format_option() :: {scientific, Decimals :: 0..249}
                              | {decimals, Decimals :: 0..253}
@@ -101,14 +104,23 @@
 
 -type encode_option() :: native_utf8
                        | {float_format, [float_format_option()]}
+                       | {object_key_type, string | scalar | value}
                        | {space, non_neg_integer()}
                        | {indent, non_neg_integer()}.
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
 %%
-%% `{float_format, Optoins}`:
+%% `{float_format, Optoins}':
 %% - Encodes a `float()` value in the format which specified by `Options' <br />
 %% - default: `[{scientific, 20}]' <br />
+%%
+%% `object_key_type':
+%% - Allowable object key type <br />
+%% - `string': Only string values are allowed (i.e. `json_string()' type) <br />
+%% - `scalar': In addition to `string', following values are allowed: nulls, booleans, numerics (i.e. `json_scalar()' type) <br />
+%% - `value': Any json compatible values are allowed (i.e. `json_value()' type) <br />
+%% - default: `string' <br />
+%% - NOTE: Non `json_string()' value is automatically converted to a `binary()' value (e.g. `1' => `<<"1">>', `#{}' => `<<"{}">>') <br />
 %%
 %% `{space, N}': <br />
 %% - Inserts `N' spaces after every commna and colon <br />

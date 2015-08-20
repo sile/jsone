@@ -104,6 +104,10 @@ Usage Example
                               [[{123,<<"value">>}],[],<<"{">>],
                               [{line,138}]}]}}
 
+% 'object_key_type' option allows non-string object key
+> jsone:encode({[{123, <<"value">>}]}, [{object_key_type, scalar}]).
+<<"{\"123\":\"value\"}">>
+
 %% Pretty Print
 > Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null].
 > io:format("~s\n", [jsone:encode(Data, [{indent, 1}, {space, 2}])]).

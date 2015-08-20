@@ -142,6 +142,28 @@ encode_test_() ->
               Expected = <<"{\"key\":2}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode({[{key, 2}]}))
       end},
+     {"object_key_type option",
+      fun () ->
+              %% key: atom
+              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(#{a => 2}, [{object_key_type, string}])), % OK
+              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(#{a => 2}, [{object_key_type, scalar}])), % OK
+              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(#{a => 2}, [{object_key_type, value}])),  % OK
+
+              %% key: number
+              ?assertMatch({error, {badarg, _}},  jsone_encode:encode(#{1 => 2}, [{object_key_type, string}])), % NG
+              ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(#{1 => 2}, [{object_key_type, scalar}])), % OK
+              ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(#{1 => 2}, [{object_key_type, value}])),  % OK
+
+              %% key: array
+              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{[1] => 2}, [{object_key_type, string}])), % NG
+              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{[1] => 2}, [{object_key_type, scalar}])), % NG
+              ?assertEqual({ok, <<"{\"[1]\":2}">>}, jsone_encode:encode(#{[1] => 2}, [{object_key_type, value}])),  % OK
+
+              %% key: object
+              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{#{} => 2}, [{object_key_type, string}])), % NG
+              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{#{} => 2}, [{object_key_type, scalar}])), % NG
+              ?assertEqual({ok, <<"{\"{}\":2}">>}, jsone_encode:encode(#{#{} => 2}, [{object_key_type, value}]))    % OK
+      end},
      {"non binary object member key is disallowed",
       fun () ->
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{1, 2}]})),
