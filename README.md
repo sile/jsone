@@ -88,11 +88,11 @@ Usage Example
 > jsone:encode([{<<"key">>, <<"value">>}]).  % proplist format
 <<"{\"key\":\"value\"}">>
 
-> jsone:encode({[{key, <<"value">>}]}). % atom key is allowed
+> jsone:encode(#{key => <<"value">>}). % atom key is allowed
 <<"{\"key\":\"value\"}">>
 
 % error: raises exception
-> jsone:encode({[{123, <<"value">>}]}). % non binary|atom key is not allowed
+> jsone:encode(#{123 => <<"value">>}). % non binary|atom key is not allowed
 ** exception error: bad argument
      in function  jsone_encode:object_members/3
         called as jsone_encode:object_members([{123,<<"value">>}],[],<<"{">>)
@@ -105,8 +105,8 @@ Usage Example
                               [{line,138}]}]}}
 
 %% Pretty Print
-> Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null],
-> io:format("~s\n", jsone:encode(Data, [{indent, 1}, {space, 2}])).
+> Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null].
+> io:format("~s\n", [jsone:encode(Data, [{indent, 1}, {space, 2}])]).
 [
   true,
   {
