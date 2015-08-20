@@ -1,5 +1,5 @@
-jsone (1.0.0)
-=============
+jsone
+=====
 
 [![hex.pm version](https://img.shields.io/hexpm/v/jsone.svg)](https://hex.pm/packages/jsone)
 
