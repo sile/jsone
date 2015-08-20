@@ -51,7 +51,7 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
--record(decode_opt_v1, { object_format=tuple :: tuple | proplist | map}).
+-record(decode_opt_v1, { object_format=map :: tuple | proplist | map}).
 -define(OPT, #decode_opt_v1).
 -type opt() :: #decode_opt_v1{}.
 

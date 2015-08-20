@@ -124,7 +124,7 @@
 %%  - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
 %%  - `proplist': An object is decoded as `[{}]' if it is empty, otherwise `[{Key, Value}]'. <br />
 %%  - `map': An object is decoded as `#{}' if it is empty, otherwise `#{Key => Value}'. <br />
-%%  - default: `tuple' <br />
+%%  - default: `map' <br />
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions

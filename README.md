@@ -54,7 +54,13 @@ Usage Example
 [1,2,3]
 
 > jsone:decode(<<"{\"1\":2}">>).
-{[{<<"1">>,2}]}
+#{<<"1">> => 2}
+
+> jsone:decode(<<"{\"1\":2}">>, [{object_format, tuple}]). % tuple format
+{[{<<"1">>, 2}]}
+
+> jsone:decode(<<"{\"1\":2}">>, [{object_format, proplist}]). % proplist format
+[{<<"1">>, 2}]
 
 > jsone:try_decode(<<"[1,2,3] \"next value\"">>). % try_decode/1 returns remaining (unconsumed binary)
 {ok,[1,2,3],<<" \"next value\"">>}
@@ -77,7 +83,9 @@ Usage Example
 > jsone:encode([1,2,3]).
 <<"[1,2,3]">>
 
-> jsone:encode({[{<<"key">>, <<"value">>}]}).
+> jsone:encode(#{<<"key">> => <<"value">>}).  % map format
+> jsone:encode({[{<<"key">>, <<"value">>}]}). % tuple format
+> jsone:encode([{<<"key">>, <<"value">>}]).  % proplist format
 <<"{\"key\":\"value\"}">>
 
 > jsone:encode({[{key, <<"value">>}]}). % atom key is allowed
@@ -97,7 +105,7 @@ Usage Example
                               [{line,138}]}]}}
 
 %% Pretty Print
-> Data = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
+> Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null],
 > io:format("~s\n", jsone:encode(Data, [{indent, 1}, {space, 2}])).
 [
   true,
