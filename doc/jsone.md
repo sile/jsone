@@ -51,7 +51,7 @@ encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_opti
 - `scalar`: In addition to `string`, following values are allowed: nulls, booleans, numerics (i.e. `json_scalar()` type) <br />
 - `value`: Any json compatible values are allowed (i.e. `json_value()` type) <br />
 - default: `string` <br />
-- NOTE: Non `json_string()` value is automatically converted to a `binary()` value (e.g. `1` => `<<"1">>`, `#{}` => `<<"{}">>`) <br />
+- NOTE: If `scalar` or `value` option is specified, non `json_string()` key will be automatically converted to a `binary()` value (e.g. `1` => `<<"1">>`, `#{}` => `<<"{}">>`) <br />
 
 `{space, N}`: <br />
 - Inserts `N` spaces after every commna and colon <br />

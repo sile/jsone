@@ -1,4 +1,4 @@
-jsone (0.3.3)
+jsone (1.0.0)
 =============
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
