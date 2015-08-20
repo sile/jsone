@@ -6,9 +6,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 JSON decoding/encoding module.
-
 
 <a name="types"></a>
 
@@ -20,48 +18,44 @@ JSON decoding/encoding module.
 ### <a name="type-decode_option">decode_option()</a> ###
 
 
-
 <pre><code>
 decode_option() = {object_format, tuple | proplist | map}
 </code></pre>
 
-
-
-  object_format: <br />
+ object_format: <br />
 - Decoded JSON object format <br />
 - `tuple`: An object is decoded as `{[]}` if it is empty, otherwise `{[{Key, Value}]}`. <br />
 - `proplist`: An object is decoded as `[{}]` if it is empty, otherwise `[{Key, Value}]`. <br />
 - `map`: An object is decoded as `#{}` if it is empty, otherwise `#{Key => Value}`. <br />
-- default: `tuple` <br />
+- default: `map` <br />
 
 
 
 ### <a name="type-encode_option">encode_option()</a> ###
 
 
-
 <pre><code>
-encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {space, non_neg_integer()} | {indent, non_neg_integer()}
+encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()}
 </code></pre>
-
-
-
 
 `native_utf8`: <br />
 - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
-
-
 
 `{float_format, Optoins}`:
 - Encodes a `float()` value in the format which specified by `Options` <br />
 - default: `[{scientific, 20}]` <br />
 
-
+`object_key_type`:
+- Allowable object key type <br />
+- `string`: Only string values are allowed (i.e. `json_string()` type) <br />
+- `scalar`: In addition to `string`, following values are allowed: nulls, booleans, numerics (i.e. `json_scalar()` type) <br />
+- `value`: Any json compatible values are allowed (i.e. `json_value()` type) <br />
+- default: `string` <br />
+- NOTE: If `scalar` or `value` option is specified, non `json_string()` key will be automatically converted to a `binary()` value (e.g. `1` => `<<"1">>`, `#{}` => `<<"{}">>`) <br />
 
 `{space, N}`: <br />
 - Inserts `N` spaces after every commna and colon <br />
 - default: `0` <br />
-
 
 `{indent, N}`: <br />
 - Inserts a newline and `N` spaces for each level of indentation <br />
@@ -72,28 +66,18 @@ encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_opti
 ### <a name="type-float_format_option">float_format_option()</a> ###
 
 
-
 <pre><code>
 float_format_option() = {scientific, Decimals::0..249} | {decimals, Decimals::0..253} | compact
 </code></pre>
 
-
-
-
 `scientific`: <br />
 - The float will be formatted using scientific notation with `Decimals` digits of precision. <br />
-
-
 
 `decimals`: <br />
 - The encoded string will contain at most `Decimals` number of digits past the decimal point. <br />
 - If `compact` is provided the trailing zeros at the end of the string are truncated. <br />
 
-
-
 For more details, see [erlang:flaot_to_list/2](http://erlang.org/doc/man/erlang.md#float_to_list-2).
-
-
 
 ```
   > jsone:encode(1.23).
@@ -110,9 +94,7 @@ For more details, see [erlang:flaot_to_list/2](http://erlang.org/doc/man/erlang.
 
 
 
-
 ### <a name="type-json_array">json_array()</a> ###
-
 
 
 <pre><code>
@@ -122,9 +104,7 @@ json_array() = [<a href="#type-json_value">json_value()</a>]
 
 
 
-
 ### <a name="type-json_boolean">json_boolean()</a> ###
-
 
 
 <pre><code>
@@ -134,9 +114,7 @@ json_boolean() = boolean()
 
 
 
-
 ### <a name="type-json_number">json_number()</a> ###
-
 
 
 <pre><code>
@@ -146,9 +124,7 @@ json_number() = number()
 
 
 
-
 ### <a name="type-json_object">json_object()</a> ###
-
 
 
 <pre><code>
@@ -158,9 +134,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 
-
 ### <a name="type-json_object_format_map">json_object_format_map()</a> ###
-
 
 
 <pre><code>
@@ -170,9 +144,7 @@ json_object_format_map() = #{}
 
 
 
-
 ### <a name="type-json_object_format_proplist">json_object_format_proplist()</a> ###
-
 
 
 <pre><code>
@@ -182,9 +154,7 @@ json_object_format_proplist() = [{}] | <a href="#type-json_object_members">json_
 
 
 
-
 ### <a name="type-json_object_format_tuple">json_object_format_tuple()</a> ###
-
 
 
 <pre><code>
@@ -194,9 +164,7 @@ json_object_format_tuple() = {<a href="#type-json_object_members">json_object_me
 
 
 
-
 ### <a name="type-json_object_members">json_object_members()</a> ###
-
 
 
 <pre><code>
@@ -206,29 +174,33 @@ json_object_members() = [{<a href="#type-json_string">json_string()</a>, <a href
 
 
 
+### <a name="type-json_scalar">json_scalar()</a> ###
+
+
+<pre><code>
+json_scalar() = <a href="#type-json_boolean">json_boolean()</a> | <a href="#type-json_number">json_number()</a> | <a href="#type-json_string">json_string()</a>
+</code></pre>
+
+
+
 
 ### <a name="type-json_string">json_string()</a> ###
-
 
 
 <pre><code>
 json_string() = binary() | atom()
 </code></pre>
 
-
-
- NOTE: `decode/1` always returns `binary()` value
+NOTE: `decode/1` always returns `binary()` value
 
 
 
 ### <a name="type-json_value">json_value()</a> ###
 
 
-
 <pre><code>
 json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-json_string">json_string()</a> | <a href="#type-json_array">json_array()</a> | <a href="#type-json_object">json_object()</a> | <a href="#type-json_boolean">json_boolean()</a> | null
 </code></pre>
-
 
 <a name="index"></a>
 
@@ -246,31 +218,25 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 
 ### decode/1 ###
 
-
 <pre><code>
 decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
 <br />
 
 Equivalent to [`decode(Json, [])`](#decode-2).
+
 <a name="decode-2"></a>
 
 ### decode/2 ###
-
 
 <pre><code>
 decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
 <br />
 
-
 Decodes an erlang term from json text (a utf8 encoded binary)
 
-
-
 Raises an error exception if input is not valid json
-
-
 
 ```
   > jsone:decode(<<"1">>, []).
@@ -286,31 +252,25 @@ Raises an error exception if input is not valid json
 
 ### encode/1 ###
 
-
 <pre><code>
 encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
 Equivalent to [`encode(JsonValue, [])`](#encode-2).
+
 <a name="encode-2"></a>
 
 ### encode/2 ###
-
 
 <pre><code>
 encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; binary()
 </code></pre>
 <br />
 
-
 Encodes an erlang term into json text (a utf8 encoded binary)
 
-
-
 Raises an error exception if input is not an instance of type `json_value()`
-
-
 
 ```
   > jsone:encode([1, null, 2]).
@@ -326,27 +286,23 @@ Raises an error exception if input is not an instance of type `json_value()`
 
 ### try_decode/1 ###
 
-
 <pre><code>
 try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
 <br />
 
 Equivalent to [`try_decode(Json, [])`](#try_decode-2).
+
 <a name="try_decode-2"></a>
 
 ### try_decode/2 ###
-
 
 <pre><code>
 try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
 <br />
 
-
 Decodes an erlang term from json text (a utf8 encoded binary)
-
-
 
 ```
   > jsone:try_decode(<<"[1,2,3] \"next value\"">>, []).
@@ -361,27 +317,23 @@ Decodes an erlang term from json text (a utf8 encoded binary)
 
 ### try_encode/1 ###
 
-
 <pre><code>
 try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
 <br />
 
 Equivalent to [`try_encode(JsonValue, [])`](#try_encode-2).
+
 <a name="try_encode-2"></a>
 
 ### try_encode/2 ###
-
 
 <pre><code>
 try_encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
 </code></pre>
 <br />
 
-
 Encodes an erlang term into json text (a utf8 encoded binary)
-
-
 
 ```
   > jsone:try_encode([1, null, 2]).

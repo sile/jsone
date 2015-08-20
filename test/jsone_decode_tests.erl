@@ -162,27 +162,29 @@ decode_test_() ->
      {"simple object",
       fun () ->
               Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
+              Expected = #{<<"1">> => 2, <<"key">> => <<"value">>},
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input)), % `map' is the default format
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, map}]))
+      end},
+     {"simple object: tuple or proplist",
+      fun () ->
+              Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
               Expected = {[{<<"1">>, 2},{<<"key">>, <<"value">>}]},
-              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input)),
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, tuple}])),
               ?assertEqual({ok, element(1, Expected), <<"">>}, jsone_decode:decode(Input, [{object_format, proplist}]))
       end},
      {"object: contains whitespaces",
       fun () ->
               Input    = <<"{  \"1\" :\t 2,\n\r\"key\" :   \n  \"value\"}">>,
-              Expected = {[{<<"1">>, 2},{<<"key">>, <<"value">>}]},
+              Expected = #{<<"1">> => 2, <<"key">> => <<"value">>},
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
      {"empty object",
       fun () ->
-              ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{}">>)),
-              ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
+              ?assertEqual({ok, #{}, <<"">>}, jsone_decode:decode(<<"{}">>)),
+              ?assertEqual({ok, #{}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
+              ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, tuple}])),
               ?assertEqual({ok, [{}], <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, proplist}]))
-      end},
-     {"simple object: map",
-      fun () ->
-              Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
-              Expected = #{<<"1">> => 2, <<"key">> => <<"value">>},
-              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, map}]))
       end},
      {"empty object: map",
       fun () ->
@@ -198,7 +200,7 @@ decode_test_() ->
       fun () ->
               Input = <<"{\"1\":2, \"key\":\"value\", }">>,
               io:format("~p\n", [catch jsone_decode:decode(Input)]),
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input, [{object_format, tuple}]))
       end},
      {"object: missing comma",
       fun () ->
@@ -230,7 +232,7 @@ decode_test_() ->
      {"compound data",
       fun () ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
-              Expected = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
+              Expected = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null],
               ?assertEqual({ok, Expected, <<"   ">>}, jsone_decode:decode(Input))
       end}
     ].

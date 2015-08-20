@@ -2,11 +2,11 @@
 {application, jsone,
  [
   {description, "Erlang JSON Library"},
-  {vsn, git},
+  {vsn, "1.0.0"},
   {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
+  {applications, [kernel, stdlib]},
+  {contributors, ["Takeru Ohta"]},
+  {licenses, ["MIT"]},
+  {links, [{"GitHub","https://github.com/sile/jsone"}]},
   {env, []}
  ]}.

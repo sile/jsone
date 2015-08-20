@@ -1,5 +1,7 @@
-jsone (0.3.3)
+jsone (1.0.0)
 =============
+
+[![hex.pm version](https://img.shields.io/hexpm/v/jsone.svg)](https://hex.pm/packages/jsone)
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
 
@@ -54,7 +56,13 @@ Usage Example
 [1,2,3]
 
 > jsone:decode(<<"{\"1\":2}">>).
-{[{<<"1">>,2}]}
+#{<<"1">> => 2}
+
+> jsone:decode(<<"{\"1\":2}">>, [{object_format, tuple}]). % tuple format
+{[{<<"1">>, 2}]}
+
+> jsone:decode(<<"{\"1\":2}">>, [{object_format, proplist}]). % proplist format
+[{<<"1">>, 2}]
 
 > jsone:try_decode(<<"[1,2,3] \"next value\"">>). % try_decode/1 returns remaining (unconsumed binary)
 {ok,[1,2,3],<<" \"next value\"">>}
@@ -77,14 +85,16 @@ Usage Example
 > jsone:encode([1,2,3]).
 <<"[1,2,3]">>
 
-> jsone:encode({[{<<"key">>, <<"value">>}]}).
+> jsone:encode(#{<<"key">> => <<"value">>}).  % map format
+> jsone:encode({[{<<"key">>, <<"value">>}]}). % tuple format
+> jsone:encode([{<<"key">>, <<"value">>}]).  % proplist format
 <<"{\"key\":\"value\"}">>
 
-> jsone:encode({[{key, <<"value">>}]}). % atom key is allowed
+> jsone:encode(#{key => <<"value">>}). % atom key is allowed
 <<"{\"key\":\"value\"}">>
 
 % error: raises exception
-> jsone:encode({[{123, <<"value">>}]}). % non binary|atom key is not allowed
+> jsone:encode(#{123 => <<"value">>}). % non binary|atom key is not allowed
 ** exception error: bad argument
      in function  jsone_encode:object_members/3
         called as jsone_encode:object_members([{123,<<"value">>}],[],<<"{">>)
@@ -96,9 +106,13 @@ Usage Example
                               [[{123,<<"value">>}],[],<<"{">>],
                               [{line,138}]}]}}
 
+% 'object_key_type' option allows non-string object key
+> jsone:encode({[{123, <<"value">>}]}, [{object_key_type, scalar}]).
+<<"{\"123\":\"value\"}">>
+
 %% Pretty Print
-> Data = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
-> io:format("~s\n", jsone:encode(Data, [{indent, 1}, {space, 2}])).
+> Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null].
+> io:format("~s\n", [jsone:encode(Data, [{indent, 1}, {space, 2}])]).
 [
   true,
   {

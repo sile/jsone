@@ -10,3 +10,4 @@ doc/*
 !doc/overview.edoc
 !doc/*.md
 .rebar
+_build

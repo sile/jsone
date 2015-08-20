@@ -1,37 +1,22 @@
-APP=jsone
-
-DIALYZER_OPTS=-Werror_handling -Wrace_conditions -Wunmatched_returns
-
-all: compile xref eunit dialyze
-
-init:
-	@./rebar get-deps compile
+all: compile xref eunit dialyze edoc
 
 compile:
-	@./rebar compile skip_deps=true
+	@./rebar3 compile
 
 xref:
-	@./rebar xref skip_deps=true
+	@./rebar3 xref
 
 clean:
-	@./rebar clean skip_deps=true
+	@./rebar3 clean
 
 eunit:
-	@./rebar eunit skip_deps=true
+	@./rebar3 eunit
 
 edoc:
-	@./rebar doc skip_deps=true
+	@./rebar3 as doc edoc
 
 start: compile
-	erl -pz ebin deps/*/ebin \
-      -eval 'erlang:display({start_app, $(APP), application:start($(APP))}).'
+	@./rebar3 shell
 
-.dialyzer.plt:
-	touch .dialyzer.plt
-	dialyzer --build_plt --plt .dialyzer.plt --apps erts kernel stdlib
-
-dialyze: .dialyzer.plt compile
-	dialyzer --plt .dialyzer.plt -r ebin $(DIALYZER_OPTS)
-
-create_app:
-	@./rebar create-app appid=$(APP) skip_deps=true
+dialyze: compile
+	@./rebar3 dialyzer
