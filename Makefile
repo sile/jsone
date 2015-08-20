@@ -13,7 +13,7 @@ eunit:
 	@./rebar3 eunit
 
 edoc:
-	@./rebar3 as doc edoc
+	@./rebar3 as edown edoc
 
 start: compile
 	@./rebar3 shell
