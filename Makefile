@@ -10,7 +10,7 @@ clean:
 	@./rebar3 clean
 
 eunit:
-	@./rebar3 eunit
+	@./rebar3 do eunit,cover
 
 edoc:
 	@./rebar3 as edown edoc
