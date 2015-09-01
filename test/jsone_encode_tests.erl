@@ -94,6 +94,24 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
 
+     %% Strings variant: Datetimes
+     {"datetime: iso8601: utc",
+      fun () ->
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}})),
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, iso8601}])),
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, utc}}]))
+      end},
+     {"datetime: iso8601: local",
+      fun () ->
+              ?assertMatch({ok, <<"\"2015-06-25T14:57:25",_:6/binary,"\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, local}}]))
+      end},
+     {"datetime: iso8601: timezone",
+      fun () ->
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>},      jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, 0}}])),
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25+00:01\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, 60}}])),
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25-00:01\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, -60}}]))
+      end},
+
      %% Arrays
      {"simple array",
       fun () ->
@@ -153,6 +171,11 @@ encode_test_() ->
               ?assertMatch({error, {badarg, _}},  jsone_encode:encode(#{1 => 2}, [{object_key_type, string}])), % NG
               ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(#{1 => 2}, [{object_key_type, scalar}])), % OK
               ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(#{1 => 2}, [{object_key_type, value}])),  % OK
+
+              %% key: datetime
+              ?assertMatch({error, {badarg, _}},  jsone_encode:encode(#{{{2000,1,1}, {0,0,0}} => 2}, [{object_key_type, string}])), % NG
+              ?assertEqual({ok, <<"{\"2000-01-01T00:00:00Z\":2}">>}, jsone_encode:encode(#{{{2000,1,1}, {0,0,0}} => 2}, [{object_key_type, scalar}])), % OK
+              ?assertEqual({ok, <<"{\"2000-01-01T00:00:00Z\":2}">>}, jsone_encode:encode(#{{{2000,1,1}, {0,0,0}} => 2}, [{object_key_type, value}])),  % OK
 
               %% key: array
               ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{[1] => 2}, [{object_key_type, string}])), % NG

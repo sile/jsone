@@ -39,7 +39,10 @@
 -define(IS_REDUNDANT_UTF8(B1, B2, FirstBitN), (B1 =:= 0 andalso B2 < (1 bsl (FirstBitN + 1)))).
 -define(HEX(N, I), (binary:at(<<"0123456789abcdef">>, (N bsr (I * 4)) band 2#1111))).
 -define(UNICODE_TO_HEX(Code), ?HEX(Code, 3), ?HEX(Code, 2), ?HEX(Code, 1), ?HEX(Code, 0)).
--define(IS_STR(X), is_binary(X); is_atom(X)).
+-define(IS_STR(X), (is_binary(X) orelse is_atom(X))).
+-define(IS_UINT(X), (is_integer(X) andalso X >= 0)).
+-define(IS_DATETIME(Y,M,D,H,Mi,S), (?IS_UINT(Y) andalso ?IS_UINT(M) andalso ?IS_UINT(D) andalso
+                                    ?IS_UINT(H) andalso ?IS_UINT(Mi) andalso ?IS_UINT(S))).
 
 -type encode_result() :: {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 -type next() :: {array_values, [jsone:json_value()]}
@@ -50,6 +53,7 @@
 -record(encode_opt_v1, {
           native_utf8 = false :: boolean(),
           float_format = [{scientific, 20}] :: [jsone:float_format_option()],
+          datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
           object_key_type = string :: string | scalar | value,
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer()
@@ -99,6 +103,7 @@ value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary
 value(Value, Nexts, Buf, Opt) when is_integer(Value) -> next(Nexts, <<Buf/binary, (integer_to_binary(Value))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value, Opt?OPT.float_format))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when ?IS_STR(Value)    -> string(Value, Nexts, Buf, Opt);
+value({{_,_,_},{_,_,_}} = Value, Nexts, Buf, Opt)    -> datetime(Value, Nexts, Buf, Opt);
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
@@ -112,11 +117,30 @@ string(<<Str/binary>>, Nexts, Buf, Opt) ->
 string(Str, Nexts, Buf, Opt) ->
     string(atom_to_binary(Str, utf8), Nexts, Buf, Opt).
 
+-spec datetime(calendar:datetime(), [next()], binary(), opt()) -> encode_result().
+datetime({{Y,M,D}, {H,Mi,S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y,M,D,H,Mi,S) ->
+    Str =
+        case Opt?OPT.datetime_format of
+            {iso8601, 0}  -> io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ", [Y, M, D, H, Mi, S]);
+            {iso8601, Tz} ->
+                {Sign, {DiffHour, DiffMinute, _}} =
+                    case Tz > 0 of
+                        true  -> {$+, calendar:seconds_to_time(Tz)};
+                        false -> {$-, calendar:seconds_to_time(-Tz)}
+                    end,
+                io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B~c~2..0B:~2..0B", [Y, M, D, H, Mi, S, Sign, DiffHour, DiffMinute])
+        end,
+    next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $">>, Opt);
+datetime(Datetime, Nexts, Buf, Opt) ->
+    ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
+
 -spec object_key(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
 object_key(Key, Nexts, Buf, Opt) when ?IS_STR(Key) ->
     string(Key, Nexts, Buf, Opt);
 object_key(Key, Nexts, Buf, Opt = ?OPT{object_key_type = scalar}) when is_number(Key) ->
     value(Key, [{char, $"} | Nexts], <<Buf/binary, $">>, Opt);
+object_key(Key = {{Y,M,D},{H,Mi,S}}, Nexts, Buf, Opt = ?OPT{object_key_type = Type}) when ?IS_DATETIME(Y,M,D,H,Mi,S), Type =/= string ->
+    value(Key, Nexts, Buf, Opt);
 object_key(Key, Nexts, Buf, Opt = ?OPT{object_key_type = value}) ->
     case value(Key, [], <<>>, Opt) of
         {error, Reason} -> {error, Reason};
@@ -229,5 +253,19 @@ parse_option([{indent, N}|T], Opt) when is_integer(N), N >= 0 ->
     parse_option(T, Opt?OPT{indent = N});
 parse_option([{object_key_type, Type}|T], Opt) when Type =:= string; Type =:= scalar; Type =:= value ->
     parse_option(T, Opt?OPT{object_key_type = Type});
+parse_option([{datetime_format, Fmt}|T], Opt) ->
+    case Fmt of
+        iso8601                                 -> parse_option(T, Opt?OPT{datetime_format = {iso8601, 0}});
+        {iso8601, utc}                          -> parse_option(T, Opt?OPT{datetime_format = {iso8601, 0}});
+        {iso8601, local}                        -> parse_option(T, Opt?OPT{datetime_format = {iso8601, local_offset()}});
+        {iso8601, N} when -86400 < N, N < 86400 -> parse_option(T, Opt?OPT{datetime_format = {iso8601, N}});
+        _                                       -> error(badarg, [[{datetime_format, Fmt}|T], Opt])
+    end;
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).
+
+-spec local_offset() -> jsone:utc_offset_seconds().
+local_offset() ->
+    UTC = {{1970, 1, 2}, {0,0,0}},
+    Local = calendar:universal_time_to_local_time({{1970, 1, 2}, {0,0,0}}),
+    calendar:datetime_to_gregorian_seconds(Local) - calendar:datetime_to_gregorian_seconds(UTC).

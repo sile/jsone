@@ -157,20 +157,21 @@ Data Mapping (Erlang <=> JSON)
 Erlang                  JSON             Erlang
 =================================================================================================
 
-null                 -> null          -> null
-true                 -> true          -> true
-false                -> false         -> false
-<<"abc">>            -> "abc"         -> <<"abc">>
-abc                  -> "abc"         -> <<"abc">> % non-special atom is regarded as a binary
-123                  -> 123           -> 123
-123.4                -> 123.4         -> 123.4
-[1,2,3]              -> [1,2,3]       -> [1,2,3]
-{[]}                 -> {}            -> {[]}                       % object_format=tuple
-{[{key, <<"val">>}]} -> {"key":"val"} -> {[{<<"key">>, <<"val">>}]} % object_format=tuple
-[{}]                 -> {}            -> [{}]                       % object_format=proplist
-[{<<"key">>, val}]   -> {"key":"val"} -> [{<<"key">>, <<"val">>}]   % object_format=proplist
-#{}                  -> {}            -> #{}                        % object_format=map
-#{key => val}        -> {"key":"val"} -> #{<<"key">> => <<"val">>}  % object_format=map
+null                 -> null                   -> null
+true                 -> true                   -> true
+false                -> false                  -> false
+<<"abc">>            -> "abc"                  -> <<"abc">>
+abc                  -> "abc"                  -> <<"abc">> % non-special atom is regarded as a binary
+{{2010,1,1},{0,0,0}} -> "2010-01-01T00:00:00Z" -> <<"2010-01-01T00:00:00Z">> % datetime (see: `jsone:datetime_encode_format/0`)
+123                  -> 123                    -> 123
+123.4                -> 123.4                  -> 123.4
+[1,2,3]              -> [1,2,3]                -> [1,2,3]
+{[]}                 -> {}                     -> {[]}                       % object_format=tuple
+{[{key, <<"val">>}]} -> {"key":"val"}          -> {[{<<"key">>, <<"val">>}]} % object_format=tuple
+[{}]                 -> {}                     -> [{}]                       % object_format=proplist
+[{<<"key">>, val}]   -> {"key":"val"}          -> [{<<"key">>, <<"val">>}]   % object_format=proplist
+#{}                  -> {}                     -> #{}                        % object_format=map
+#{key => val}        -> {"key":"val"}          -> #{<<"key">> => <<"val">>}  % object_format=map
 ```
 
 API

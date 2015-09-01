@@ -15,6 +15,47 @@ JSON decoding/encoding module.
 
 
 
+### <a name="type-datetime_encode_format">datetime_encode_format()</a> ###
+
+
+<pre><code>
+datetime_encode_format() = <a href="#type-datetime_format">datetime_format()</a> | {Format::<a href="#type-datetime_format">datetime_format()</a>, TimeZone::<a href="#type-timezone">timezone()</a>}
+</code></pre>
+
+ Datetime encoding format.
+
+The default value of `TimeZone` is `utc`.
+
+```
+  %
+  % Universal Time
+  %
+  > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, iso8601}]).
+  <<"\"2000-03-10T10:03:58Z\"">>
+  %
+  % Local Time (JST)
+  %
+  > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, {iso8601, local}}]).
+  <<"\"2000-03-10T10:03:58+09:00\"">>
+  %
+  % Explicit TimeZone Offset
+  %
+  > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, {iso8601, -2*60*60}}]).
+  <<"\"2000-03-10T10:03:58-02:00\"">>
+```
+
+
+
+### <a name="type-datetime_format">datetime_format()</a> ###
+
+
+<pre><code>
+datetime_format() = iso8601
+</code></pre>
+
+
+
+
 ### <a name="type-decode_option">decode_option()</a> ###
 
 
@@ -35,7 +76,7 @@ decode_option() = {object_format, tuple | proplist | map}
 
 
 <pre><code>
-encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()}
+encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()}
 </code></pre>
 
 `native_utf8`: <br />
@@ -44,6 +85,10 @@ encode_option() = native_utf8 | {float_format, [<a href="#type-float_format_opti
 `{float_format, Optoins}`:
 - Encodes a `float()` value in the format which specified by `Options` <br />
 - default: `[{scientific, 20}]` <br />
+
+`{datetime_format, Format}`:
+- Encodes a `calendar:datetime()` value in the format which specified by `Format` <br />
+- default: `{iso8601, utc}` <br />
 
 `object_key_type`:
 - Allowable object key type <br />
@@ -188,7 +233,7 @@ json_scalar() = <a href="#type-json_boolean">json_boolean()</a> | <a href="#type
 
 
 <pre><code>
-json_string() = binary() | atom()
+json_string() = binary() | atom() | <a href="calendar.md#type-datetime">calendar:datetime()</a>
 </code></pre>
 
 NOTE: `decode/1` always returns `binary()` value
@@ -200,6 +245,26 @@ NOTE: `decode/1` always returns `binary()` value
 
 <pre><code>
 json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-json_string">json_string()</a> | <a href="#type-json_array">json_array()</a> | <a href="#type-json_object">json_object()</a> | <a href="#type-json_boolean">json_boolean()</a> | null
+</code></pre>
+
+
+
+
+### <a name="type-timezone">timezone()</a> ###
+
+
+<pre><code>
+timezone() = utc | local | <a href="#type-utc_offset_seconds">utc_offset_seconds()</a>
+</code></pre>
+
+
+
+
+### <a name="type-utc_offset_seconds">utc_offset_seconds()</a> ###
+
+
+<pre><code>
+utc_offset_seconds() = -86399..86399
 </code></pre>
 
 <a name="index"></a>
