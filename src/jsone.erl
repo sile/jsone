@@ -51,7 +51,9 @@
 
               encode_option/0,
               decode_option/0,
-              float_format_option/0
+              float_format_option/0,
+              datetime_encode_format/0, datetime_format/0,
+              timezone/0, utc_offset_seconds/0
              ]).
 
 %%--------------------------------------------------------------------------------
@@ -60,7 +62,7 @@
 -type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null.
 -type json_boolean()        :: boolean().
 -type json_number()         :: number().
--type json_string()         :: binary() | atom(). % NOTE: `decode/1' always returns `binary()' value
+-type json_string()         :: binary() | atom() | calendar:datetime(). % NOTE: `decode/1' always returns `binary()' value
 -type json_array()          :: [json_value()].
 -type json_object()         :: json_object_format_tuple()
                              | json_object_format_proplist()
@@ -100,10 +102,41 @@
 %%
 %% > jsone:encode(1.23, [{float_format, [{decimals, 4}, compact]}]).
 %% <<"1.23">>
-%%'''
+%% '''
+
+-type datetime_encode_format() :: Format::datetime_format()
+                                | {Format::datetime_format(), TimeZone::timezone()}.
+%% Datetime encoding format.
+%%
+%% The default value of `TimeZone' is `utc'.
+%%
+%% ```
+%% %
+%% % Universal Time
+%% %
+%% > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, iso8601}]).
+%% <<"\"2000-03-10T10:03:58Z\"">>
+%%
+%% %
+%% % Local Time (JST)
+%% %
+%% > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, {iso8601, local}}]).
+%% <<"\"2000-03-10T10:03:58+09:00\"">>
+%%
+%% %
+%% % Explicit TimeZone Offset
+%% %
+%% > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, {iso8601, -2*60*60}}]).
+%% <<"\"2000-03-10T10:03:58-02:00\"">>
+%% '''
+
+-type datetime_format() :: iso8601.
+-type timezone() :: utc | local | utc_offset_seconds().
+-type utc_offset_seconds() :: -86399..86399.
 
 -type encode_option() :: native_utf8
                        | {float_format, [float_format_option()]}
+                       | {datetime_format, datetime_encode_format()}
                        | {object_key_type, string | scalar | value}
                        | {space, non_neg_integer()}
                        | {indent, non_neg_integer()}.
@@ -113,6 +146,10 @@
 %% `{float_format, Optoins}':
 %% - Encodes a `float()` value in the format which specified by `Options' <br />
 %% - default: `[{scientific, 20}]' <br />
+%%
+%% `{datetime_format, Format}`:
+%% - Encodes a `calendar:datetime()` value in the format which specified by `Format' <br />
+%% - default: `{iso8601, utc}' <br />
 %%
 %% `object_key_type':
 %% - Allowable object key type <br />
