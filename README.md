@@ -9,7 +9,7 @@ An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data
 Features
 --------
 - Provides simple encode/decode function only
-- [RFC4627](http://www.ietf.org/rfc/rfc4627.txt)-compliant
+- [RFC7159](http://www.ietf.org/rfc/rfc7159.txt)-compliant
 - Supports UTF-8 encoded binary
 - Pure Erlang
 - Highly Efficient

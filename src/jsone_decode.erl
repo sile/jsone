@@ -51,9 +51,9 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
--record(decode_opt_v1, { object_format=map :: tuple | proplist | map}).
--define(OPT, #decode_opt_v1).
--type opt() :: #decode_opt_v1{}.
+-record(decode_opt_v2, { object_format=map :: tuple | proplist | map, allow_ctrl_chars=false :: boolean()}).
+-define(OPT, #decode_opt_v2).
+-type opt() :: #decode_opt_v2{}.
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -158,8 +158,10 @@ string(<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt) ->
         <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary>>, Opt);
         _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt])
     end;
-string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C ->
-    string(Bin, Base, Start, Nexts, Buf, Opt).
+string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C; Opt?OPT.allow_ctrl_chars ->
+    string(Bin, Base, Start, Nexts, Buf, Opt);
+string(Bin, Base, Start, Nexts, Buf, Opt) ->
+    ?ERROR(string, [Bin, Base, Start, Nexts, Buf, Opt]).
 
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
@@ -276,4 +278,8 @@ parse_options(Options) ->
 -spec parse_option([jsone:decode_option()], opt()) -> opt().
 parse_option([], Opt) -> Opt;
 parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist; F =:= map ->
-    parse_option(T, Opt?OPT{object_format=F}).
+    parse_option(T, Opt?OPT{object_format=F});
+parse_option([{allow_ctrl_chars,B}|T], Opt) when is_boolean(B) ->
+    parse_option(T, Opt?OPT{allow_ctrl_chars=B});
+parse_option(List, Opt) ->
+    error(badarg, [List, Opt]).

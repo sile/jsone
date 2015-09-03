@@ -115,6 +115,22 @@ decode_test_() ->
               Expected = <<"𢁉𢂚𢃼">>,
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
+     {"string: control characters",
+      fun () ->
+              Ctrls = lists:seq(0, 16#1f),
+              lists:foreach(
+                fun (C) ->
+                        %% Control characters are unacceptable
+                        ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<$", C, $">>))
+                end,
+                Ctrls),
+              lists:foreach(
+                fun (C) ->
+                        %% `allow_ctrl_chars' option allows strings which contain unescaped control characters
+                        ?assertEqual({ok, <<C>>, <<"">>}, jsone_decode:decode(<<$", C, $">>, [{allow_ctrl_chars, true}]))
+                end,
+                Ctrls)
+      end},
      {"string: invalid escape characters",
       fun () ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\z\"">>)),    % '\z' is undefined
