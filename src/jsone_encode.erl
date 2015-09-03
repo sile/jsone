@@ -52,7 +52,7 @@
               | {object_members, jsone:json_object_members()}
               | {char, binary()}.
 
--record(encode_opt_v1, {
+-record(encode_opt_v2, {
           native_utf8 = false :: boolean(),
           float_format = [{scientific, 20}] :: [jsone:float_format_option()],
           datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
@@ -60,8 +60,8 @@
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer()
          }).
--define(OPT, #encode_opt_v1).
--type opt() :: #encode_opt_v1{}.
+-define(OPT, #encode_opt_v2).
+-type opt() :: #encode_opt_v2{}.
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions

@@ -167,13 +167,18 @@
 %% - Inserts a newline and `N' spaces for each level of indentation <br />
 %% - default: `0' <br />
 
--type decode_option() :: {object_format, tuple | proplist | map}.
-%% object_format: <br />
-%%  - Decoded JSON object format <br />
-%%  - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
-%%  - `proplist': An object is decoded as `[{}]' if it is empty, otherwise `[{Key, Value}]'. <br />
-%%  - `map': An object is decoded as `#{}' if it is empty, otherwise `#{Key => Value}'. <br />
-%%  - default: `map' <br />
+-type decode_option() :: {object_format, tuple | proplist | map}
+                       | {allow_ctrl_chars, boolean()}.
+%% `object_format': <br />
+%% - Decoded JSON object format <br />
+%% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
+%% - `proplist': An object is decoded as `[{}]' if it is empty, otherwise `[{Key, Value}]'. <br />
+%% - `map': An object is decoded as `#{}' if it is empty, otherwise `#{Key => Value}'. <br />
+%% - default: `map' <br />
+%%
+%% `allow_ctrl_chars': <br />
+%% - If the value is `true', strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
+%% - default: `false' <br />
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
