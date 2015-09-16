@@ -69,9 +69,15 @@
                              | json_object_format_map().
 -type json_object_members() :: [{json_string(), json_value()}].
 
--type json_object_format_map() :: map().
 -type json_object_format_tuple() :: {json_object_members()}.
 -type json_object_format_proplist() :: [{}] | json_object_members().
+
+-ifdef('NO_MAP_TYPE').
+-opaque json_object_format_map() :: json_object_format_proplist().
+%% `maps' is not supported in this erts version
+-else.
+-type json_object_format_map() :: map().
+-endif.
 
 -type json_scalar() :: json_boolean() | json_number() | json_string().
 
@@ -174,11 +180,11 @@
 %% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
 %% - `proplist': An object is decoded as `[{}]' if it is empty, otherwise `[{Key, Value}]'. <br />
 %% - `map': An object is decoded as `#{}' if it is empty, otherwise `#{Key => Value}'. <br />
-%% - default: `map' <br />
+%% - default: `map' if OTP version is OTP-17 or more, `tuple' otherwise <br />
 %%
 %% `allow_ctrl_chars': <br />
 %% - If the value is `true', strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
-%% - default: `false' <br />
+%% - default: `false'<br />
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions

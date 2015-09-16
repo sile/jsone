@@ -44,6 +44,14 @@
 -define(IS_DATETIME(Y,M,D,H,Mi,S), (?IS_UINT(Y) andalso ?IS_UINT(M) andalso ?IS_UINT(D) andalso
                                     ?IS_UINT(H) andalso ?IS_UINT(Mi) andalso ?IS_UINT(S))).
 
+-ifdef('NO_MAP_TYPE').
+-define(IS_MAP(X), is_tuple(X)).
+-define(ENCODE_MAP(Value, Nexts, Buf, Opt), ?ERROR(value, [Value, Nexts, Buf, Opt])).
+-else.
+-define(IS_MAP(X), is_map(X)).
+-define(ENCODE_MAP(Value, Nexts, Buf, Opt), object(maps:to_list(Value), Nexts, Buf, Opt)).
+-endif.
+
 -type encode_result() :: {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 -type next() :: {array_values, [jsone:json_value()]}
               | {object_value, jsone:json_value(), jsone:json_object_members()}
@@ -107,7 +115,7 @@ value({{_,_,_},{_,_,_}} = Value, Nexts, Buf, Opt)    -> datetime(Value, Nexts, B
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
-value(Value, Nexts, Buf, Opt) when is_map(Value)     -> object(maps:to_list(Value), Nexts, Buf, Opt);
+value(Value, Nexts, Buf, Opt) when ?IS_MAP(Value)    -> ?ENCODE_MAP(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt)                        -> ?ERROR(value, [Value, Nexts, Buf, Opt]).
 

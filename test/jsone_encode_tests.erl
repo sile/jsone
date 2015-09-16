@@ -4,6 +4,16 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+-ifdef('NO_MAP_TYPE').
+-define(OBJ0, {[]}).
+-define(OBJ1(K, V), {[{K, V}]}).
+-define(OBJ2(K1, V1, K2, V2), {[{K1, V1}, {K2, V2}]}).
+-else.
+-define(OBJ0, #{}).
+-define(OBJ1(K, V), #{K => V}).
+-define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
+-endif.
+
 encode_test_() ->
     [
      %% Symbols
@@ -145,13 +155,13 @@ encode_test_() ->
       end},
      {"simple object: map",
       fun () ->
-              Input = #{<<"key">> => <<"value">>, <<"1">> => 2},
+              Input = ?OBJ2(<<"1">>, 2, <<"key">>, <<"value">>),
               Expected = <<"{\"1\":2,\"key\":\"value\"}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
      {"empty object: map",
       fun () ->
-              Input = #{},
+              Input = ?OBJ0,
               Expected = <<"{}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
@@ -163,29 +173,29 @@ encode_test_() ->
      {"object_key_type option",
       fun () ->
               %% key: atom
-              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(#{a => 2}, [{object_key_type, string}])), % OK
-              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(#{a => 2}, [{object_key_type, scalar}])), % OK
-              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(#{a => 2}, [{object_key_type, value}])),  % OK
+              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(?OBJ1(a, 2), [{object_key_type, string}])), % OK
+              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(?OBJ1(a, 2), [{object_key_type, scalar}])), % OK
+              ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(?OBJ1(a, 2), [{object_key_type, value}])),  % OK
 
               %% key: number
-              ?assertMatch({error, {badarg, _}},  jsone_encode:encode(#{1 => 2}, [{object_key_type, string}])), % NG
-              ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(#{1 => 2}, [{object_key_type, scalar}])), % OK
-              ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(#{1 => 2}, [{object_key_type, value}])),  % OK
+              ?assertMatch({error, {badarg, _}},  jsone_encode:encode(?OBJ1(1, 2), [{object_key_type, string}])), % NG
+              ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(?OBJ1(1, 2), [{object_key_type, scalar}])), % OK
+              ?assertEqual({ok, <<"{\"1\":2}">>}, jsone_encode:encode(?OBJ1(1, 2), [{object_key_type, value}])),  % OK
 
               %% key: datetime
-              ?assertMatch({error, {badarg, _}},  jsone_encode:encode(#{{{2000,1,1}, {0,0,0}} => 2}, [{object_key_type, string}])), % NG
-              ?assertEqual({ok, <<"{\"2000-01-01T00:00:00Z\":2}">>}, jsone_encode:encode(#{{{2000,1,1}, {0,0,0}} => 2}, [{object_key_type, scalar}])), % OK
-              ?assertEqual({ok, <<"{\"2000-01-01T00:00:00Z\":2}">>}, jsone_encode:encode(#{{{2000,1,1}, {0,0,0}} => 2}, [{object_key_type, value}])),  % OK
+              ?assertMatch({error, {badarg, _}},  jsone_encode:encode(?OBJ1({{2000,1,1}, {0,0,0}}, 2), [{object_key_type, string}])), % NG
+              ?assertEqual({ok, <<"{\"2000-01-01T00:00:00Z\":2}">>}, jsone_encode:encode(?OBJ1({{2000,1,1}, {0,0,0}}, 2), [{object_key_type, scalar}])), % OK
+              ?assertEqual({ok, <<"{\"2000-01-01T00:00:00Z\":2}">>}, jsone_encode:encode(?OBJ1({{2000,1,1}, {0,0,0}}, 2), [{object_key_type, value}])),  % OK
 
               %% key: array
-              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{[1] => 2}, [{object_key_type, string}])), % NG
-              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{[1] => 2}, [{object_key_type, scalar}])), % NG
-              ?assertEqual({ok, <<"{\"[1]\":2}">>}, jsone_encode:encode(#{[1] => 2}, [{object_key_type, value}])),  % OK
+              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(?OBJ1([1], 2), [{object_key_type, string}])), % NG
+              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(?OBJ1([1], 2), [{object_key_type, scalar}])), % NG
+              ?assertEqual({ok, <<"{\"[1]\":2}">>}, jsone_encode:encode(?OBJ1([1], 2), [{object_key_type, value}])),  % OK
 
               %% key: object
-              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{#{} => 2}, [{object_key_type, string}])), % NG
-              ?assertMatch({error, {badarg, _}},    jsone_encode:encode(#{#{} => 2}, [{object_key_type, scalar}])), % NG
-              ?assertEqual({ok, <<"{\"{}\":2}">>}, jsone_encode:encode(#{#{} => 2}, [{object_key_type, value}]))    % OK
+              ?assertMatch({error, {badarg, _}},   jsone_encode:encode(?OBJ1(?OBJ0, 2), [{object_key_type, string}])), % NG
+              ?assertMatch({error, {badarg, _}},   jsone_encode:encode(?OBJ1(?OBJ0, 2), [{object_key_type, scalar}])), % NG
+              ?assertEqual({ok, <<"{\"{}\":2}">>}, jsone_encode:encode(?OBJ1(?OBJ0, 2), [{object_key_type, value}]))    % OK
       end},
      {"non binary object member key is disallowed",
       fun () ->
@@ -198,22 +208,22 @@ encode_test_() ->
       fun () ->
               ?assertEqual({ok, <<"[1, 2, 3]">>}, jsone_encode:encode([1,2,3], [{space, 1}])),
               ?assertEqual({ok, <<"[1,  2,  3]">>}, jsone_encode:encode([1,2,3], [{space, 2}])),
-              ?assertEqual({ok, <<"{\"a\": 1, \"b\": 2}">>}, jsone_encode:encode(#{a=>1, b=>2}, [{space, 1}])),
-              ?assertEqual({ok, <<"{\"a\":  1,  \"b\":  2}">>}, jsone_encode:encode(#{a=>1, b=>2}, [{space, 2}]))
+              ?assertEqual({ok, <<"{\"a\": 1, \"b\": 2}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{space, 1}])),
+              ?assertEqual({ok, <<"{\"a\":  1,  \"b\":  2}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{space, 2}]))
       end},
      {"indent",
       fun () ->
               ?assertEqual({ok, <<"[\n 1,\n 2,\n 3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 1}])),
               ?assertEqual({ok, <<"[\n  1,\n  2,\n  3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 2}])),
-              ?assertEqual({ok, <<"{\n \"a\":1,\n \"b\":2\n}">>}, jsone_encode:encode(#{a=>1, b=>2}, [{indent, 1}])),
-              ?assertEqual({ok, <<"{\n  \"a\":1,\n  \"b\":2\n}">>}, jsone_encode:encode(#{a=>1, b=>2}, [{indent, 2}]))
+              ?assertEqual({ok, <<"{\n \"a\":1,\n \"b\":2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 1}])),
+              ?assertEqual({ok, <<"{\n  \"a\":1,\n  \"b\":2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 2}]))
       end},
      {"indent+space",
       fun () ->
               ?assertEqual({ok, <<"[\n 1,\n 2,\n 3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"[\n  1,\n  2,\n  3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 2}, {space, 2}])),
-              ?assertEqual({ok, <<"{\n \"a\": 1,\n \"b\": 2\n}">>}, jsone_encode:encode(#{a=>1, b=>2}, [{indent, 1}, {space, 1}])),
-              ?assertEqual({ok, <<"{\n  \"a\":  1,\n  \"b\":  2\n}">>}, jsone_encode:encode(#{a=>1, b=>2}, [{indent, 2}, {space, 2}]))
+              ?assertEqual({ok, <<"{\n \"a\": 1,\n \"b\": 2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 1}, {space, 1}])),
+              ?assertEqual({ok, <<"{\n  \"a\":  1,\n  \"b\":  2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 2}, {space, 2}]))
       end},
 
      %% Others

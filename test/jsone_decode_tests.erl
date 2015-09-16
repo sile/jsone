@@ -4,6 +4,18 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+-ifdef('NO_MAP_TYPE').
+-define(MAP_OBJECT_TYPE, tuple).
+-define(OBJ0, {[]}).
+-define(OBJ1(K, V), {[{K, V}]}).
+-define(OBJ2(K1, V1, K2, V2), {[{K1, V1}, {K2, V2}]}).
+-else.
+-define(MAP_OBJECT_TYPE, map).
+-define(OBJ0, #{}).
+-define(OBJ1(K, V), #{K => V}).
+-define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
+-endif.
+
 decode_test_() ->
     [
      %% Symbols
@@ -178,9 +190,9 @@ decode_test_() ->
      {"simple object",
       fun () ->
               Input    = <<"{\"1\":2,\"key\":\"value\"}">>,
-              Expected = #{<<"1">> => 2, <<"key">> => <<"value">>},
+              Expected = ?OBJ2(<<"1">>, 2, <<"key">>, <<"value">>),
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input)), % `map' is the default format
-              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, map}]))
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
       end},
      {"simple object: tuple or proplist",
       fun () ->
@@ -192,25 +204,31 @@ decode_test_() ->
      {"object: contains whitespaces",
       fun () ->
               Input    = <<"{  \"1\" :\t 2,\n\r\"key\" :   \n  \"value\"}">>,
-              Expected = #{<<"1">> => 2, <<"key">> => <<"value">>},
+              Expected = ?OBJ2(<<"1">>, 2, <<"key">>, <<"value">>),
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
      {"empty object",
       fun () ->
-              ?assertEqual({ok, #{}, <<"">>}, jsone_decode:decode(<<"{}">>)),
-              ?assertEqual({ok, #{}, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
+              ?assertEqual({ok, ?OBJ0, <<"">>}, jsone_decode:decode(<<"{}">>)),
+              ?assertEqual({ok, ?OBJ0, <<"">>}, jsone_decode:decode(<<"{ \t\r\n}">>)),
               ?assertEqual({ok, {[]}, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, tuple}])),
               ?assertEqual({ok, [{}], <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, proplist}]))
       end},
      {"empty object: map",
       fun () ->
-              ?assertEqual({ok, #{}, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, map}]))
+              ?assertEqual({ok, ?OBJ0, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, ?MAP_OBJECT_TYPE}]))
       end},
      {"duplicated members: map",
       fun () ->
               Input    = <<"{\"1\":\"first\",\"1\":\"second\"}">>,
-              Expected = #{<<"1">> => <<"first">>}, % the first (leftmost) value is used
-              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, map}]))
+              case ?MAP_OBJECT_TYPE of
+                  map   ->
+                      Expected = ?OBJ1(<<"1">>, <<"first">>), % the first (leftmost) value is used
+                      ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]));
+                  tuple ->
+                      Expected = ?OBJ2(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
+                      ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
+              end
       end},
      {"object: trailing comma is disallowed",
       fun () ->
@@ -248,7 +266,7 @@ decode_test_() ->
      {"compound data",
       fun () ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
-              Expected = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null],
+              Expected = [true, ?OBJ2(<<"1">>, 2, <<"array">>, [[[[1]]], ?OBJ1(<<"ab">>, <<"cd">>), false]), null],
               ?assertEqual({ok, Expected, <<"   ">>}, jsone_decode:decode(Input))
       end}
     ].

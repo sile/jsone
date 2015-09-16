@@ -37,6 +37,14 @@
 %%--------------------------------------------------------------------------------
 -define(ERROR(Function, Args), {error, {badarg, [{?MODULE, Function, Args, [{line, ?LINE}]}]}}).
 
+-ifdef('NO_MAP_TYPE').
+-define(DEFAULT_OBJECT_FORMAT, tuple).
+-define(LIST_TO_MAP(X), error({this_erts_does_not_support_maps, X})).
+-else.
+-define(DEFAULT_OBJECT_FORMAT, map).
+-define(LIST_TO_MAP(X), maps:from_list(X)).
+-endif.
+
 -type next() :: {array_next, [jsone:json_value()]}
               | {object_value, jsone:json_object_members()}
               | {object_next, jsone:json_string(), jsone:json_object_members()}.
@@ -51,7 +59,11 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
--record(decode_opt_v2, { object_format=map :: tuple | proplist | map, allow_ctrl_chars=false :: boolean()}).
+-record(decode_opt_v2,
+        {
+          object_format=?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
+          allow_ctrl_chars=false :: boolean()
+        }).
 -define(OPT, #decode_opt_v2).
 -type opt() :: #decode_opt_v2{}.
 
@@ -267,7 +279,7 @@ number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf,
 
 -spec make_object(jsone:json_object_members(), opt()) -> jsone:json_object().
 make_object(Members, ?OPT{object_format = tuple}) -> {lists:reverse(Members)};
-make_object(Members, ?OPT{object_format = map})   -> maps:from_list(Members);
+make_object(Members, ?OPT{object_format = map})   -> ?LIST_TO_MAP(Members);
 make_object([],      _)                           -> [{}];
 make_object(Members, _)                           -> lists:reverse(Members).
 

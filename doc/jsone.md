@@ -68,11 +68,11 @@ decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, b
 - `tuple`: An object is decoded as `{[]}` if it is empty, otherwise `{[{Key, Value}]}`. <br />
 - `proplist`: An object is decoded as `[{}]` if it is empty, otherwise `[{Key, Value}]`. <br />
 - `map`: An object is decoded as `#{}` if it is empty, otherwise `#{Key => Value}`. <br />
-- default: `map` <br />
+- default: `map` if OTP version is OTP-17 or more, `tuple` otherwise <br />
 
 `allow_ctrl_chars`: <br />
 - If the value is `true`, strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
-- default: `false` <br />
+- default: `false`<br />
 
 
 
