@@ -251,10 +251,10 @@ encode(JsonValue) ->
 %% > jsone:encode([1, null, 2]).
 %% <<"[1,null,2]">>
 %%
-%% > jsone:encode([1, hoge, 2]).  % 'hoge' atom is not a json value
+%% > jsone:encode([1, self(), 2]).  % A pid is not a json value
 %% ** exception error: bad argument
 %%      in function  jsone_encode:value/3
-%%         called as jsone_encode:value(hoge,[{array_values,[2]}],<<"[1,">>)
+%%         called as jsone_encode:value(<0,34,0>,[{array_values,[2]}],<<"[1,">>)
 %%      in call from jsone:encode/1 (src/jsone.erl, line 97)
 %% '''
 -spec encode(json_value(), [encode_option()]) -> binary().
