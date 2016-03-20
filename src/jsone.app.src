@@ -3,7 +3,7 @@
               {vsn,"1.2.1"},
               {registered,[]},
               {applications,[kernel,stdlib]},
-              {contributors,["Takeru Ohta"]},
+              {maintainers,["Takeru Ohta"]},
               {licenses,["MIT"]},
               {links,[{"GitHub","https://github.com/sile/jsone"}]},
               {env,[]}]}.
