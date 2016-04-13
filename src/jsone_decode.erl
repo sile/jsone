@@ -2,7 +2,7 @@
 %%% @private
 %%% @end
 %%%
-%%% Copyright (c) 2013-2015, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2016, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -39,6 +39,14 @@
 %%--------------------------------------------------------------------------------
 -define(ERROR(Function, Args), {error, {badarg, [{?MODULE, Function, Args, [{line, ?LINE}]}]}}).
 
+-ifdef('NO_MAP_TYPE').
+-define(DEFAULT_OBJECT_FORMAT, tuple).
+-define(LIST_TO_MAP(X), error({this_erts_does_not_support_maps, X})).
+-else.
+-define(DEFAULT_OBJECT_FORMAT, map).
+-define(LIST_TO_MAP(X), maps:from_list(X)).
+-endif.
+
 -type next() :: {array_next, [jsone:json_value()]}
               | {object_value, jsone:json_object_members()}
               | {object_next, jsone:json_string(), jsone:json_object_members()}.
@@ -53,7 +61,11 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 
--record(decode_opt_v2, { object_format=map :: tuple | proplist | map, allow_ctrl_chars=false :: boolean()}).
+-record(decode_opt_v2,
+        {
+          object_format=?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
+          allow_ctrl_chars=false :: boolean()
+        }).
 -define(OPT, #decode_opt_v2).
 -type opt() :: #decode_opt_v2{}.
 
@@ -160,10 +172,12 @@ string(<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt) ->
         <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary>>, Opt);
         _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt])
     end;
-string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C; Opt?OPT.allow_ctrl_chars ->
+string(<<_, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when Opt?OPT.allow_ctrl_chars ->
     string(Bin, Base, Start, Nexts, Buf, Opt);
-string(Bin, Base, Start, Nexts, Buf, Opt) ->
-    ?ERROR(string, [Bin, Base, Start, Nexts, Buf, Opt]).
+string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C ->
+    string(Bin, Base, Start, Nexts, Buf, Opt);
+ string(Bin, Base, Start, Nexts, Buf, Opt) ->
+     ?ERROR(string, [Bin, Base, Start, Nexts, Buf, Opt]).
 
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
@@ -174,8 +188,8 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
                 <<$\\, $u, N2:4/binary, Bin2/binary>> ->
                     case binary_to_integer(N2, 16) of
                         Low when 16#DC00 =< Low, Low =< 16#DFFF ->
-                            Unicode = 16#10000 + (High - 16#D800) * 16#400 + (Low - 16#DC00),
-                            string(Bin2, Start, Nexts, unicode_to_utf8(Unicode, Buf), Opt);
+                            <<Unicode/utf16>> = <<High:16, Low:16>>,
+                            string(Bin2, Start, Nexts, <<Buf/binary, Unicode/utf8>>, Opt);
                         _ -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
                     end;
                 _ -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
@@ -183,29 +197,10 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
         Unicode when 16#DC00 =< Unicode, Unicode =< 16#DFFF ->  % second part of surrogate pair (without first part)
             ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt]);
         Unicode ->
-            string(Bin, Start, Nexts, unicode_to_utf8(Unicode, Buf), Opt)
+            string(Bin, Start, Nexts, <<Buf/binary, Unicode/utf8>>, Opt)
     end;
 unicode_string(Bin, Start, Nexts, Buf, Opt) ->
     ?ERROR(unicode_string, [Bin, Start, Nexts, Buf, Opt]).
-
--spec unicode_to_utf8(0..1114111, binary()) -> binary().
-unicode_to_utf8(Code, Buf) when Code < 16#80 ->
-    <<Buf/binary, Code>>;
-unicode_to_utf8(Code, Buf) when Code < 16#800 ->
-    A = 2#11000000 bor (Code bsr 6),
-    B = 2#10000000 bor (Code band 2#111111),
-    <<Buf/binary, A, B>>;
-unicode_to_utf8(Code, Buf) when Code < 16#10000 ->
-    A = 2#11100000 bor (Code bsr 12),
-    B = 2#10000000 bor ((Code bsr 6) band 2#111111),
-    C = 2#10000000 bor (Code band 2#111111),
-    <<Buf/binary, A, B, C>>;
-unicode_to_utf8(Code, Buf) ->
-    A = 2#11110000 bor (Code bsr 18),
-    B = 2#10000000 bor ((Code bsr 12) band 2#111111),
-    C = 2#10000000 bor ((Code bsr  6) band 2#111111),
-    D = 2#10000000 bor (Code band 2#111111),
-    <<Buf/binary, A, B, C, D>>.
 
 -spec number(binary(), [next()], binary(), opt()) -> decode_result().
 number(<<$-, Bin/binary>>, Nexts, Buf, Opt) -> number_integer_part(Bin, -1, Nexts, Buf, Opt);
@@ -269,7 +264,7 @@ number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf,
 
 -spec make_object(jsone:json_object_members(), opt()) -> jsone:json_object().
 make_object(Members, ?OPT{object_format = tuple}) -> {lists:reverse(Members)};
-make_object(Members, ?OPT{object_format = map})   -> maps:from_list(Members);
+make_object(Members, ?OPT{object_format = map})   -> ?LIST_TO_MAP(Members);
 make_object([],      _)                           -> [{}];
 make_object(Members, _)                           -> lists:reverse(Members).
 

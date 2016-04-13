@@ -2,7 +2,7 @@
 %%% @private
 %%% @end
 %%%
-%%% Copyright (c) 2013-2015, Takeru Ohta <phjgt308@gmail.com>
+%%% Copyright (c) 2013-2016, Takeru Ohta <phjgt308@gmail.com>
 %%%
 %%% The MIT License
 %%%
@@ -38,13 +38,20 @@
 %% Macros & Records & Types
 %%--------------------------------------------------------------------------------
 -define(ERROR(Function, Args), {error, {badarg, [{?MODULE, Function, Args, [{line, ?LINE}]}]}}).
--define(IS_REDUNDANT_UTF8(B1, B2, FirstBitN), (B1 =:= 0 andalso B2 < (1 bsl (FirstBitN + 1)))).
 -define(HEX(N, I), (binary:at(<<"0123456789abcdef">>, (N bsr (I * 4)) band 2#1111))).
 -define(UNICODE_TO_HEX(Code), ?HEX(Code, 3), ?HEX(Code, 2), ?HEX(Code, 1), ?HEX(Code, 0)).
 -define(IS_STR(X), (is_binary(X) orelse is_atom(X))).
 -define(IS_UINT(X), (is_integer(X) andalso X >= 0)).
 -define(IS_DATETIME(Y,M,D,H,Mi,S), (?IS_UINT(Y) andalso ?IS_UINT(M) andalso ?IS_UINT(D) andalso
                                     ?IS_UINT(H) andalso ?IS_UINT(Mi) andalso ?IS_UINT(S))).
+
+-ifdef('NO_MAP_TYPE').
+-define(IS_MAP(X), is_tuple(X)).
+-define(ENCODE_MAP(Value, Nexts, Buf, Opt), ?ERROR(value, [Value, Nexts, Buf, Opt])).
+-else.
+-define(IS_MAP(X), is_map(X)).
+-define(ENCODE_MAP(Value, Nexts, Buf, Opt), object(maps:to_list(Value), Nexts, Buf, Opt)).
+-endif.
 
 -type encode_result() :: {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
 -type next() :: {array_values, [jsone:json_value()]}
@@ -109,7 +116,7 @@ value({{_,_,_},{_,_,_}} = Value, Nexts, Buf, Opt)    -> datetime(Value, Nexts, B
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
-value(Value, Nexts, Buf, Opt) when is_map(Value)     -> object(maps:to_list(Value), Nexts, Buf, Opt);
+value(Value, Nexts, Buf, Opt) when ?IS_MAP(Value)    -> ?ENCODE_MAP(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt)                        -> ?ERROR(value, [Value, Nexts, Buf, Opt]).
 
@@ -162,43 +169,21 @@ escape_string(<<$\n, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, N
 escape_string(<<$\r, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $r>>, Opt);
 escape_string(<<$\t, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $t>>, Opt);
 escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, C>>, Opt);
-escape_string(<<2#110:3, B1:5, 2#10:2, B2:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 5) ->
+escape_string(<<Unicode/utf8, Str/binary>>, Nexts, Buf, Opt) ->
     case Opt?OPT.native_utf8 of
-        false ->
-            Unicode = (B1 bsl 6) + B2,
-            escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
-        true ->
-            unicode_char(Str, <<2#110:3, B1:5, 2#10:2, B2:6>>, Nexts, Buf, Opt)
-    end;
-escape_string(<<2#1110:4, B1:4, 2#10:2, B2:6, 2#10:2, B3:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 4) ->
-    case Opt?OPT.native_utf8 of
-        false ->
-            Unicode = (B1 bsl 12) + (B2 bsl 6) + B3,
-            escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
-        true ->
-            unicode_char(Str, <<2#1110:4, B1:4, 2#10:2, B2:6, 2#10:2, B3:6>>, Nexts, Buf, Opt)
-    end;
-escape_string(<<2#11110:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6, Str/binary>>, Nexts, Buf, Opt) when not ?IS_REDUNDANT_UTF8(B1, B2, 3) ->
-    case Opt?OPT.native_utf8 of
-        false ->
-            Unicode = (B1 bsl 18) + (B2 bsl 12) + (B3 bsl 6) + B4,
-            escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
-        true ->
-            unicode_char(Str, <<2#11000:5, B1:3, 2#10:2, B2:6, 2#10:2, B3:6, 2#10:2, B4:6>>, Nexts, Buf, Opt)
+        false -> escape_unicode_char(Str, Unicode, Nexts, Buf, Opt);
+        true  -> escape_string(Str, Nexts, <<Buf/binary, Unicode/utf8>>, Opt)
     end;
 escape_string(Str, Nexts, Buf, Opt) ->
     ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
-
-unicode_char(Str, Char, Nexts, Buf, Opt) ->
-    escape_string(Str, Nexts, <<Buf/binary, Char/binary>>, Opt).
 
 -spec escape_unicode_char(binary(), char(), [next()], binary(), opt()) -> encode_result().
 escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf, Opt) when Unicode =< 16#FFFF ->
     escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(Unicode)>>, Opt);
 escape_unicode_char(<<Str/binary>>, Unicode, Nexts, Buf, Opt) ->
     %% Surrogate Pair
-    <<High:10, Low:10>> = <<(Unicode - 16#10000):20>>, % XXX: inefficient
-    escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(High + 16#D800), $\\, $u, ?UNICODE_TO_HEX(Low + 16#DC00)>>, Opt).
+    <<High:16, Low:16>> = <<Unicode/utf16>>,
+    escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?UNICODE_TO_HEX(High), $\\, $u, ?UNICODE_TO_HEX(Low)>>, Opt).
 
 -spec array(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
 array(List, Nexts, Buf, Opt) ->

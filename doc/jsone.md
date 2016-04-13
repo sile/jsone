@@ -68,11 +68,11 @@ decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, b
 - `tuple`: An object is decoded as `{[]}` if it is empty, otherwise `{[{Key, Value}]}`. <br />
 - `proplist`: An object is decoded as `[{}]` if it is empty, otherwise `[{Key, Value}]`. <br />
 - `map`: An object is decoded as `#{}` if it is empty, otherwise `#{Key => Value}`. <br />
-- default: `map` <br />
+- default: `map` if OTP version is OTP-17 or more, `tuple` otherwise <br />
 
 `allow_ctrl_chars`: <br />
 - If the value is `true`, strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
-- default: `false` <br />
+- default: `false`<br />
 
 
 
@@ -344,10 +344,10 @@ Raises an error exception if input is not an instance of type `json_value()`
 ```
   > jsone:encode([1, null, 2]).
   <<"[1,null,2]">>
-  > jsone:encode([1, hoge, 2]).  % 'hoge' atom is not a json value
+  > jsone:encode([1, self(), 2]).  % A pid is not a json value
   ** exception error: bad argument
        in function  jsone_encode:value/3
-          called as jsone_encode:value(hoge,[{array_values,[2]}],<<"[1,">>)
+          called as jsone_encode:value(<0,34,0>,[{array_values,[2]}],<<"[1,">>)
        in call from jsone:encode/1 (src/jsone.erl, line 97)
 ```
 
