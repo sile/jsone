@@ -207,8 +207,8 @@ See the [BENCHMARK.md](BENCHMARK.md) file for more information.
 | large value**    | 388.06 μs/op |  634.06 μs/op (2) |  744.13 μs/op | 1572.41 μs/op | 1667.37 μs/op |
 | pretty print**   | 404.84 μs/op |  956.29 μs/op (3) |  802.29 μs/op | 1795.51 μs/op | 4434.13 μs/op |
 
-* binary representation of [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)
-** [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json)
+*binary representation of [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt) <br />
+**[generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json)
 
 ### ParserBench Result
 
@@ -222,8 +222,8 @@ See the [BENCHMARK.md](BENCHMARK.md) file for more information.
 | json value*        | 504.77 μs/op |  527.77 μs/op (2) |  686.90 μs/op | 1320.74 μs/op |
 | UTF-8 unescaping** |  59.95 μs/op |   83.79 μs/op (2) |  109.70 μs/op |  159.35 μs/op |
 
-* [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json)
-** [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)
+*[generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json) <br />
+**[UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)
 
 License
 -------
