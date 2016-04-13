@@ -189,7 +189,9 @@ See the [BENCHMARK.md](BENCHMARK.md) file for more information.
 
 ### EncoderBench Result
 
-| Non HiPE         | jiffy        | jsone             | poison        | jazz          | jsx           |
+__Non HiPE__:
+
+|                  | jiffy        | jsone             | poison        | jazz          | jsx           |
 |:-----------------|-------------:|------------------:|--------------:|--------------:|--------------:|
 | maps             |   7.35 μs/op |   10.00 μs/op (2) |   13.26 μs/op |   18.97 μs/op |   30.03 μs/op |
 | lists            | 214.93 μs/op |  151.70 μs/op (2) |  114.34 μs/op |  197.31 μs/op |  337.25 μs/op |
@@ -198,7 +200,10 @@ See the [BENCHMARK.md](BENCHMARK.md) file for more information.
 | large value**    | 404.95 μs/op | 1379.04 μs/op (3) | 1322.36 μs/op | 1818.49 μs/op | 2027.41 μs/op |
 | pretty print**   | 415.19 μs/op | 1734.20 μs/op (3) | 1453.36 μs/op | 2031.73 μs/op | 5223.72 μs/op |
 
-| HiPE             | jiffy        | jsone             | poison        | jazz          | jsx           |
+
+__HiPE__:
+
+|                  | jiffy        | jsone             | poison        | jazz          | jsx           |
 |:-----------------|-------------:|------------------:|--------------:|--------------:|--------------:|
 | maps             |   7.12 μs/op |    5.58 μs/op (1) |   10.71 μs/op |   21.08 μs/op |   25.38 μs/op |
 | lists            | 198.89 μs/op |   64.76 μs/op (1) |   76.80 μs/op |  217.64 μs/op |  220.85 μs/op |
@@ -212,12 +217,16 @@ See the [BENCHMARK.md](BENCHMARK.md) file for more information.
 
 ### ParserBench Result
 
-| Non HiPE           | jiffy        | jsone             | poison        | jsx           |
+__Non HiPE__: 
+|                    | jiffy        | jsone             | poison        | jsx           |
 |:-------------------|-------------:|------------------:|--------------:|--------------:|
 | json value*        | 522.25 μs/op | 1217.44 μs/op (2) | 1223.37 μs/op | 1630.77 μs/op |
 | UTF-8 unescaping** |  59.63 μs/op |  342.50 μs/op (4) |  219.79 μs/op |  243.64 μs/op |
 
-| HiPE               | jiffy        | jsone             | poison        | jsx           |
+
+__HiPE__:
+
+|                    | jiffy        | jsone             | poison        | jsx           |
 |:-------------------|-------------:|------------------:|--------------:|--------------:|
 | json value*        | 504.77 μs/op |  527.77 μs/op (2) |  686.90 μs/op | 1320.74 μs/op |
 | UTF-8 unescaping** |  59.95 μs/op |   83.79 μs/op (2) |  109.70 μs/op |  159.35 μs/op |
