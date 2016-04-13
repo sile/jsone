@@ -170,7 +170,9 @@ string(<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt) ->
         <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary>>, Opt);
         _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt])
     end;
-string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C; Opt?OPT.allow_ctrl_chars ->
+string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C ->
+    string(Bin, Base, Start, Nexts, Buf, Opt);
+string(<<_, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when Opt?OPT.allow_ctrl_chars ->
     string(Bin, Base, Start, Nexts, Buf, Opt);
 string(Bin, Base, Start, Nexts, Buf, Opt) ->
     ?ERROR(string, [Bin, Base, Start, Nexts, Buf, Opt]).
