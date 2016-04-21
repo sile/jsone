@@ -51,7 +51,7 @@ If you want to use HiPE compiled version, please add following code to your reba
 ```erlang
 {overrides,
   [
-    {add, jsone, [{erl_opts, [{d, 'ENABLE_HIPE'}]}]}
+    {override, jsone, [{erl_opts, [{d, 'ENABLE_HIPE'}, inline]}]}
   ]}.
 ```
 
