@@ -28,9 +28,6 @@ QuickStart
 $ git clone git://github.com/sile/jsone.git
 $ cd jsone
 
-# If you want to use HiPE enabled version, please execute following command.
-# $ git checkout hipe
-
 # compile
 $ make compile
 
@@ -46,6 +43,17 @@ $ make start
 [1,2,3]
 ```
 
+Enable HiPE
+-----------
+
+If you want to use HiPE compiled version, please add following code to your rebar.config.
+
+```erlang
+{overrides,
+  [
+    {add, jsone, [{erl_opts, [{d, 'ENABLE_HIPE'}]}]}
+  ]}.
+```
 
 Usage Example
 -------------
