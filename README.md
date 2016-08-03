@@ -55,6 +55,12 @@ If you want to use HiPE compiled version, please add following code to your reba
   ]}.
 ```
 
+or use `native` profile. The `make` command supports profile as well. For example:
+
+```sh
+$ make start profile=native
+```
+
 Usage Example
 -------------
 

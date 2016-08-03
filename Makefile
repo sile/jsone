@@ -1,22 +1,26 @@
 all: compile xref eunit dialyze edoc
 
+rebar ?= ./rebar3
+rebar_cmd = $(rebar) $(profile:%=as %)
+
 compile:
-	@./rebar3 compile
+	@$(rebar_cmd) compile
 
 xref:
-	@./rebar3 xref
+	@$(rebar_cmd) xref
 
 clean:
-	@./rebar3 clean
+	@$(rebar_cmd) clean
 
 eunit:
-	@./rebar3 do eunit,cover
+	@$(rebar_cmd) do eunit,cover
 
+edoc: profile=edown
 edoc:
-	@./rebar3 as edown edoc
+	@$(rebar_cmd) edoc
 
 start: compile
-	@./rebar3 shell
+	-@$(rebar_cmd) shell
 
 dialyze: compile
-	@./rebar3 dialyzer
+	@$(rebar_cmd) dialyzer
