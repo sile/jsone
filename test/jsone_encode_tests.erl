@@ -79,7 +79,8 @@ encode_test_() ->
       fun () ->
               Input    = <<"\"\/\\\b\f\n\r\t">>,
               Expected = list_to_binary([$", [[$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t]], $"]),
-              ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
      {"string: contains multi-byte (UTF-8 encoded) characters",
       fun () ->

@@ -11,3 +11,4 @@ doc/*
 !doc/*.md
 .rebar
 _build
+.*.sw?
