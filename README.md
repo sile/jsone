@@ -212,7 +212,7 @@ __Non HiPE__:
 | strings*         |  98.80 μs/op |  595.63 μs/op (5) |  416.78 μs/op |  399.89 μs/op |  262.18 μs/op |
 | string escaping* | 144.01 μs/op |  732.44 μs/op (2) | 1318.82 μs/op | 1197.06 μs/op | 1324.04 μs/op |
 | large value**    | 408.03 μs/op | 1556.85 μs/op (3) | 1447.71 μs/op | 1824.05 μs/op | 2184.59 μs/op |
-| pretty print**   | 420.94 μs/op | 2001.25 μs/op (3) | 1534.74 μs/op | 2041.22 μs/op | 5533.04 μs/op |
+| pretty print**   | 420.94 μs/op | 1686.55 μs/op (3) | 1534.74 μs/op | 2041.22 μs/op | 5533.04 μs/op |
 
 
 __HiPE__:
@@ -224,7 +224,7 @@ __HiPE__:
 | strings*         |  96.67 μs/op |  321.69 μs/op (5) |  142.43 μs/op |  310.10 μs/op |  179.96 μs/op |
 | string escaping* | 146.85 μs/op |  317.10 μs/op (2) | 1277.54 μs/op | 1311.85 μs/op |  767.67 μs/op |
 | large value**    | 409.73 μs/op |  664.34 μs/op (2) |  806.24 μs/op | 1630.21 μs/op | 1777.62 μs/op |
-| pretty print**   | 419.55 μs/op | 1063.73 μs/op (3) |  844.76 μs/op | 1888.71 μs/op | 4872.34 μs/op |
+| pretty print**   | 419.55 μs/op |  724.28 μs/op (2) |  844.76 μs/op | 1888.71 μs/op | 4872.34 μs/op |
 
 \* binary representation of [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)  <br />
 \** [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json)
