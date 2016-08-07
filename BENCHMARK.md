@@ -26,7 +26,7 @@ $ git checkout 2.2.0
 ###
 ### Benchmark: Non HiPE
 ###
-$ patch -p1 < non_hipe.patch
+$ patch -p1 < jsone.patch
 $ mix deps.get
 $ MIX_ENV=bench mix compile
 $ MIX_ENV=bench mix bench
@@ -64,8 +64,8 @@ string escaping (JSX)            1000   1324.04 µs/op
 Poison                           1000   1447.71 µs/op
 Poison (pretty)                  1000   1534.74 µs/op
 jsone                            1000   1556.85 µs/op
+jsone (pretty)                   1000   1686.55 µs/op
 Jazz                             1000   1824.05 µs/op
-jsone (pretty)                   1000   2001.25 µs/op
 Jazz (pretty)                    1000   2041.22 µs/op
 JSX                              1000   2184.59 µs/op
 JSX (pretty)                      500   5533.04 µs/op
@@ -84,7 +84,6 @@ JSX                              1000   1844.55 µs/op
 ###
 ### Benchmark: HiPE
 ###
-$ patch -p1 < hipe.patch
 $ mix clean --deps && find . -name '*.beam' | xargs rm
 $ ERL_COMPILER_OPTIONS="native" MIX_ENV=bench mix compile
 $ MIX_ENV=bench mix bench
@@ -117,10 +116,10 @@ strings (jsone)                  5000   321.69 µs/op
 jiffy                            5000   409.73 µs/op
 jiffy (pretty)                   5000   419.55 µs/op
 jsone                            5000   664.34 µs/op
+jsone (pretty)                   5000   724.28 µs/op
 string escaping (JSX)            2000   767.67 µs/op
 Poison                           2000   806.24 µs/op
 Poison (pretty)                  2000   844.76 µs/op
-jsone (pretty)                   1000   1063.73 µs/op
 string escaping (Poison)         1000   1277.54 µs/op
 string escaping (Jazz)           1000   1311.85 µs/op
 Jazz                             1000   1630.21 µs/op
@@ -150,14 +149,14 @@ mix.lock:
   "exjsx": {:git, "https://github.com/talentdeficit/exjsx.git", "202b2ee1b274511973de60e9fdfed218d3b5eecc", []},
   "jazz": {:git, "https://github.com/meh/jazz.git", "49f335492aca5516495199dd81dd18b845ebaa69", []},
   "jiffy": {:git, "https://github.com/davisp/jiffy.git", "330f41c486cf949707eb494b855634df324a6d92", []},
-  "jsone": {:hex, :jsone, "1.2.5"},
+  "jsone": {:hex, :jsone, "1.2.6"},
   "jsx": {:hex, :jsx, "2.6.2"}}
 ```
 
 Patches
 -------
 
-non_hipe.patch:
+jsone.patch:
 ```patch
 diff --git a/bench/encoder_bench.exs b/bench/encoder_bench.exs
 index cf40dcd..3453a2d 100644
@@ -277,26 +276,8 @@ index 89a8c10..ac2f53e 100644
      [{:earmark, "~> 0.2", only: :docs},
       {:ex_doc, "~> 0.11", only: :docs},
       {:benchfella, "~> 0.3", only: :bench},
-+     {:jsone, "~> 1.2.5", only: :bench},
++     {:jsone, "~> 1.2.6", only: :bench},
       {:jiffy, github: "davisp/jiffy", only: :bench},
       {:exjsx, github: "talentdeficit/exjsx", only: :bench},
       {:jazz, github: "meh/jazz", only: :bench}]
-```
-
-hipe.patch:
-```patch
-diff --git a/config/config.exs b/config/config.exs
-index 013831e..1240a78 100644
---- a/config/config.exs
-+++ b/config/config.exs
-@@ -15,8 +15,7 @@ use Mix.Config
-#       format: "$time $metadata[$level] $message\n"
-
-config :poison,
--#  native: :erlang.system_info(:hipe_architecture) != :undefined
--  native: false
-+  native: :erlang.system_info(:hipe_architecture) != :undefined
-
-# It is also possible to import configuration files, relative to this
-# directory. For example, you can emulate configuration per environment
 ```
