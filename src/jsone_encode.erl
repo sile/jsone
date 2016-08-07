@@ -268,7 +268,7 @@ pp_newline(Buf, Level, Opt) -> pp_newline(Buf, Level, 0, Opt).
 
 -spec pp_newline(binary(), list(), non_neg_integer(), opt()) -> binary().
 pp_newline(Buf, _, _,     ?OPT{indent = 0}) -> Buf;
-pp_newline(Buf, L, Extra, ?OPT{indent = N}) -> lists:foldl(fun (_, B) -> padding(B, N) end, padding(<<Buf/binary, $\n>>, Extra * N), L).
+pp_newline(Buf, L, Extra, ?OPT{indent = N}) -> padding(<<Buf/binary, $\n>>, Extra * N + length(L) * N).
 
 -spec pp_newline_or_space(binary(), list(), opt()) -> binary().
 pp_newline_or_space(Buf, _, Opt = ?OPT{indent = 0}) -> pp_space(Buf, Opt);
@@ -276,7 +276,15 @@ pp_newline_or_space(Buf, L, Opt)                    -> pp_newline(Buf, L, Opt).
 
 -spec padding(binary(), non_neg_integer()) -> binary().
 padding(Buf, 0) -> Buf;
-padding(Buf, N) -> padding(<<Buf/binary, $ >>, N - 1).
+padding(Buf, 1) -> <<Buf/binary, " ">>;
+padding(Buf, 2) -> <<Buf/binary, "  ">>;
+padding(Buf, 3) -> <<Buf/binary, "   ">>;
+padding(Buf, 4) -> <<Buf/binary, "    ">>;
+padding(Buf, 5) -> <<Buf/binary, "     ">>;
+padding(Buf, 6) -> <<Buf/binary, "      ">>;
+padding(Buf, 7) -> <<Buf/binary, "       ">>;
+padding(Buf, 8) -> <<Buf/binary, "        ">>;
+padding(Buf, N) -> padding(<<Buf/binary, "         ">>, N - 9).
 
 -spec parse_options([jsone:encode_option()]) -> opt().
 parse_options(Options) ->
