@@ -36,49 +36,49 @@ duration:      1.0 s
 Finished in 96.87 seconds
 
 ## EncoderBench
-structs (Poison)               500000   6.64 µs/op
-maps (jiffy)                   500000   7.30 µs/op
-maps (jsone)                   100000   11.51 µs/op
-maps (Poison)                  100000   13.46 µs/op
-structs (Jazz)                 100000   14.23 µs/op
-structs (JSX)                  100000   15.60 µs/op
-maps (Jazz)                    100000   19.79 µs/op
-maps (JSX)                     100000   28.94 µs/op
-strings (jiffy)                 20000   94.73 µs/op
-lists (Poison)                  20000   98.92 µs/op
-string escaping (jiffy)         10000   149.25 µs/op
-lists (jsone)                   10000   153.25 µs/op
-lists (Jazz)                    10000   201.31 µs/op
-lists (jiffy)                   10000   209.62 µs/op
-strings (JSX)                   10000   267.73 µs/op
-lists (JSX)                      5000   335.35 µs/op
-strings (Jazz)                   5000   404.81 µs/op
-strings (Poison)                 5000   410.55 µs/op
-jiffy (pretty)                   5000   430.67 µs/op
-jiffy                            5000   497.42 µs/op
-strings (jsone)                  5000   545.25 µs/op
-string escaping (jsone)          2000   697.40 µs/op
-string escaping (Jazz)           1000   1162.74 µs/op
-string escaping (JSX)            1000   1322.45 µs/op
-string escaping (Poison)         1000   1352.44 µs/op
-Poison                           1000   1438.31 µs/op
-Poison (pretty)                  1000   1477.34 µs/op
-jsone                            1000   1508.22 µs/op
-Jazz                             1000   1806.94 µs/op
-jsone (pretty)                   1000   2024.11 µs/op
-JSX                              1000   2068.95 µs/op
-Jazz (pretty)                    1000   2110.42 µs/op
-JSX (pretty)                      500   5516.55 µs/op
+structs (Poison)               500000   6.51 µs/op
+maps (jiffy)                   500000   7.23 µs/op
+maps (jsone)                   100000   10.64 µs/op
+maps (Poison)                  100000   13.58 µs/op
+structs (Jazz)                 100000   13.96 µs/op
+structs (JSX)                  100000   15.78 µs/op
+maps (Jazz)                    100000   19.30 µs/op
+maps (JSX)                      50000   29.28 µs/op
+strings (jiffy)                 20000   98.80 µs/op
+lists (Poison)                  10000   109.30 µs/op
+string escaping (jiffy)         10000   144.01 µs/op
+lists (jsone)                   10000   157.39 µs/op
+lists (Jazz)                    10000   201.82 µs/op
+lists (jiffy)                   10000   210.40 µs/op
+strings (JSX)                   10000   262.18 µs/op
+lists (JSX)                      5000   357.25 µs/op
+strings (Jazz)                   5000   399.89 µs/op
+jiffy                            5000   408.03 µs/op
+strings (Poison)                 5000   416.78 µs/op
+jiffy (pretty)                   5000   420.94 µs/op
+strings (jsone)                  5000   595.63 µs/op
+string escaping (jsone)          2000   732.44 µs/op
+string escaping (Jazz)           1000   1197.06 µs/op
+string escaping (Poison)         1000   1318.82 µs/op
+string escaping (JSX)            1000   1324.04 µs/op
+Poison                           1000   1447.71 µs/op
+Poison (pretty)                  1000   1534.74 µs/op
+jsone                            1000   1556.85 µs/op
+Jazz                             1000   1824.05 µs/op
+jsone (pretty)                   1000   2001.25 µs/op
+Jazz (pretty)                    1000   2041.22 µs/op
+JSX                              1000   2184.59 µs/op
+JSX (pretty)                      500   5533.04 µs/op
 
 ## ParserBench
-UTF-8 unescaping (jiffy)        50000   63.49 µs/op
-UTF-8 unescaping (Poison)       10000   258.79 µs/op
-UTF-8 unescaping (JSX)          10000   279.01 µs/op
-UTF-8 unescaping (jsone)         5000   364.77 µs/op
-jiffy                            2000   588.38 µs/op
-jsone                            1000   1471.44 µs/op
-Poison                           1000   1495.67 µs/op
-JSX                              1000   1855.33 µs/op
+UTF-8 unescaping (jiffy)        50000   63.01 µs/op
+UTF-8 unescaping (Poison)       10000   249.70 µs/op
+UTF-8 unescaping (JSX)          10000   281.84 µs/op
+UTF-8 unescaping (jsone)         5000   399.38 µs/op
+jiffy                            5000   544.84 µs/op
+jsone                            1000   1364.38 µs/op
+Poison                           1000   1401.35 µs/op
+JSX                              1000   1844.55 µs/op
 
 
 ###
@@ -94,49 +94,49 @@ duration:      1.0 s
 Finished in 102.75 seconds
 
 ## EncoderBench
-maps (jsone)                   500000   6.40 µs/op
-structs (Poison)               500000   6.66 µs/op
-maps (jiffy)                   500000   7.46 µs/op
-maps (Poison)                  100000   11.98 µs/op
-structs (JSX)                  100000   13.05 µs/op
-structs (Jazz)                 100000   15.43 µs/op
-maps (Jazz)                    100000   22.37 µs/op
-maps (JSX)                     100000   27.30 µs/op
-lists (jsone)                   50000   68.52 µs/op
-lists (Poison)                  20000   79.27 µs/op
-strings (jiffy)                 20000   98.95 µs/op
-strings (Poison)                10000   142.03 µs/op
-string escaping (jiffy)         10000   149.08 µs/op
-strings (JSX)                   10000   185.93 µs/op
-lists (jiffy)                   10000   206.95 µs/op
-lists (Jazz)                    10000   228.95 µs/op
-lists (JSX)                     10000   274.25 µs/op
-strings (Jazz)                   5000   312.56 µs/op
-string escaping (jsone)          5000   343.38 µs/op
-strings (jsone)                  5000   355.18 µs/op
-jiffy                            5000   404.91 µs/op
-jiffy (pretty)                   5000   411.19 µs/op
-string escaping (JSX)            2000   739.83 µs/op
-Poison                           2000   783.98 µs/op
-Poison (pretty)                  2000   833.02 µs/op
-jsone                            2000   945.08 µs/op
-string escaping (Poison)         1000   1263.35 µs/op
-string escaping (Jazz)           1000   1292.65 µs/op
-jsone (pretty)                   1000   1359.26 µs/op
-Jazz                             1000   1635.89 µs/op
-JSX                              1000   1718.37 µs/op
-Jazz (pretty)                    1000   1841.45 µs/op
-JSX (pretty)                      500   4709.19 µs/op
+maps (jsone)                   500000   6.12 µs/op
+structs (Poison)               500000   6.49 µs/op
+maps (jiffy)                   500000   7.69 µs/op
+maps (Poison)                  100000   12.32 µs/op
+structs (JSX)                  100000   13.51 µs/op
+structs (Jazz)                 100000   15.06 µs/op
+maps (Jazz)                    100000   22.90 µs/op
+maps (JSX)                     100000   27.03 µs/op
+lists (jsone)                   50000   69.93 µs/op
+lists (Poison)                  20000   79.04 µs/op
+strings (jiffy)                 20000   96.67 µs/op
+strings (Poison)                10000   142.43 µs/op
+string escaping (jiffy)         10000   146.85 µs/op
+strings (JSX)                   10000   179.96 µs/op
+lists (jiffy)                   10000   207.75 µs/op
+lists (Jazz)                    10000   229.95 µs/op
+lists (JSX)                     10000   278.01 µs/op
+strings (Jazz)                   5000   310.10 µs/op
+string escaping (jsone)          5000   317.10 µs/op
+strings (jsone)                  5000   321.69 µs/op
+jiffy                            5000   409.73 µs/op
+jiffy (pretty)                   5000   419.55 µs/op
+jsone                            5000   664.34 µs/op
+string escaping (JSX)            2000   767.67 µs/op
+Poison                           2000   806.24 µs/op
+Poison (pretty)                  2000   844.76 µs/op
+jsone (pretty)                   1000   1063.73 µs/op
+string escaping (Poison)         1000   1277.54 µs/op
+string escaping (Jazz)           1000   1311.85 µs/op
+Jazz                             1000   1630.21 µs/op
+JSX                              1000   1777.62 µs/op
+Jazz (pretty)                    1000   1888.71 µs/op
+JSX (pretty)                      500   4872.34 µs/op
 
 ## ParserBench
-UTF-8 unescaping (jiffy)        50000   62.64 µs/op
-UTF-8 unescaping (jsone)        20000   90.13 µs/op
-UTF-8 unescaping (Poison)       10000   119.44 µs/op
-UTF-8 unescaping (JSX)          10000   168.10 µs/op
-jsone                            5000   542.69 µs/op
-jiffy                            5000   543.75 µs/op
-Poison                           5000   733.23 µs/op
-JSX                              1000   1389.98 µs/op
+UTF-8 unescaping (jiffy)        50000   62.42 µs/op
+UTF-8 unescaping (jsone)        20000   92.63 µs/op
+UTF-8 unescaping (Poison)       10000   118.97 µs/op
+UTF-8 unescaping (JSX)          10000   172.07 µs/op
+jiffy                            5000   542.77 µs/op
+jsone                            5000   561.15 µs/op
+Poison                           5000   751.36 µs/op
+JSX                              1000   1435.10 µs/op
 ```
 
 Libraries Version
@@ -150,7 +150,7 @@ mix.lock:
   "exjsx": {:git, "https://github.com/talentdeficit/exjsx.git", "202b2ee1b274511973de60e9fdfed218d3b5eecc", []},
   "jazz": {:git, "https://github.com/meh/jazz.git", "49f335492aca5516495199dd81dd18b845ebaa69", []},
   "jiffy": {:git, "https://github.com/davisp/jiffy.git", "330f41c486cf949707eb494b855634df324a6d92", []},
-  "jsone": {:hex, :jsone, "1.2.4"},
+  "jsone": {:hex, :jsone, "1.2.5"},
   "jsx": {:hex, :jsx, "2.6.2"}}
 ```
 
@@ -277,7 +277,7 @@ index 89a8c10..ac2f53e 100644
      [{:earmark, "~> 0.2", only: :docs},
       {:ex_doc, "~> 0.11", only: :docs},
       {:benchfella, "~> 0.3", only: :bench},
-+     {:jsone, "~> 1.2.4", only: :bench},
++     {:jsone, "~> 1.2.5", only: :bench},
       {:jiffy, github: "davisp/jiffy", only: :bench},
       {:exjsx, github: "talentdeficit/exjsx", only: :bench},
       {:jazz, github: "meh/jazz", only: :bench}]
