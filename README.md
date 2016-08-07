@@ -207,24 +207,24 @@ __Non HiPE__:
 
 |                  | jiffy        | jsone             | poison        | jazz          | jsx           |
 |:-----------------|-------------:|------------------:|--------------:|--------------:|--------------:|
-| maps             |   7.35 μs/op |   10.00 μs/op (2) |   13.26 μs/op |   18.97 μs/op |   30.03 μs/op |
-| lists            | 214.93 μs/op |  151.70 μs/op (2) |  114.34 μs/op |  197.31 μs/op |  337.25 μs/op |
-| strings*         | 103.77 μs/op |  550.78 μs/op (5) |  350.49 μs/op |  445.60 μs/op |  237.08 μs/op |
-| string escaping* | 141.46 μs/op |  934.83 μs/op (2) | 1387.10 μs/op | 1568.84 μs/op | 1371.11 μs/op |
-| large value**    | 404.95 μs/op | 1379.04 μs/op (3) | 1322.36 μs/op | 1818.49 μs/op | 2027.41 μs/op |
-| pretty print**   | 415.19 μs/op | 1734.20 μs/op (3) | 1453.36 μs/op | 2031.73 μs/op | 5223.72 μs/op |
+| maps             |   7.23 μs/op |   10.64 μs/op (2) |   13.58 μs/op |   19.30 μs/op |   29.28 μs/op |
+| lists            | 210.40 μs/op |  157.39 μs/op (2) |  109.30 μs/op |  201.82 μs/op |  357.25 μs/op |
+| strings*         |  98.80 μs/op |  595.63 μs/op (5) |  416.78 μs/op |  399.89 μs/op |  262.18 μs/op |
+| string escaping* | 144.01 μs/op |  732.44 μs/op (2) | 1318.82 μs/op | 1197.06 μs/op | 1324.04 μs/op |
+| large value**    | 408.03 μs/op | 1556.85 μs/op (3) | 1447.71 μs/op | 1824.05 μs/op | 2184.59 μs/op |
+| pretty print**   | 420.94 μs/op | 2001.25 μs/op (3) | 1534.74 μs/op | 2041.22 μs/op | 5533.04 μs/op |
 
 
 __HiPE__:
 
 |                  | jiffy        | jsone             | poison        | jazz          | jsx           |
 |:-----------------|-------------:|------------------:|--------------:|--------------:|--------------:|
-| maps             |   7.12 μs/op |    5.58 μs/op (1) |   10.71 μs/op |   21.08 μs/op |   25.38 μs/op |
-| lists            | 198.89 μs/op |   64.76 μs/op (1) |   76.80 μs/op |  217.64 μs/op |  220.85 μs/op |
-| strings*         | 109.11 μs/op |  323.63 μs/op (4) |  140.58 μs/op |  363.87 μs/op |  179.35 μs/op |
-| string escaping* | 140.35 μs/op |  481.52 μs/op (2) | 1222.81 μs/op | 1312.68 μs/op |  699.05 μs/op |
-| large value**    | 388.06 μs/op |  634.06 μs/op (2) |  744.13 μs/op | 1572.41 μs/op | 1667.37 μs/op |
-| pretty print**   | 404.84 μs/op |  956.29 μs/op (3) |  802.29 μs/op | 1795.51 μs/op | 4434.13 μs/op |
+| maps             |   7.69 μs/op |    6.12 μs/op (1) |   12.32 μs/op |   22.90 μs/op |   27.03 μs/op |
+| lists            | 207.75 μs/op |   69.93 μs/op (1) |   79.04 μs/op |  229.95 μs/op |  278.01 μs/op |
+| strings*         |  96.67 μs/op |  321.69 μs/op (5) |  142.43 μs/op |  310.10 μs/op |  179.96 μs/op |
+| string escaping* | 146.85 μs/op |  317.10 μs/op (2) | 1277.54 μs/op | 1311.85 μs/op |  767.67 μs/op |
+| large value**    | 409.73 μs/op |  664.34 μs/op (2) |  806.24 μs/op | 1630.21 μs/op | 1777.62 μs/op |
+| pretty print**   | 419.55 μs/op | 1063.73 μs/op (3) |  844.76 μs/op | 1888.71 μs/op | 4872.34 μs/op |
 
 \* binary representation of [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)  <br />
 \** [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json)
@@ -235,16 +235,16 @@ __Non HiPE__:
 
 |                    | jiffy        | jsone             | poison        | jsx           |
 |:-------------------|-------------:|------------------:|--------------:|--------------:|
-| json value*        | 522.25 μs/op | 1217.44 μs/op (2) | 1223.37 μs/op | 1630.77 μs/op |
-| UTF-8 unescaping** |  59.63 μs/op |  342.50 μs/op (4) |  219.79 μs/op |  243.64 μs/op |
+| json value*        | 544.84 μs/op | 1364.38 μs/op (2) | 1401.35 μs/op | 1844.55 μs/op |
+| UTF-8 unescaping** |  63.01 μs/op |  399.38 μs/op (4) |  249.70 μs/op |  281.84 μs/op |
 
 
 __HiPE__:
 
 |                    | jiffy        | jsone             | poison        | jsx           |
 |:-------------------|-------------:|------------------:|--------------:|--------------:|
-| json value*        | 504.77 μs/op |  527.77 μs/op (2) |  686.90 μs/op | 1320.74 μs/op |
-| UTF-8 unescaping** |  59.95 μs/op |   83.79 μs/op (2) |  109.70 μs/op |  159.35 μs/op |
+| json value*        | 542.77 μs/op |  561.15 μs/op (2) |  751.36 μs/op | 1435.10 μs/op |
+| UTF-8 unescaping** |  62.42 μs/op |   92.63 μs/op (2) |  118.97 μs/op |  172.07 μs/op |
 
 \* [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json) <br />
 \** [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)
