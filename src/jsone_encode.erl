@@ -252,9 +252,9 @@ object(Members, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
-object_members([],                             Nexts, Buf, Opt)        -> next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
-object_members([{Key, Value} | Xs], Nexts, Buf, Opt)                   -> object_key(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
-object_members(Arg, Nexts, Buf, Opt)                                   -> ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
+object_members([],                  Nexts, Buf, Opt) -> next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
+object_members([{Key, Value} | Xs], Nexts, Buf, Opt) -> object_key(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
+object_members(Arg, Nexts, Buf, Opt)                 -> ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
 
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_value(Value, Members, Nexts, Buf, Opt) ->
