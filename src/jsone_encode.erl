@@ -158,54 +158,50 @@ object_key(Key, Nexts, Buf, Opt = ?OPT{object_key_type = value}) ->
 object_key(Key, Nexts, Buf, Opt) ->
     ?ERROR(object_key, [Key, Nexts, Buf, Opt]).
 
--spec escape_string(binary(), [next()], binary(), opt()) -> encode_result().
-escape_string(Str, Nexts, Buf, ?OPT{native_utf8 = true} = Opt) ->
-    escape_string_native_utf8(Str, Nexts, Buf, Opt);
-escape_string(Str, Nexts, Buf, ?OPT{native_utf8 = false} = Opt) ->
-    escape_string_escaped_utf8(Str, Nexts, Buf, Opt).
-
 -define(H8(X), (hex(X)):16).
 -define(H16(X), ?H8(X bsr 8), ?H8(X band 16#FF)).
 
 -ifdef(ENABLE_HIPE).
 -define(COPY_UTF8,
-escape_string_native_utf8(<<2#110:3, C1:5, C2, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_native_utf8(Str, Nexts, <<Buf/binary, (2#11000000+C1), C2>>, Opt);
-escape_string_native_utf8(<<2#1110:4, C1:4, C2:16, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_native_utf8(Str, Nexts, <<Buf/binary, (2#11100000+C1), C2:16>>, Opt);
-escape_string_native_utf8(<<2#11110:5, C1:3, C2:24, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_native_utf8(Str, Nexts, <<Buf/binary, (2#11110000+C1), C2:24>>, Opt)
+escape_string(<<2#110:3, C1:5, C2, Str/binary>>, Nexts, Buf, Opt) ->
+    escape_string(Str, Nexts, <<Buf/binary, (2#11000000+C1), C2>>, Opt);
+escape_string(<<2#1110:4, C1:4, C2:16, Str/binary>>, Nexts, Buf, Opt) ->
+    escape_string_(Str, Nexts, <<Buf/binary, (2#11100000+C1), C2:16>>, Opt);
+escape_string(<<2#11110:5, C1:3, C2:24, Str/binary>>, Nexts, Buf, Opt) ->
+    escape_string(Str, Nexts, <<Buf/binary, (2#11110000+C1), C2:24>>, Opt)
     ).
 -else.
 -define(COPY_UTF8,
-escape_string_native_utf8(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_native_utf8(Str, Nexts, <<Buf/binary, Ch/utf8>>, Opt)
+escape_string(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt) ->
+    escape_string(Str, Nexts, <<Buf/binary, Ch/utf8>>, Opt)
     ).
 -endif.
 
-escape_string_native_utf8(<<>>, Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $">>, Opt);
-escape_string_native_utf8(<<0:1, Ch:7, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_native_utf8(Str, Nexts, ascii(Ch, Buf), Opt);
-?COPY_UTF8;
-escape_string_native_utf8(Str, Nexts, Buf, Opt) ->
-    ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
-
-escape_string_escaped_utf8(<<>>, Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $">>, Opt);
-escape_string_escaped_utf8(<<0:1, Ch:7, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_escaped_utf8(Str, Nexts, ascii(Ch, Buf), Opt);
-escape_string_escaped_utf8(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt) ->
+-spec escape_string(binary(), [next()], binary(), opt()) -> encode_result().
+escape_string(<<"">>,                   Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $">>, Opt);
+escape_string(<<$", Str/binary>>,       Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $">>, Opt);
+escape_string(<<$\/, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\/>>, Opt);
+escape_string(<<$\\, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\\>>, Opt);
+escape_string(<<$\b, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $b>>, Opt);
+escape_string(<<$\f, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $f>>, Opt);
+escape_string(<<$\n, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $n>>, Opt);
+escape_string(<<$\r, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $r>>, Opt);
+escape_string(<<$\t, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $t>>, Opt);
+escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, C>>, Opt);
+escape_string(<<Ch/utf8, Str/binary>>,  Nexts, Buf, Opt = ?OPT{native_utf8 = false}) ->
     NewBuf = if
                  Ch =< 16#FFFF -> <<Buf/binary, $\\, $u, ?H16(Ch)>>;
                  true ->
                      <<H1, H2, L1, L2>> = <<Ch/utf16>>,
                      <<Buf/binary, $\\, $u, ?H8(H1), ?H8(H2), $\\, $u, ?H8(L1), ?H8(L2)>>
              end,
-    escape_string_escaped_utf8(Str, Nexts, NewBuf, Opt);
-escape_string_escaped_utf8(Str, Nexts, Buf, Opt) ->
+    escape_string(Str, Nexts, NewBuf, Opt);
+?COPY_UTF8;
+escape_string(Str, Nexts, Buf, Opt) ->
     ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
 
 -compile({inline, [hex/1]}).
-
+-spec hex(byte()) -> 0..16#FFFF.
 hex(X) ->
   element(
     X+1,
@@ -242,137 +238,6 @@ hex(X) ->
      16#6630, 16#6631, 16#6632, 16#6633, 16#6634, 16#6635, 16#6636, 16#6637,
      16#6638, 16#6639, 16#6661, 16#6662, 16#6663, 16#6664, 16#6665, 16#6666}
           ).
-
--compile({inline, [ascii/2]}).
-
-ascii(0, Buf) -> <<Buf/binary, "\\u0000">>;
-ascii(1, Buf) -> <<Buf/binary, "\\u0001">>;
-ascii(2, Buf) -> <<Buf/binary, "\\u0002">>;
-ascii(3, Buf) -> <<Buf/binary, "\\u0003">>;
-ascii(4, Buf) -> <<Buf/binary, "\\u0004">>;
-ascii(5, Buf) -> <<Buf/binary, "\\u0005">>;
-ascii(6, Buf) -> <<Buf/binary, "\\u0006">>;
-ascii(7, Buf) -> <<Buf/binary, "\\u0007">>;
-ascii(8, Buf) -> <<Buf/binary, "\\b">>;
-ascii(9, Buf) -> <<Buf/binary, "\\t">>;
-ascii(10, Buf) -> <<Buf/binary, "\\n">>;
-ascii(11, Buf) -> <<Buf/binary, "\\u000b">>;
-ascii(12, Buf) -> <<Buf/binary, "\\f">>;
-ascii(13, Buf) -> <<Buf/binary, "\\r">>;
-ascii(14, Buf) -> <<Buf/binary, "\\u000e">>;
-ascii(15, Buf) -> <<Buf/binary, "\\u000f">>;
-ascii(16, Buf) -> <<Buf/binary, "\\u0010">>;
-ascii(17, Buf) -> <<Buf/binary, "\\u0011">>;
-ascii(18, Buf) -> <<Buf/binary, "\\u0012">>;
-ascii(19, Buf) -> <<Buf/binary, "\\u0013">>;
-ascii(20, Buf) -> <<Buf/binary, "\\u0014">>;
-ascii(21, Buf) -> <<Buf/binary, "\\u0015">>;
-ascii(22, Buf) -> <<Buf/binary, "\\u0016">>;
-ascii(23, Buf) -> <<Buf/binary, "\\u0017">>;
-ascii(24, Buf) -> <<Buf/binary, "\\u0018">>;
-ascii(25, Buf) -> <<Buf/binary, "\\u0019">>;
-ascii(26, Buf) -> <<Buf/binary, "\\u001a">>;
-ascii(27, Buf) -> <<Buf/binary, "\\u001b">>;
-ascii(28, Buf) -> <<Buf/binary, "\\u001c">>;
-ascii(29, Buf) -> <<Buf/binary, "\\u001d">>;
-ascii(30, Buf) -> <<Buf/binary, "\\u001e">>;
-ascii(31, Buf) -> <<Buf/binary, "\\u001f">>;
-ascii(32, Buf) -> <<Buf/binary, 32>>;
-ascii(33, Buf) -> <<Buf/binary, 33>>;
-ascii(34, Buf) -> <<Buf/binary, $\\, 34>>;
-ascii(35, Buf) -> <<Buf/binary, 35>>;
-ascii(36, Buf) -> <<Buf/binary, 36>>;
-ascii(37, Buf) -> <<Buf/binary, 37>>;
-ascii(38, Buf) -> <<Buf/binary, 38>>;
-ascii(39, Buf) -> <<Buf/binary, 39>>;
-ascii(40, Buf) -> <<Buf/binary, 40>>;
-ascii(41, Buf) -> <<Buf/binary, 41>>;
-ascii(42, Buf) -> <<Buf/binary, 42>>;
-ascii(43, Buf) -> <<Buf/binary, 43>>;
-ascii(44, Buf) -> <<Buf/binary, 44>>;
-ascii(45, Buf) -> <<Buf/binary, 45>>;
-ascii(46, Buf) -> <<Buf/binary, 46>>;
-ascii(47, Buf) -> <<Buf/binary, $\\, 47>>;
-ascii(48, Buf) -> <<Buf/binary, 48>>;
-ascii(49, Buf) -> <<Buf/binary, 49>>;
-ascii(50, Buf) -> <<Buf/binary, 50>>;
-ascii(51, Buf) -> <<Buf/binary, 51>>;
-ascii(52, Buf) -> <<Buf/binary, 52>>;
-ascii(53, Buf) -> <<Buf/binary, 53>>;
-ascii(54, Buf) -> <<Buf/binary, 54>>;
-ascii(55, Buf) -> <<Buf/binary, 55>>;
-ascii(56, Buf) -> <<Buf/binary, 56>>;
-ascii(57, Buf) -> <<Buf/binary, 57>>;
-ascii(58, Buf) -> <<Buf/binary, 58>>;
-ascii(59, Buf) -> <<Buf/binary, 59>>;
-ascii(60, Buf) -> <<Buf/binary, 60>>;
-ascii(61, Buf) -> <<Buf/binary, 61>>;
-ascii(62, Buf) -> <<Buf/binary, 62>>;
-ascii(63, Buf) -> <<Buf/binary, 63>>;
-ascii(64, Buf) -> <<Buf/binary, 64>>;
-ascii(65, Buf) -> <<Buf/binary, 65>>;
-ascii(66, Buf) -> <<Buf/binary, 66>>;
-ascii(67, Buf) -> <<Buf/binary, 67>>;
-ascii(68, Buf) -> <<Buf/binary, 68>>;
-ascii(69, Buf) -> <<Buf/binary, 69>>;
-ascii(70, Buf) -> <<Buf/binary, 70>>;
-ascii(71, Buf) -> <<Buf/binary, 71>>;
-ascii(72, Buf) -> <<Buf/binary, 72>>;
-ascii(73, Buf) -> <<Buf/binary, 73>>;
-ascii(74, Buf) -> <<Buf/binary, 74>>;
-ascii(75, Buf) -> <<Buf/binary, 75>>;
-ascii(76, Buf) -> <<Buf/binary, 76>>;
-ascii(77, Buf) -> <<Buf/binary, 77>>;
-ascii(78, Buf) -> <<Buf/binary, 78>>;
-ascii(79, Buf) -> <<Buf/binary, 79>>;
-ascii(80, Buf) -> <<Buf/binary, 80>>;
-ascii(81, Buf) -> <<Buf/binary, 81>>;
-ascii(82, Buf) -> <<Buf/binary, 82>>;
-ascii(83, Buf) -> <<Buf/binary, 83>>;
-ascii(84, Buf) -> <<Buf/binary, 84>>;
-ascii(85, Buf) -> <<Buf/binary, 85>>;
-ascii(86, Buf) -> <<Buf/binary, 86>>;
-ascii(87, Buf) -> <<Buf/binary, 87>>;
-ascii(88, Buf) -> <<Buf/binary, 88>>;
-ascii(89, Buf) -> <<Buf/binary, 89>>;
-ascii(90, Buf) -> <<Buf/binary, 90>>;
-ascii(91, Buf) -> <<Buf/binary, 91>>;
-ascii(92, Buf) -> <<Buf/binary, $\\, 92>>;
-ascii(93, Buf) -> <<Buf/binary, 93>>;
-ascii(94, Buf) -> <<Buf/binary, 94>>;
-ascii(95, Buf) -> <<Buf/binary, 95>>;
-ascii(96, Buf) -> <<Buf/binary, 96>>;
-ascii(97, Buf) -> <<Buf/binary, 97>>;
-ascii(98, Buf) -> <<Buf/binary, 98>>;
-ascii(99, Buf) -> <<Buf/binary, 99>>;
-ascii(100, Buf) -> <<Buf/binary, 100>>;
-ascii(101, Buf) -> <<Buf/binary, 101>>;
-ascii(102, Buf) -> <<Buf/binary, 102>>;
-ascii(103, Buf) -> <<Buf/binary, 103>>;
-ascii(104, Buf) -> <<Buf/binary, 104>>;
-ascii(105, Buf) -> <<Buf/binary, 105>>;
-ascii(106, Buf) -> <<Buf/binary, 106>>;
-ascii(107, Buf) -> <<Buf/binary, 107>>;
-ascii(108, Buf) -> <<Buf/binary, 108>>;
-ascii(109, Buf) -> <<Buf/binary, 109>>;
-ascii(110, Buf) -> <<Buf/binary, 110>>;
-ascii(111, Buf) -> <<Buf/binary, 111>>;
-ascii(112, Buf) -> <<Buf/binary, 112>>;
-ascii(113, Buf) -> <<Buf/binary, 113>>;
-ascii(114, Buf) -> <<Buf/binary, 114>>;
-ascii(115, Buf) -> <<Buf/binary, 115>>;
-ascii(116, Buf) -> <<Buf/binary, 116>>;
-ascii(117, Buf) -> <<Buf/binary, 117>>;
-ascii(118, Buf) -> <<Buf/binary, 118>>;
-ascii(119, Buf) -> <<Buf/binary, 119>>;
-ascii(120, Buf) -> <<Buf/binary, 120>>;
-ascii(121, Buf) -> <<Buf/binary, 121>>;
-ascii(122, Buf) -> <<Buf/binary, 122>>;
-ascii(123, Buf) -> <<Buf/binary, 123>>;
-ascii(124, Buf) -> <<Buf/binary, 124>>;
-ascii(125, Buf) -> <<Buf/binary, 125>>;
-ascii(126, Buf) -> <<Buf/binary, 126>>;
-ascii(127, Buf) -> <<Buf/binary, 127>>.
 
 -spec array(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
 array(List, Nexts, Buf, Opt) ->
