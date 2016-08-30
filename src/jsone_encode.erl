@@ -166,7 +166,7 @@ object_key(Key, Nexts, Buf, Opt) ->
 escape_string(<<2#110:3, C1:5, C2, Str/binary>>, Nexts, Buf, Opt) ->
     escape_string(Str, Nexts, <<Buf/binary, (2#11000000+C1), C2>>, Opt);
 escape_string(<<2#1110:4, C1:4, C2:16, Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string_(Str, Nexts, <<Buf/binary, (2#11100000+C1), C2:16>>, Opt);
+    escape_string(Str, Nexts, <<Buf/binary, (2#11100000+C1), C2:16>>, Opt);
 escape_string(<<2#11110:5, C1:3, C2:24, Str/binary>>, Nexts, Buf, Opt) ->
     escape_string(Str, Nexts, <<Buf/binary, (2#11110000+C1), C2:24>>, Opt)
     ).
