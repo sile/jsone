@@ -187,7 +187,11 @@ escape_string(<<$\f, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, N
 escape_string(<<$\n, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $n>>, Opt);
 escape_string(<<$\r, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $r>>, Opt);
 escape_string(<<$\t, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $t>>, Opt);
-escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, C>>, Opt);
+escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) ->
+    case C < 16#20 of
+        true  -> escape_string(Str, Nexts, <<Buf/binary, "\\u00", ?H8(C)>>, Opt);
+        false -> escape_string(Str, Nexts, <<Buf/binary, C>>, Opt)
+    end;
 escape_string(<<Ch/utf8, Str/binary>>,  Nexts, Buf, Opt = ?OPT{native_utf8 = false}) ->
     NewBuf = if
                  Ch =< 16#FFFF -> <<Buf/binary, $\\, $u, ?H16(Ch)>>;

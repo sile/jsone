@@ -82,6 +82,14 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
+     {"string: contains control characters",
+      fun () ->
+              Ctrls    = lists:seq(16#00, 16#1F) -- [$\b, $\f, $\n, $\r, $\t],
+              Input    = list_to_binary(Ctrls),
+              Expected = list_to_binary([$", [io_lib:format("\\u00~2.16.0b", [C]) || C <- Ctrls], $"]),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
+              ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
+      end},
      {"string: contains multi-byte (UTF-8 encoded) characters",
       fun () ->
               %% japanese
