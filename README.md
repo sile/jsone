@@ -186,7 +186,13 @@ abc                  -> "abc"                  -> <<"abc">> % non-special atom i
 [{<<"key">>, val}]   -> {"key":"val"}          -> [{<<"key">>, <<"val">>}]   % object_format=proplist
 #{}                  -> {}                     -> #{}                        % object_format=map
 #{key => val}        -> {"key":"val"}          -> #{<<"key">> => <<"val">>}  % object_format=map
+{json, IOList}       -> Value                  -> ~~~                        % UTF-8 encoded term
+{json_utf8, Chars}   -> Value                  -> ~~~                        % Unicode code points
 ```
+
+`{json, IOList} and {json_utf8, Chars} allows inline already encoded JSON
+values. For example, you obtain JSON encoded data from database so you don't
+have to decode it first and encode again. See [json_term()](doc/jsone.md#type-json_term).
 
 API
 ---

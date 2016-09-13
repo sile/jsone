@@ -30,6 +30,20 @@ encode_test_() ->
               ?assertEqual({ok, <<"null">>}, jsone_encode:encode(null))
       end},
 
+     %% Numbers: Inline json term
+     {"json",
+      fun () ->
+              ?assertEqual(
+                 {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",195,169,"ok\"}">>},
+                 jsone_encode:encode(
+                   ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
+                         <<"bar">>, {json_utf8, [$", 233, "ok", $"]}))),
+              ?assertEqual(
+                 {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",233,"ok\"}">>},
+                 jsone_encode:encode(
+                   ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
+                         <<"bar">>, {json, [$", 233, "ok", $"]})))
+      end},
      %% Numbers: Integer
      {"zero",
       fun () ->

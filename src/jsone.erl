@@ -44,6 +44,7 @@
               json_array/0,
               json_object/0,
               json_object_members/0,
+              json_term/0,
               json_object_format_tuple/0,
               json_object_format_proplist/0,
               json_object_format_map/0,
@@ -59,7 +60,7 @@
 %%--------------------------------------------------------------------------------
 %% Types & Macros
 %%--------------------------------------------------------------------------------
--type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null.
+-type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | json_term().
 -type json_boolean()        :: boolean().
 -type json_number()         :: number().
 -type json_string()         :: binary() | atom() | calendar:datetime(). % NOTE: `decode/1' always returns `binary()' value
@@ -68,7 +69,49 @@
                              | json_object_format_proplist()
                              | json_object_format_map().
 -type json_object_members() :: [{json_string(), json_value()}].
-
+-type json_term()           :: {json, iolist()} | {json_utf8, unicode:chardata()}.
+%% `json_term()' allows inline already encoded JSON value. `json' variant
+%% expects byte encoded utf8 data values as list members. `json_utf8' expect
+%% Unicode code points as list members. Binaries are copied "as is" in both
+%% variants except `json_utf8' will check if binary contain valid `UTF-8'
+%% encoded data. In short, `json' uses `erlang:iolist_to_binary/1' and
+%% `json_utf8' uses `unicode:chardata_to_binary/1' for encoding.
+%%
+%% A simple example is worth a thousand words.
+%%
+%% ```
+%% 1> S = "hélo".
+%% "hélo"
+%% 2> shell:strings(false).
+%% true
+%% 3> S.
+%% [104,233,108,111]
+%% 4> B = jsone:encode({json, S}).  % invalid UTF-8
+%% <<104,233,108,111>>
+%% 5> B2 = jsone:encode({json_utf8, S}). % valid UTF-8
+%% <<104,195,169,108,111>>
+%% 6> jsone:encode({json, B}).
+%% <<104,233,108,111>>
+%% 7> jsone:encode({json_utf8, B}).
+%% ** exception error: {invalid_json_utf8,<<104>>,<<233,108,111>>}
+%%      in function  jsone_encode:value/4
+%%         called as jsone_encode:value({json_utf8,<<104,233,108,111>>},
+%%                                      [],<<>>,
+%%                                      {encode_opt_v2,false,
+%%                                                     [{scientific,20}],
+%%                                                     {iso8601,0},
+%%                                                     string,0,0})
+%%      in call from jsone:encode/2 (/home/hynek/work/altworx/jsone/_build/default/lib/jsone/src/jsone.erl, line 302)
+%% 8> jsone:encode({json_utf8, B2}).
+%% <<104,195,169,108,111>>
+%% 9> shell:strings(true).
+%% false
+%% 10> jsone:encode({json_utf8, B2}).
+%% <<"hélo"/utf8>>
+%% 11> jsone:encode({json, binary_to_list(B2)}). % UTF-8 encoded list leads to valid UTF-8
+%% <<"hélo"/utf8>>
+%% '''
+%%
 -type json_object_format_tuple() :: {json_object_members()}.
 -type json_object_format_proplist() :: [{}] | json_object_members().
 
