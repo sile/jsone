@@ -42,8 +42,10 @@
 -define(ERROR(Function, Args), {error, {badarg, [{?MODULE, Function, Args, [{line, ?LINE}]}]}}).
 -define(IS_STR(X), (is_binary(X) orelse is_atom(X))).
 -define(IS_UINT(X), (is_integer(X) andalso X >= 0)).
+-define(IS_PNUM(X), (is_number(X) andalso X >=0)).
 -define(IS_DATETIME(Y,M,D,H,Mi,S), (?IS_UINT(Y) andalso ?IS_UINT(M) andalso ?IS_UINT(D) andalso
-                                    ?IS_UINT(H) andalso ?IS_UINT(Mi) andalso ?IS_UINT(S))).
+                                    ?IS_UINT(H) andalso ?IS_UINT(Mi) andalso
+                                    ?IS_PNUM(S))).
 
 -ifdef('NO_MAP_TYPE').
 -define(IS_MAP(X), is_tuple(X)).
@@ -145,20 +147,46 @@ string(Str, Nexts, Buf, Opt) ->
 
 -spec datetime(calendar:datetime(), [next()], binary(), opt()) -> encode_result().
 datetime({{Y,M,D}, {H,Mi,S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y,M,D,H,Mi,S) ->
+    {iso8601, Tz} = Opt?OPT.datetime_format,
     Str =
-        case Opt?OPT.datetime_format of
-            {iso8601, 0}  -> io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ", [Y, M, D, H, Mi, S]);
-            {iso8601, Tz} ->
-                {Sign, {DiffHour, DiffMinute, _}} =
-                    case Tz > 0 of
-                        true  -> {$+, calendar:seconds_to_time(Tz)};
-                        false -> {$-, calendar:seconds_to_time(-Tz)}
-                    end,
-                io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B~c~2..0B:~2..0B", [Y, M, D, H, Mi, S, Sign, DiffHour, DiffMinute])
-        end,
+    [format_year(Y), $-, format2digit(M), $-, format2digit(D), $T,
+     format2digit(H), $:, format2digit(Mi), $:, format_seconds(S),
+     format_tz(Tz)],
     next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $">>, Opt);
 datetime(Datetime, Nexts, Buf, Opt) ->
     ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
+
+format_year(Y) when Y > 999 -> integer_to_binary(Y);
+format_year(Y) ->
+    B = integer_to_binary(Y),
+    [lists:duplicate(4-byte_size(B), $0)|B].
+
+format2digit(0) -> "00";
+format2digit(1) -> "01";
+format2digit(2) -> "02";
+format2digit(3) -> "03";
+format2digit(4) -> "04";
+format2digit(5) -> "05";
+format2digit(6) -> "06";
+format2digit(7) -> "07";
+format2digit(8) -> "08";
+format2digit(9) -> "09";
+format2digit(X) -> integer_to_list(X).
+
+format_seconds(S) when is_integer(S) -> format2digit(S);
+format_seconds(S) when is_float(S) -> io_lib:format("~6.3.0f", [S]).
+
+format_tz(0) -> $Z;
+format_tz(Tz) when Tz > 0 -> [$+|format_tz_(Tz)];
+format_tz(Tz) -> [$-|format_tz_(-Tz)].
+
+-define(SECONDS_PER_MINUTE, 60).
+-define(SECONDS_PER_HOUR, 3600).
+format_tz_(S) ->
+    H = S div ?SECONDS_PER_HOUR,
+    S1 = S rem ?SECONDS_PER_HOUR,
+    M = S1 div ?SECONDS_PER_MINUTE,
+    [format2digit(H), $:, format2digit(M)].
 
 -spec object_key(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
 object_key(Key, Nexts, Buf, Opt) when ?IS_STR(Key) ->
