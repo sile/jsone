@@ -66,7 +66,8 @@
 -record(decode_opt_v2,
         {
           object_format=?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
-          allow_ctrl_chars=false :: boolean()
+          allow_ctrl_chars=false :: boolean(),
+          keys=binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'
         }).
 -define(OPT, #decode_opt_v2).
 -type opt() :: #decode_opt_v2{}.
@@ -139,8 +140,18 @@ object_key(<<$", Bin/binary>>, Members, Nexts, Buf, Opt) -> string(Bin, byte_siz
 object_key(<<Bin/binary>>, Members, Nexts, Buf, Opt)     -> ?ERROR(object_key, [Bin, Members, Nexts, Buf, Opt]).
 
 -spec object_value(binary(), jsone:json_string(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
-object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf, Opt) -> whitespace(Bin, value, [{object_next, Key, Members} | Nexts], Buf, Opt);
+object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf, Opt) ->
+    whitespace(Bin, value, [{object_next, object_key(Key, Opt), Members} | Nexts], Buf, Opt);
 object_value(Bin,                Key, Members, Nexts, Buf, Opt) -> ?ERROR(object_value, [Bin, Key, Members, Nexts, Buf, Opt]).
+
+-compile({inline, [object_key/2]}).
+object_key(Key, ?OPT{keys = binary}) -> Key;
+object_key(Key, ?OPT{keys = atom}) -> binary_to_atom(Key, utf8);
+object_key(Key, ?OPT{keys = existing_atom}) -> binary_to_existing_atom(Key, utf8);
+object_key(Key, ?OPT{keys = attempt_atom}) ->
+    try binary_to_existing_atom(Key, utf8)
+    catch error:badarg -> Key
+    end.
 
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
 object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) -> next(Bin, make_object(Members, Opt), Nexts, Buf, Opt);
@@ -280,5 +291,11 @@ parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist; F =:=
     parse_option(T, Opt?OPT{object_format=F});
 parse_option([{allow_ctrl_chars,B}|T], Opt) when is_boolean(B) ->
     parse_option(T, Opt?OPT{allow_ctrl_chars=B});
+parse_option([{labels, K}|T], Opt)
+  when K =:= binary; K =:= atom; K =:= existing_atom; K =:= attempt_atom ->
+    parse_option(T, Opt?OPT{keys = K});
+parse_option([{keys, K}|T], Opt)
+  when K =:= binary; K =:= atom; K =:= existing_atom; K =:= attempt_atom ->
+    parse_option(T, Opt?OPT{keys = K});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).

@@ -261,6 +261,23 @@ decode_test_() ->
               Input = <<"{\"1\":2 \"key\":\"value\"">>,
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(Input))
       end},
+     {"atom keys",
+      fun () ->
+              KeyOpt = fun(Keys) -> [{keys, Keys}, {object_format, proplist}]
+                       end,
+              Input = <<"{\"foo\":\"ok\"}">>,
+              ?assertEqual([{<<"foo">>, <<"ok">>}], jsone:decode(Input, KeyOpt(binary))),
+              ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, [{labels, atom}, {object_format, proplist}])),
+              ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(atom))),
+              ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(existing_atom))),
+              ?assertError(badarg, jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(existing_atom))),
+              ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(attempt_atom))),
+              ?assertEqual([{<<"@#$%^!">>, <<"ok">>}], jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(attempt_atom))),
+              Value = integer_to_binary(rand:uniform(9999)),
+              % do not make atom in test code
+              [{Atom,  <<"ok">>}] = jsone:decode(<<"{\"", Value/binary, "\":\"ok\"}">>, KeyOpt(atom)),
+              ?assertEqual(Value, atom_to_binary(Atom, latin1))
+      end},
 
      %% Others
      {"compound data",
