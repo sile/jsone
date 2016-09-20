@@ -171,28 +171,31 @@ Data Mapping (Erlang <=> JSON)
 Erlang                  JSON             Erlang
 =================================================================================================
 
-null                 -> null                   -> null
-true                 -> true                   -> true
-false                -> false                  -> false
-<<"abc">>            -> "abc"                  -> <<"abc">>
-abc                  -> "abc"                  -> <<"abc">> % non-special atom is regarded as a binary
-{{2010,1,1},{0,0,0}} -> "2010-01-01T00:00:00Z" -> <<"2010-01-01T00:00:00Z">> % datetime (see: `jsone:datetime_encode_format/0`)
-123                  -> 123                    -> 123
-123.4                -> 123.4                  -> 123.4
-[1,2,3]              -> [1,2,3]                -> [1,2,3]
-{[]}                 -> {}                     -> {[]}                       % object_format=tuple
-{[{key, <<"val">>}]} -> {"key":"val"}          -> {[{<<"key">>, <<"val">>}]} % object_format=tuple
-[{}]                 -> {}                     -> [{}]                       % object_format=proplist
-[{<<"key">>, val}]   -> {"key":"val"}          -> [{<<"key">>, <<"val">>}]   % object_format=proplist
-#{}                  -> {}                     -> #{}                        % object_format=map
-#{key => val}        -> {"key":"val"}          -> #{<<"key">> => <<"val">>}  % object_format=map
-{json, IOList}       -> Value                  -> ~~~                        % UTF-8 encoded term
-{json_utf8, Chars}   -> Value                  -> ~~~                        % Unicode code points
+null                   -> null                       -> null
+true                   -> true                       -> true
+false                  -> false                      -> false
+<<"abc">>              -> "abc"                      -> <<"abc">>
+abc                    -> "abc"                      -> <<"abc">> % non-special atom is regarded as a binary
+{{2010,1,1},{0,0,0}}   -> "2010-01-01T00:00:00Z"     -> <<"2010-01-01T00:00:00Z">>     % datetime*
+{{2010,1,1},{0,0,0.0}} -> "2010-01-01T00:00:00.000Z" -> <<"2010-01-01T00:00:00.000Z">> % datetime*
+123                    -> 123                        -> 123
+123.4                  -> 123.4                      -> 123.4
+[1,2,3]                -> [1,2,3]                    -> [1,2,3]
+{[]}                   -> {}                         -> {[]}                       % object_format=tuple
+{[{key, <<"val">>}]}   -> {"key":"val"}              -> {[{<<"key">>, <<"val">>}]} % object_format=tuple
+[{}]                   -> {}                         -> [{}]                       % object_format=proplist
+[{<<"key">>, val}]     -> {"key":"val"}              -> [{<<"key">>, <<"val">>}]   % object_format=proplist
+#{}                    -> {}                         -> #{}                        % object_format=map
+#{key => val}          -> {"key":"val"}              -> #{<<"key">> => <<"val">>}  % object_format=map
+{json, IOList}         -> Value                      -> ~~~                        % UTF-8 encoded term**
+{json_utf8, Chars}     -> Value                      -> ~~~                        % Unicode code points**
 ```
 
-`{json, IOList} and {json_utf8, Chars} allows inline already encoded JSON
+\* see [jsone:datetime_encode_format()](doc/jsone.md#type-datetime_encode_format)
+
+\** `{json, IOList}` and `{json_utf8, Chars}` allows inline already encoded JSON
 values. For example, you obtain JSON encoded data from database so you don't
-have to decode it first and encode again. See [json_term()](doc/jsone.md#type-json_term).
+have to decode it first and encode again. See [jsone:json_term()](doc/jsone.md#type-json_term).
 
 API
 ---

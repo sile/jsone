@@ -148,6 +148,14 @@ encode_test_() ->
        ?_assertEqual({ok, <<"[\"2015-06-25T14:57:25Z\"]">>},
                       jsone_encode:encode([{{2015,6,25},{14,57,25}}]))},
 
+     {"datetime: iso8601: with fractions of seconds",
+      fun () ->
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:25.325Z\"">>},
+                           jsone_encode:encode({{2015,6,25},{14,57,25.3245}})),
+              ?assertEqual({ok, <<"\"2015-06-25T14:57:05.320Z\"">>},
+                           jsone_encode:encode({{2015,6,25},{14,57,5.32}}))
+      end},
+
      %% Arrays
      {"simple array",
       fun () ->
