@@ -291,9 +291,6 @@ parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist; F =:=
     parse_option(T, Opt?OPT{object_format=F});
 parse_option([{allow_ctrl_chars,B}|T], Opt) when is_boolean(B) ->
     parse_option(T, Opt?OPT{allow_ctrl_chars=B});
-parse_option([{labels, K}|T], Opt)
-  when K =:= binary; K =:= atom; K =:= existing_atom; K =:= attempt_atom ->
-    parse_option(T, Opt?OPT{keys = K});
 parse_option([{keys, K}|T], Opt)
   when K =:= binary; K =:= atom; K =:= existing_atom; K =:= attempt_atom ->
     parse_option(T, Opt?OPT{keys = K});

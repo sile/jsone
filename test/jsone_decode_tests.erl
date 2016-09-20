@@ -267,7 +267,6 @@ decode_test_() ->
                        end,
               Input = <<"{\"foo\":\"ok\"}">>,
               ?assertEqual([{<<"foo">>, <<"ok">>}], jsone:decode(Input, KeyOpt(binary))),
-              ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, [{labels, atom}, {object_format, proplist}])),
               ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(atom))),
               ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(existing_atom))),
               ?assertError(badarg, jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(existing_atom))),

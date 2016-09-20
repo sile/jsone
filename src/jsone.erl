@@ -218,8 +218,7 @@
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
-                       | {'keys' | 'labels', 'binary' | 'atom' |
-                          'existing_atom' | 'attempt_atom'}.
+                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}.
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
 %% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
@@ -233,7 +232,7 @@
 %%
 %% `keys': <br />
 %% Defines way how object keys are decoded. The default value is `binary'.
-%% `labels' is alias compatible with `jsx'. <br />
+%% The option is compatible with `labels' option in `jsx'. <br />
 %% - `binary': The key is left as a string which is encoded as binary. It's default
 %% and backward compatible behaviour. <br />
 %% - `atom': The key is converted to an atom. Results in `badarg' if Key value
