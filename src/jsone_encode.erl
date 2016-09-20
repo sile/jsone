@@ -156,11 +156,14 @@ datetime({{Y,M,D}, {H,Mi,S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y,M,D,H,Mi,S) -
 datetime(Datetime, Nexts, Buf, Opt) ->
     ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
 
+-dialyzer({no_improper_lists, [format_year/1]}).
+-spec format_year(non_neg_integer()) -> iodata().
 format_year(Y) when Y > 999 -> integer_to_binary(Y);
 format_year(Y) ->
     B = integer_to_binary(Y),
     [lists:duplicate(4-byte_size(B), $0)|B].
 
+-spec format2digit(non_neg_integer()) -> iolist().
 format2digit(0) -> "00";
 format2digit(1) -> "01";
 format2digit(2) -> "02";
@@ -173,15 +176,18 @@ format2digit(8) -> "08";
 format2digit(9) -> "09";
 format2digit(X) -> integer_to_list(X).
 
+-spec format_seconds(non_neg_integer() | float()) -> iolist().
 format_seconds(S) when is_integer(S) -> format2digit(S);
 format_seconds(S) when is_float(S) -> io_lib:format("~6.3.0f", [S]).
 
+-spec format_tz(integer()) -> byte() | iolist().
 format_tz(0) -> $Z;
 format_tz(Tz) when Tz > 0 -> [$+|format_tz_(Tz)];
 format_tz(Tz) -> [$-|format_tz_(-Tz)].
 
 -define(SECONDS_PER_MINUTE, 60).
 -define(SECONDS_PER_HOUR, 3600).
+-spec format_tz_(integer()) -> iolist().
 format_tz_(S) ->
     H = S div ?SECONDS_PER_HOUR,
     S1 = S rem ?SECONDS_PER_HOUR,
