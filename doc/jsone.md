@@ -60,7 +60,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()}
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | {keys, binary | atom | existing_atom | attempt_atom}
 </code></pre>
 
 `object_format`: <br />
@@ -73,6 +73,18 @@ decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, b
 `allow_ctrl_chars`: <br />
 - If the value is `true`, strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
 - default: `false`<br />
+
+`keys`: <br />
+Defines way how object keys are decoded. The default value is `binary`.
+The option is compatible with `labels` option in `jsx`. <br />
+- `binary`: The key is left as a string which is encoded as binary. It's default
+and backward compatible behaviour. <br />
+- `atom`: The key is converted to an atom. Results in `badarg` if Key value
+regarded as UTF-8 is not a valid atom. <br />
+- `existing_atom`: Returns existing atom. Any key value which is not
+existing atom raises `badarg` exception. <br />
+- `attempt_atom`: Returns existing atom as `existing_atom` but returns a
+binary string if fails find one.
 
 
 
