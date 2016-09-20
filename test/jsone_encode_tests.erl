@@ -144,6 +144,9 @@ encode_test_() ->
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25+00:01\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, 60}}])),
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25-00:01\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, -60}}]))
       end},
+     {"datetime as head of array",
+       ?_assertEqual({ok, <<"[\"2015-06-25T14:57:25Z\"]">>},
+                      jsone_encode:encode([{{2015,6,25},{14,57,25}}]))},
 
      %% Arrays
      {"simple array",
