@@ -34,6 +34,12 @@ encode_test_() ->
      {"json",
       fun () ->
               ?assertEqual(
+                {ok, <<"{\"foo\":[{\"test\":\"ok\"},{\"blah\":\"ok2\"}]}">>},
+                jsone_encode:encode(
+                  ?OBJ1(foo, [{json, <<"{\"test\":\"ok\"}">>},
+                              {json, <<"{\"blah\":\"ok2\"}">>}]))),
+
+              ?assertEqual(
                  {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",195,169,"ok\"}">>},
                  jsone_encode:encode(
                    ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
