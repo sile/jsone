@@ -33,16 +33,26 @@ encode_test_() ->
      %% Numbers: Inline json term
      {"json",
       fun () ->
+              %% A simple tuple should not count as an inline JSON
+              ?assertEqual(
+                 {ok, <<"{\"foo\":{\"json\":[1,2,3]}}">>},
+                 jsone_encode:encode(
+                   ?OBJ1(foo, [{json, [1,2,3]}]))),
+              ?assertEqual(
+                {ok, <<"{\"foo\":[{\"test\":\"ok\"},{\"blah\":\"ok2\"}]}">>},
+                jsone_encode:encode(
+                  ?OBJ1(foo, [{{json, <<"{\"test\":\"ok\"}">>}},
+                              {{json, <<"{\"blah\":\"ok2\"}">>}}]))),
               ?assertEqual(
                  {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",195,169,"ok\"}">>},
                  jsone_encode:encode(
-                   ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
-                         <<"bar">>, {json_utf8, [$", 233, "ok", $"]}))),
+                   ?OBJ2(foo, {{json, ["["|[$1, ",2",<<",3]">>]]}},
+                         <<"bar">>, {{json_utf8, [$", 233, "ok", $"]}}))),
               ?assertEqual(
                  {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",233,"ok\"}">>},
                  jsone_encode:encode(
-                   ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
-                         <<"bar">>, {json, [$", 233, "ok", $"]})))
+                   ?OBJ2(foo, {{json, ["["|[$1, ",2",<<",3]">>]]}},
+                         <<"bar">>, {{json, [$", 233, "ok", $"]}})))
       end},
      %% Numbers: Integer
      {"zero",
