@@ -69,7 +69,7 @@
                              | json_object_format_proplist()
                              | json_object_format_map().
 -type json_object_members() :: [{json_string(), json_value()}].
--type json_term()           :: {json, iolist()} | {json_utf8, unicode:chardata()}.
+-type json_term()           :: {{json, iolist()}} | {{json_utf8, unicode:chardata()}}.
 %% `json_term()' allows inline already encoded JSON value. `json' variant
 %% expects byte encoded utf8 data values as list members. `json_utf8' expect
 %% Unicode code points as list members. Binaries are copied "as is" in both
