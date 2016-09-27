@@ -260,7 +260,7 @@ NOTE: `decode/1` always returns `binary()` value
 
 
 <pre><code>
-json_term() = {json, iolist()} | {json_utf8, <a href="unicode.md#type-chardata">unicode:chardata()</a>}
+json_term() = {{json, iolist()}} | {{json_utf8, <a href="unicode.md#type-chardata">unicode:chardata()</a>}}
 </code></pre>
 
 `json_term()` allows inline already encoded JSON value. `json` variant
@@ -279,13 +279,13 @@ A simple example is worth a thousand words.
   true
   3> S.
   [104,233,108,111]
-  4> B = jsone:encode({json, S}).  % invalid UTF-8
+  4> B = jsone:encode({{json, S}}).  % invalid UTF-8
   <<104,233,108,111>>
-  5> B2 = jsone:encode({json_utf8, S}). % valid UTF-8
+  5> B2 = jsone:encode({{json_utf8, S}}). % valid UTF-8
   <<104,195,169,108,111>>
-  6> jsone:encode({json, B}).
+  6> jsone:encode({{json, B}}).
   <<104,233,108,111>>
-  7> jsone:encode({json_utf8, B}).
+  7> jsone:encode({{json_utf8, B}}).
   ** exception error: {invalid_json_utf8,<<104>>,<<233,108,111>>}
        in function  jsone_encode:value/4
           called as jsone_encode:value({json_utf8,<<104,233,108,111>>},
@@ -295,13 +295,13 @@ A simple example is worth a thousand words.
                                                       {iso8601,0},
                                                       string,0,0})
        in call from jsone:encode/2 (/home/hynek/work/altworx/jsone/_build/default/lib/jsone/src/jsone.erl, line 302)
-  8> jsone:encode({json_utf8, B2}).
+  8> jsone:encode({{json_utf8, B2}}).
   <<104,195,169,108,111>>
   9> shell:strings(true).
   false
-  10> jsone:encode({json_utf8, B2}).
+  10> jsone:encode({{json_utf8, B2}}).
   <<"hélo"/utf8>>
-  11> jsone:encode({json, binary_to_list(B2)}). % UTF-8 encoded list leads to valid UTF-8
+  11> jsone:encode({{json, binary_to_list(B2)}}). % UTF-8 encoded list leads to valid UTF-8
   <<"hélo"/utf8>>
 ```
 

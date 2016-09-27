@@ -187,8 +187,8 @@ abc                    -> "abc"                      -> <<"abc">> % non-special 
 [{<<"key">>, val}]     -> {"key":"val"}              -> [{<<"key">>, <<"val">>}]   % object_format=proplist
 #{}                    -> {}                         -> #{}                        % object_format=map
 #{key => val}          -> {"key":"val"}              -> #{<<"key">> => <<"val">>}  % object_format=map
-{json, IOList}         -> Value                      -> ~~~                        % UTF-8 encoded term**
-{json_utf8, Chars}     -> Value                      -> ~~~                        % Unicode code points**
+{{json, IOList}}       -> Value                      -> ~~~                        % UTF-8 encoded term**
+{{json_utf8, Chars}}   -> Value                      -> ~~~                        % Unicode code points**
 ```
 
 \* see [jsone:datetime_encode_format()](doc/jsone.md#type-datetime_encode_format)
