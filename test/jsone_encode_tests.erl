@@ -36,13 +36,19 @@ encode_test_() ->
               ?assertEqual(
                  {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",195,169,"ok\"}">>},
                  jsone_encode:encode(
-                   ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
-                         <<"bar">>, {json_utf8, [$", 233, "ok", $"]}))),
+                   ?OBJ2(foo, {{json, ["["|[$1, ",2",<<",3]">>]]}},
+                         <<"bar">>, {{json_utf8, [$", 233, "ok", $"]}}))),
               ?assertEqual(
                  {ok, <<"{\"foo\":[1,2,3],\"bar\":\"",233,"ok\"}">>},
                  jsone_encode:encode(
-                   ?OBJ2(foo, {json, ["["|[$1, ",2",<<",3]">>]]},
-                         <<"bar">>, {json, [$", 233, "ok", $"]})))
+                   ?OBJ2(foo, {{json, ["["|[$1, ",2",<<",3]">>]]}},
+                         <<"bar">>, {{json, [$", 233, "ok", $"]}}))),
+              ?assertEqual(
+                 {ok, <<"{\"json\":\"[1,2,3]\"}">>},
+                 jsone_encode:encode([{json, <<"[1,2,3]">>}])),
+              ?assertEqual(
+                 {ok, <<"[[1,2,3]]">>},
+                 jsone_encode:encode([{{json, <<"[1,2,3]">>}}]))
       end},
      %% Numbers: Integer
      {"zero",

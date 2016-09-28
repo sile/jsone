@@ -111,14 +111,14 @@ next(Level = [Next | Nexts], Buf, Opt) ->
 value(null, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "null">>, Opt);
 value(false, Nexts, Buf, Opt)                        -> next(Nexts, <<Buf/binary, "false">>, Opt);
 value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "true">>, Opt);
-value({json, T}, Nexts, Buf, Opt) ->
+value({{json, T}}, Nexts, Buf, Opt) ->
     try
         next(Nexts, <<Buf/binary, (iolist_to_binary(T))/binary>>, Opt)
     catch
          error:badarg ->
             ?ERROR(value, [{json, T}, Nexts, Buf, Opt])
     end;
-value({json_utf8, T}, Nexts, Buf, Opt) ->
+value({{json_utf8, T}}, Nexts, Buf, Opt) ->
     try unicode:characters_to_binary(T) of
         {error, OK, Invalid} ->
             {error, {{invalid_json_utf8, OK, Invalid}, [{?MODULE, value, [{json_utf8, T}, Nexts, Buf, Opt], [{line, ?LINE}]}]}};
