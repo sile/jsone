@@ -157,7 +157,9 @@ datetime({{Y,M,D}, {H,Mi,S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y,M,D,H,Mi,S) -
 datetime(Datetime, Nexts, Buf, Opt) ->
     ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
 
+-ifndef(NO_DIALYZER_SPEC).
 -dialyzer({no_improper_lists, [format_year/1]}).
+-endif.
 -spec format_year(non_neg_integer()) -> iodata().
 format_year(Y) when Y > 999 -> integer_to_binary(Y);
 format_year(Y) ->
