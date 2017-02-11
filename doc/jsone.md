@@ -325,6 +325,11 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 stack_item() = {Module::module(), Function::atom(), Arity::arity() | (Args::[term()]), Location::[{file, Filename::string()} | {line, Line::pos_integer()}]}
 </code></pre>
 
+ An item in a stack back-trace.
+
+Note that the `erlang` module already defines the same `stack_item/0` type,
+but it is not exported from the module.
+So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
 
 
 
