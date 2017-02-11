@@ -318,6 +318,16 @@ json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-js
 
 
 
+### <a name="type-stack_item">stack_item()</a> ###
+
+
+<pre><code>
+stack_item() = {Module::module(), Function::atom(), Arity::arity() | (Args::[term()]), Location::[{file, Filename::string()} | {line, Line::pos_integer()}]}
+</code></pre>
+
+
+
+
 ### <a name="type-timezone">timezone()</a> ###
 
 
@@ -420,7 +430,7 @@ Raises an error exception if input is not an instance of type `json_value()`
 ### try_decode/1 ###
 
 <pre><code>
-try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -431,7 +441,7 @@ Equivalent to [`try_decode(Json, [])`](#try_decode-2).
 ### try_decode/2 ###
 
 <pre><code>
-try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -451,7 +461,7 @@ Decodes an erlang term from json text (a utf8 encoded binary)
 ### try_encode/1 ###
 
 <pre><code>
-try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+try_encode(JsonValue::<a href="#type-json_value">json_value()</a>) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -462,7 +472,7 @@ Equivalent to [`try_encode(JsonValue, [])`](#try_encode-2).
 ### try_encode/2 ###
 
 <pre><code>
-try_encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="erlang.md#type-stack_item">erlang:stack_item()</a>]}}
+try_encode(JsonValue::<a href="#type-json_value">json_value()</a>, Options::[<a href="#type-encode_option">encode_option()</a>]) -&gt; {ok, binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
