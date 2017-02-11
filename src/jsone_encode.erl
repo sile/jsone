@@ -55,7 +55,7 @@
 -define(ENCODE_MAP(Value, Nexts, Buf, Opt), object(maps:to_list(Value), Nexts, Buf, Opt)).
 -endif.
 
--type encode_result() :: {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-type encode_result() :: {ok, binary()} | {error, {Reason::term(), [jsone:stack_item()]}}.
 -type next() :: {array_values, [jsone:json_value()]}
               | {object_value, jsone:json_value(), jsone:json_object_members()}
               | {object_members, jsone:json_object_members()}

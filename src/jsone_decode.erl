@@ -61,7 +61,7 @@
                          | {object_value, jsone:json_string(), jsone:json_object_members()}
                          | {object_next, jsone:json_object_members()}.
 
--type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-type decode_result() :: {ok, jsone:json_value(), Rest::binary()} | {error, {Reason::term(), [jsone:stack_item()]}}.
 
 -record(decode_opt_v2,
         {

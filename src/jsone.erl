@@ -54,7 +54,7 @@
               decode_option/0,
               float_format_option/0,
               datetime_encode_format/0, datetime_format/0,
-              timezone/0, utc_offset_seconds/0
+              timezone/0, utc_offset_seconds/0, stack_item/0
              ]).
 
 %%--------------------------------------------------------------------------------
@@ -242,6 +242,18 @@
 %% - `attempt_atom': Returns existing atom as `existing_atom' but returns a
 %% binary string if fails find one.
 
+
+%% An item in a stack back-trace.
+%%
+%% Note that the `erlang` module already defines the same `stack_item/0` type,
+%% but it is not exported from the module.
+%% So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
+-type stack_item() :: {Module :: module(),
+                       Function :: atom(),
+                       Arity :: arity() | (Args :: [term()]),
+                       Location :: [{file, Filename :: string()} |
+                                    {line, Line :: pos_integer()}]}.
+
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
@@ -275,7 +287,7 @@ decode(Json, Options) ->
     end.
 
 %% @equiv try_decode(Json, [])
--spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [stack_item()]}}.
 try_decode(Json) ->
     try_decode(Json, []).
 
@@ -290,7 +302,7 @@ try_decode(Json) ->
 %%                               [<<"wrong json">>,1,[],<<>>],
 %%                               [{line,208}]}]}}
 %% '''
--spec try_decode(binary(), [decode_option()]) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-spec try_decode(binary(), [decode_option()]) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [stack_item()]}}.
 try_decode(Json, Options) ->
     jsone_decode:decode(Json, Options).
 
@@ -324,7 +336,7 @@ encode(JsonValue, Options) ->
     end.
 
 %% @equiv try_encode(JsonValue, [])
--spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [stack_item()]}}.
 try_encode(JsonValue) ->
     try_encode(JsonValue, []).
 
@@ -339,6 +351,6 @@ try_encode(JsonValue) ->
 %%                               [hoge,[{array_values,[2]}],<<"[1,">>],
 %%                               [{line,86}]}]}}
 %% '''
--spec try_encode(json_value(), [encode_option()]) -> {ok, binary()} | {error, {Reason::term(), [erlang:stack_item()]}}.
+-spec try_encode(json_value(), [encode_option()]) -> {ok, binary()} | {error, {Reason::term(), [stack_item()]}}.
 try_encode(JsonValue, Options) ->
     jsone_encode:encode(JsonValue, Options).
