@@ -243,16 +243,16 @@
 %% binary string if fails find one.
 
 
-%% An item in a stack back-trace.
-%%
-%% Note that the `erlang` module already defines the same `stack_item/0` type,
-%% but it is not exported from the module.
-%% So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
 -type stack_item() :: {Module :: module(),
                        Function :: atom(),
                        Arity :: arity() | (Args :: [term()]),
                        Location :: [{file, Filename :: string()} |
                                     {line, Line :: pos_integer()}]}.
+%% An item in a stack back-trace.
+%%
+%% Note that the `erlang' module already defines the same `stack_item/0' type,
+%% but it is not exported from the module.
+%% So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
