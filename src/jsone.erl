@@ -184,6 +184,7 @@
 -type utc_offset_seconds() :: -86399..86399.
 
 -type encode_option() :: native_utf8
+                       | canonical_form
                        | {float_format, [float_format_option()]}
                        | {datetime_format, datetime_encode_format()}
                        | {object_key_type, string | scalar | value}

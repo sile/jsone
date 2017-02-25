@@ -283,5 +283,11 @@ encode_test_() ->
      {"wrong option",
       fun () ->
               ?assertError(badarg, jsone_encode:encode(1, [{no_such_option, hoge}]))
+      end},
+     {"canonical_form",
+      fun () ->
+          Obj1 = maps:from_list( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(1000, 0, -1)] ),
+          Obj2 = maps:from_list( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(0, 1000, 1)] ),
+          ?assertEqual(jsone_encode:encode(Obj1, [canonical_form]), jsone_encode:encode(Obj2, [canonical_form]))
       end}
     ].
