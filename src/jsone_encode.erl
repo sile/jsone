@@ -308,7 +308,7 @@ array_values([X | Xs], Nexts, Buf, Opt) -> value(X, [{array_values, Xs} | Nexts]
 
 -spec object(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object(Members, Nexts, Buf, ?OPT{canonical_form = true}=Opt) ->
-  object_members(lists:keysort(1, Members), Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt);
+  object_members(lists:sort(Members), Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt);
 object(Members, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
