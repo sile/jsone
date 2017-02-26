@@ -124,6 +124,10 @@ Usage Example
 > jsone:encode({[{123, <<"value">>}]}, [{object_key_type, scalar}]).
 <<"{\"123\":\"value\"}">>
 
+% 'undefined_as_null' option allows encoding atom undefined as null
+> jsone:encode(undefined,[undefined_as_null]).
+<<"null">>
+
 %% Pretty Print
 > Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null].
 > io:format("~s\n", [jsone:encode(Data, [{indent, 1}, {space, 2}])]).
