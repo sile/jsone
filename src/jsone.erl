@@ -184,6 +184,7 @@
 -type utc_offset_seconds() :: -86399..86399.
 
 -type encode_option() :: native_utf8
+                       | canonical_form
                        | {float_format, [float_format_option()]}
                        | {datetime_format, datetime_encode_format()}
                        | {object_key_type, string | scalar | value}
@@ -191,6 +192,9 @@
                        | {indent, non_neg_integer()}.
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+%%
+%% `canonical_form': <br />
+%% - produce a canonical form of a JSON document <br />
 %%
 %% `{float_format, Optoins}':
 %% - Encodes a `float()` value in the format which specified by `Options' <br />

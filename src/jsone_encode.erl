@@ -63,6 +63,7 @@
 
 -record(encode_opt_v2, {
           native_utf8 = false :: boolean(),
+          canonical_form = false :: boolean(),
           float_format = [{scientific, 20}] :: [jsone:float_format_option()],
           datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
           object_key_type = string :: string | scalar | value,
@@ -306,6 +307,8 @@ array_values([],       Nexts, Buf, Opt) -> next(Nexts, <<(pp_newline(Buf, Nexts,
 array_values([X | Xs], Nexts, Buf, Opt) -> value(X, [{array_values, Xs} | Nexts], Buf, Opt).
 
 -spec object(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
+object(Members, Nexts, Buf, ?OPT{canonical_form = true}=Opt) ->
+  object_members(lists:sort(Members), Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt);
 object(Members, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
@@ -352,6 +355,8 @@ parse_options(Options) ->
 parse_option([], Opt) -> Opt;
 parse_option([native_utf8|T], Opt) ->
     parse_option(T, Opt?OPT{native_utf8=true});
+parse_option([canonical_form|T], Opt) ->
+    parse_option(T, Opt?OPT{canonical_form=true});
 parse_option([{float_format, F}|T], Opt) when is_list(F) ->
     parse_option(T, Opt?OPT{float_format = F});
 parse_option([{space, N}|T], Opt) when is_integer(N), N >= 0 ->
