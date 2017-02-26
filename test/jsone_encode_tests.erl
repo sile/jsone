@@ -242,6 +242,11 @@ encode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{1, 2}]})),
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{"1", 2}]}))
       end},
+     {"undefined_as_null option",
+      fun() ->
+              ?assertEqual({ok,<<"null">>},          jsone_encode:encode(undefined,[undefined_as_null])), % OK
+              ?assertEqual({ok,<<"\"undefined\"">>}, jsone_encode:encode(undefined,[])) % OK
+      end},
 
      %% Pretty Print
      {"space",

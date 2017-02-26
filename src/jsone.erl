@@ -189,7 +189,8 @@
                        | {datetime_format, datetime_encode_format()}
                        | {object_key_type, string | scalar | value}
                        | {space, non_neg_integer()}
-                       | {indent, non_neg_integer()}.
+                       | {indent, non_neg_integer()}
+                       | undefined_as_null.
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
 %%
@@ -219,6 +220,9 @@
 %% `{indent, N}': <br />
 %% - Inserts a newline and `N' spaces for each level of indentation <br />
 %% - default: `0' <br />
+%%
+%% `undefined_as_null': <br />
+%% - Encodes atom `undefined` as null value <br />
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}

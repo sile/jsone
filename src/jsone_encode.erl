@@ -68,7 +68,8 @@
           datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
           object_key_type = string :: string | scalar | value,
           space = 0 :: non_neg_integer(),
-          indent = 0 :: non_neg_integer()
+          indent = 0 :: non_neg_integer(),
+          undefined_as_null = false :: boolean()
          }).
 -define(OPT, #encode_opt_v2).
 -type opt() :: #encode_opt_v2{}.
@@ -110,6 +111,7 @@ next(Level = [Next | Nexts], Buf, Opt) ->
 
 -spec value(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
 value(null, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "null">>, Opt);
+value(undefined, Nexts, Buf, Opt = ?OPT{undefined_as_null = true}) -> next(Nexts, <<Buf/binary, "null">>, Opt);
 value(false, Nexts, Buf, Opt)                        -> next(Nexts, <<Buf/binary, "false">>, Opt);
 value(true, Nexts, Buf, Opt)                         -> next(Nexts, <<Buf/binary, "true">>, Opt);
 value({{json, T}}, Nexts, Buf, Opt) ->
@@ -373,6 +375,8 @@ parse_option([{datetime_format, Fmt}|T], Opt) ->
         {iso8601, N} when -86400 < N, N < 86400 -> parse_option(T, Opt?OPT{datetime_format = {iso8601, N}});
         _                                       -> error(badarg, [[{datetime_format, Fmt}|T], Opt])
     end;
+parse_option([undefined_as_null|T],Opt) ->
+    parse_option(T, Opt?OPT{undefined_as_null = true});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).
 
