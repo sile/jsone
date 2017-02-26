@@ -216,6 +216,9 @@
 %% `{indent, N}': <br />
 %% - Inserts a newline and `N' spaces for each level of indentation <br />
 %% - default: `0' <br />
+%%
+%% `undefined_as_null': <br />
+%% - Encodes atom `undefined` as null value <br />
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
