@@ -208,7 +208,8 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
                     end;
                 _ -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
             end;
-        Unicode when 16#DC00 =< Unicode, Unicode =< 16#DFFF ->  % second part of surrogate pair (without first part)
+        Unicode when 16#DC00 =< Unicode, Unicode =< 16#DFFF;  % second part of surrogate pair (without first part)
+                     0 > Unicode ->
             ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt]);
         Unicode ->
             string(Bin, Start, Nexts, <<Buf/binary, Unicode/utf8>>, Opt)
