@@ -199,11 +199,12 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
             %% surrogate pair
             case Bin of
                 <<$\\, $u, N2:4/binary, Bin2/binary>> ->
-                    case binary_to_integer(N2, 16) of
+                    try binary_to_integer(N2, 16) of
                         Low when 16#DC00 =< Low, Low =< 16#DFFF ->
                             <<Unicode/utf16>> = <<High:16, Low:16>>,
                             string(Bin2, Start, Nexts, <<Buf/binary, Unicode/utf8>>, Opt);
                         _ -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
+                    catch error:badarg -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
                     end;
                 _ -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
             end;

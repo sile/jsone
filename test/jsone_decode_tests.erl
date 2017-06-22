@@ -151,8 +151,9 @@ decode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\uab\"">>)),  % too few hex characters
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\"">>)), % high(first) surrogate only
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\udc49\"">>)), % low(second) surrogate only
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)), % missing low(second) surrogate
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\udf0u\"">>)),
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)) % missing low(second) surrogate
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\udf0u\"">>))
       end},
 
      %% Arrays
