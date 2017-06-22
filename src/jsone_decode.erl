@@ -194,7 +194,7 @@ string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C ->
 
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
-    case binary_to_integer(N, 16) of
+    try binary_to_integer(N, 16) of
         High when 16#D800 =< High, High =< 16#DBFF ->
             %% surrogate pair
             case Bin of
@@ -211,6 +211,7 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
             ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt]);
         Unicode ->
             string(Bin, Start, Nexts, <<Buf/binary, Unicode/utf8>>, Opt)
+    catch error:badarg -> ?ERROR(unicode_string, [<<N/binary, Bin/binary>>, Start, Nexts, Buf, Opt])
     end;
 unicode_string(Bin, Start, Nexts, Buf, Opt) ->
     ?ERROR(unicode_string, [Bin, Start, Nexts, Buf, Opt]).
