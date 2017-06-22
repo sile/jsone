@@ -85,6 +85,8 @@ decode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e-">>)),   % imcomplete fraction part
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1ee-1">>)), % duplicated 'e'
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e--1">>)), % duplicated sign
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"1e999">>)),   % exponent out of range
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e999">>)), % exponent out of range
               ?assertEqual({ok, 0.1, <<".2">>}, jsone_decode:decode(<<"0.1.2">>))     % duplicated '.': interpreted as individual tokens
       end},
 

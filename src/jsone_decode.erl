@@ -271,7 +271,11 @@ number_exponation_part(<<C, Bin/binary>>, N, DecimalOffset, ExpSign, Exp, _, Nex
     number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp * 10 + C - $0, false, Nexts, Buf, Opt);
 number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Nexts, Buf, Opt) ->
     Pos = ExpSign * Exp - DecimalOffset,
-    next(Bin, N * math:pow(10, Pos), Nexts, Buf, Opt);
+    try math:pow(10, Pos)
+    of Mag -> next(Bin, N * Mag, Nexts, Buf, Opt)
+    catch error:badarith ->
+        ?ERROR(number_exponation_part, [Bin, N, DecimalOffset, ExpSign, Exp, false, Nexts, Buf, Opt])
+    end;
 number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt) ->
     ?ERROR(number_exponation_part, [Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt]).
 
