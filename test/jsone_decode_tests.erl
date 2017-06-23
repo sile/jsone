@@ -85,6 +85,9 @@ decode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e-">>)),   % imcomplete fraction part
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1ee-1">>)), % duplicated 'e'
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e--1">>)), % duplicated sign
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"1e999">>)),   % exponent out of range
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e999">>)), % exponent out of range
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"100000000000000000000000000000000000e300">>)), % product out of range
               ?assertEqual({ok, 0.1, <<".2">>}, jsone_decode:decode(<<"0.1.2">>))     % duplicated '.': interpreted as individual tokens
       end},
 
@@ -149,7 +152,10 @@ decode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\uab\"">>)),  % too few hex characters
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\"">>)), % high(first) surrogate only
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\udc49\"">>)), % low(second) surrogate only
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)) % missing low(second) surrogate
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\u0061\"">>)), % missing low(second) surrogate
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\udf0u\"">>)),
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\ud848\\udf0u\"">>)),
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"\"\\u-3351\"">>))
       end},
 
      %% Arrays
