@@ -126,6 +126,18 @@ encode_test_() ->
               Expected22 = <<$", Input2/binary, $">>,
               ?assertEqual({ok, Expected22}, jsone_encode:encode(Input2, [native_utf8]))
       end},
+     {"string: hex for tags, apostrofes, quotes and ampersands",
+      fun () ->
+              Input     = <<"<hello type=\"\" data='25'>&nbsp;</hello>">>,
+              Expected1 = <<"\"\\u003Chello type=\\\"\\\" data='25'\\u003E&nbsp;\\u003C\\/hello\\u003E\"">>,
+              ?assertEqual({ok, Expected1}, jsone_encode:encode(Input, [hex_tag])),
+              Expected2 = <<"\"<hello type=\\\"\\\" data=\\u002725\\u0027>&nbsp;<\\/hello>\"">>,
+              ?assertEqual({ok, Expected2}, jsone_encode:encode(Input, [hex_apos])),
+              Expected3 = <<"\"<hello type=\\u0022\\u0022 data='25'>&nbsp;<\\/hello>\"">>,
+              ?assertEqual({ok, Expected3}, jsone_encode:encode(Input, [hex_quote])),
+              Expected4 = <<"\"<hello type=\\\"\\\" data='25'>\\u0026nbsp;<\\/hello>\"">>,
+              ?assertEqual({ok, Expected4}, jsone_encode:encode(Input, [hex_amp]))
+      end},
      {"string: containts surrogate pairs",
       fun () ->
               Input    = <<"𢁉𢂚𢃼">>,

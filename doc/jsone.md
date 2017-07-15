@@ -92,7 +92,7 @@ binary string if fails find one.
 
 
 <pre><code>
-encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | undefined_as_null
+encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | hex_quote | hex_amp | hex_apos | hex_tag | undefined_as_null
 </code></pre>
 
 `native_utf8`: <br />
@@ -124,6 +124,18 @@ encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-
 `{indent, N}`: <br />
 - Inserts a newline and `N` spaces for each level of indentation <br />
 - default: `0` <br />
+
+`hex_quote`: <br />
+- Escapes quotes in unicode format <br />
+
+`hex_amp`: <br />
+- Escapes ampersands in unicode format <br />
+
+`hex_apos`: <br />
+- Escapes apostrofes in unicode format <br />
+
+`hex_tag`: <br />
+- Escapes tag values (> and <) in unicode format <br />
 
 `undefined_as_null`: <br />
 - Encodes atom `undefined` as null value <br />

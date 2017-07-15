@@ -69,7 +69,11 @@
           object_key_type = string :: string | scalar | value,
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer(),
-          undefined_as_null = false :: boolean()
+          undefined_as_null = false :: boolean(),
+          hex_amp = false :: boolean(),
+          hex_tag = false :: boolean(),
+          hex_apos = false :: boolean(),
+          hex_quote = false :: boolean()
          }).
 -define(OPT, #encode_opt_v2).
 -type opt() :: #encode_opt_v2{}.
@@ -236,7 +240,6 @@ escape_string(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt) ->
 
 -spec escape_string(binary(), [next()], binary(), opt()) -> encode_result().
 escape_string(<<"">>,                   Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $">>, Opt);
-escape_string(<<$", Str/binary>>,       Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $">>, Opt);
 escape_string(<<$\/, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\/>>, Opt);
 escape_string(<<$\\, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\\>>, Opt);
 escape_string(<<$\b, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $b>>, Opt);
@@ -244,6 +247,17 @@ escape_string(<<$\f, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, N
 escape_string(<<$\n, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $n>>, Opt);
 escape_string(<<$\r, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $r>>, Opt);
 escape_string(<<$\t, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $t>>, Opt);
+escape_string(<<$<, Str/binary>>,       Nexts, Buf, Opt) when Opt?OPT.hex_tag ->
+    escape_string(Str, Nexts, <<Buf/binary, "\\u003C">>, Opt);
+escape_string(<<$>, Str/binary>>,       Nexts, Buf, Opt) when Opt?OPT.hex_tag ->
+    escape_string(Str, Nexts, <<Buf/binary, "\\u003E">>, Opt);
+escape_string(<<$&, Str/binary>>,       Nexts, Buf, Opt) when Opt?OPT.hex_amp ->
+    escape_string(Str, Nexts, <<Buf/binary, "\\u0026">>, Opt);
+escape_string(<<$", Str/binary>>,       Nexts, Buf, Opt) when Opt?OPT.hex_quote ->
+    escape_string(Str, Nexts, <<Buf/binary, "\\u0022">>, Opt);
+escape_string(<<$", Str/binary>>,       Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $">>, Opt);
+escape_string(<<$', Str/binary>>,       Nexts, Buf, Opt) when Opt?OPT.hex_apos ->
+    escape_string(Str, Nexts, <<Buf/binary, "\\u0027">>, Opt);
 escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) ->
     case C < 16#20 of
         true  -> escape_string(Str, Nexts, <<Buf/binary, "\\u00", ?H8(C)>>, Opt);
@@ -377,6 +391,14 @@ parse_option([{datetime_format, Fmt}|T], Opt) ->
     end;
 parse_option([undefined_as_null|T],Opt) ->
     parse_option(T, Opt?OPT{undefined_as_null = true});
+parse_option([hex_quote|T],Opt) ->
+    parse_option(T, Opt?OPT{hex_quote = true});
+parse_option([hex_amp|T],Opt) ->
+    parse_option(T, Opt?OPT{hex_amp = true});
+parse_option([hex_apos|T],Opt) ->
+    parse_option(T, Opt?OPT{hex_apos = true});
+parse_option([hex_tag|T],Opt) ->
+    parse_option(T, Opt?OPT{hex_tag = true});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).
 
