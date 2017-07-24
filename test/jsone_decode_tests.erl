@@ -290,5 +290,10 @@ decode_test_() ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
               Expected = [true, ?OBJ2(<<"1">>, 2, <<"array">>, [[[[1]]], ?OBJ1(<<"ab">>, <<"cd">>), false]), null],
               ?assertEqual({ok, Expected, <<"   ">>}, jsone_decode:decode(Input))
+      end},
+     {"undefined_as_null option",
+      fun() ->
+              ?assertEqual({ok, undefined, <<>>},  jsone_decode:decode(<<"null">>,[undefined_as_null])), % OK
+              ?assertEqual({ok, null, <<>>},       jsone_decode:decode(<<"null">>,[])) % OK
       end}
     ].

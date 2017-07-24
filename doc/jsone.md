@@ -60,7 +60,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | {keys, binary | atom | existing_atom | attempt_atom}
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | {keys, binary | atom | existing_atom | attempt_atom} | undefined_as_null
 </code></pre>
 
 `object_format`: <br />
@@ -318,7 +318,7 @@ A simple example is worth a thousand words.
 
 
 <pre><code>
-json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-json_string">json_string()</a> | <a href="#type-json_array">json_array()</a> | <a href="#type-json_object">json_object()</a> | <a href="#type-json_boolean">json_boolean()</a> | null | <a href="#type-json_term">json_term()</a>
+json_value() = <a href="#type-json_number">json_number()</a> | <a href="#type-json_string">json_string()</a> | <a href="#type-json_array">json_array()</a> | <a href="#type-json_object">json_object()</a> | <a href="#type-json_boolean">json_boolean()</a> | null | undefined | <a href="#type-json_term">json_term()</a>
 </code></pre>
 
 

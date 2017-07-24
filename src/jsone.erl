@@ -60,7 +60,7 @@
 %%--------------------------------------------------------------------------------
 %% Types & Macros
 %%--------------------------------------------------------------------------------
--type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | json_term().
+-type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | undefined | json_term().
 -type json_boolean()        :: boolean().
 -type json_number()         :: number().
 -type json_string()         :: binary() | atom() | calendar:datetime(). % NOTE: `decode/1' always returns `binary()' value
@@ -226,7 +226,8 @@
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
-                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}.
+                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}
+                       | undefined_as_null.
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
 %% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
