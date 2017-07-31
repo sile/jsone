@@ -126,7 +126,7 @@ encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-
 - default: `0` <br />
 
 `undefined_as_null`: <br />
-- Encodes atom `undefined` as null value <br />
+- Treats `undefined` in Erlang as the conversion target for `null` in JSON. This means that `undefined` will be encoded to `null` and `null` will be decoded to `undefined`<br />
 
 
 

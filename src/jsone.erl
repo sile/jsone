@@ -222,7 +222,7 @@
 %% - default: `0' <br />
 %%
 %% `undefined_as_null': <br />
-%% - Encodes atom `undefined' as null value <br />
+%% - Treats `undefined' in Erlang as the conversion target for `null' in JSON. This means that `undefined' will be encoded to `null' and `null' will be decoded to `undefined'<br />
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
