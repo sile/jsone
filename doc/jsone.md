@@ -15,6 +15,18 @@ JSON decoding/encoding module.
 
 
 
+### <a name="type-common_option">common_option()</a> ###
+
+
+<pre><code>
+common_option() = undefined_as_null
+</code></pre>
+
+`undefined_as_null`: <br />
+- Treats `undefined` in Erlang as the conversion target for `null` in JSON. This means that `undefined` will be encoded to `null` and `null` will be decoded to `undefined`<br />
+
+
+
 ### <a name="type-datetime_encode_format">datetime_encode_format()</a> ###
 
 
@@ -60,7 +72,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | {keys, binary | atom | existing_atom | attempt_atom} | undefined_as_null
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | {keys, binary | atom | existing_atom | attempt_atom} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `object_format`: <br />
@@ -92,7 +104,7 @@ binary string if fails find one.
 
 
 <pre><code>
-encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | undefined_as_null
+encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `native_utf8`: <br />
@@ -124,9 +136,6 @@ encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-
 `{indent, N}`: <br />
 - Inserts a newline and `N` spaces for each level of indentation <br />
 - default: `0` <br />
-
-`undefined_as_null`: <br />
-- Treats `undefined` in Erlang as the conversion target for `null` in JSON. This means that `undefined` will be encoded to `null` and `null` will be decoded to `undefined`<br />
 
 
 
