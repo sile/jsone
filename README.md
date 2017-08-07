@@ -176,6 +176,7 @@ Erlang                  JSON             Erlang
 =================================================================================================
 
 null                   -> null                       -> null
+undefined              -> null                       -> undefined                  % undefined_as_null
 true                   -> true                       -> true
 false                  -> false                      -> false
 <<"abc">>              -> "abc"                      -> <<"abc">>

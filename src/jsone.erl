@@ -60,7 +60,7 @@
 %%--------------------------------------------------------------------------------
 %% Types & Macros
 %%--------------------------------------------------------------------------------
--type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | json_term().
+-type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | undefined | json_term().
 -type json_boolean()        :: boolean().
 -type json_number()         :: number().
 -type json_string()         :: binary() | atom() | calendar:datetime(). % NOTE: `decode/1' always returns `binary()' value
@@ -183,6 +183,11 @@
 -type timezone() :: utc | local | utc_offset_seconds().
 -type utc_offset_seconds() :: -86399..86399.
 
+-type common_option() :: undefined_as_null.
+%%
+%% `undefined_as_null': <br />
+%% - Treats `undefined' in Erlang as the conversion target for `null' in JSON. This means that `undefined' will be encoded to `null' and `null' will be decoded to `undefined'<br />
+
 -type encode_option() :: native_utf8
                        | canonical_form
                        | {float_format, [float_format_option()]}
@@ -190,7 +195,7 @@
                        | {object_key_type, string | scalar | value}
                        | {space, non_neg_integer()}
                        | {indent, non_neg_integer()}
-                       | undefined_as_null.
+                       | common_option().
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
 %%
@@ -220,13 +225,11 @@
 %% `{indent, N}': <br />
 %% - Inserts a newline and `N' spaces for each level of indentation <br />
 %% - default: `0' <br />
-%%
-%% `undefined_as_null': <br />
-%% - Encodes atom `undefined' as null value <br />
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
-                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}.
+                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}
+                       | common_option().
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
 %% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
