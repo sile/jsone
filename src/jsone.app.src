@@ -1,6 +1,6 @@
 {application,jsone,
              [{description,"Erlang JSON Library"},
-              {vsn,"1.4.4"},
+              {vsn,"1.4.5"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {maintainers,["Takeru Ohta"]},
