@@ -142,7 +142,14 @@ encode_test_() ->
       end},
      {"datetime: iso8601: local",
       fun () ->
-              ?assertMatch({ok, <<"\"2015-06-25T14:57:25",_:6/binary,"\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, local}}]))
+              {ok, Json} = jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, local}}]),
+
+              UTC = {{1970, 1, 2}, {0,0,0}},
+              Local = calendar:universal_time_to_local_time({{1970, 1, 2}, {0,0,0}}),
+              case UTC =:= Local of
+                  false -> ?assertMatch(<<"\"2015-06-25T14:57:25",_:6/binary,"\"">>, Json);
+                  true  -> ?assertMatch(<<"\"2015-06-25T14:57:25Z\"">>, Json)
+              end
       end},
      {"datetime: iso8601: timezone",
       fun () ->
