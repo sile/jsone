@@ -274,7 +274,7 @@ decode_test_() ->
               ?assertError(badarg, jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(existing_atom))),
               ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(attempt_atom))),
               ?assertEqual([{<<"@#$%^!">>, <<"ok">>}], jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(attempt_atom))),
-              Value = integer_to_binary(rand:uniform(9999)),
+              Value = integer_to_binary(1234),
               % do not make atom in test code
               [{Atom,  <<"ok">>}] = jsone:decode(<<"{\"", Value/binary, "\":\"ok\"}">>, KeyOpt(atom)),
               ?assertEqual(Value, atom_to_binary(Atom, latin1))
