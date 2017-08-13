@@ -9,11 +9,13 @@
 -define(OBJ0, {[]}).
 -define(OBJ1(K, V), {[{K, V}]}).
 -define(OBJ2(K1, V1, K2, V2), {[{K1, V1}, {K2, V2}]}).
+-define(OBJ2_DUP_KEY(K1, V1, K2, V2), ?OBJ2(K1, V1, K2, V2)).
 -else.
 -define(MAP_OBJECT_TYPE, map).
 -define(OBJ0, #{}).
 -define(OBJ1(K, V), #{K => V}).
 -define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
+-define(OBJ2_DUP_KEY(K1, V1, _K2, _V2), #{K1 => V1}). % the first (leftmost) value is used
 -endif.
 
 decode_test_() ->
@@ -227,14 +229,8 @@ decode_test_() ->
      {"duplicated members: map",
       fun () ->
               Input    = <<"{\"1\":\"first\",\"1\":\"second\"}">>,
-              case ?MAP_OBJECT_TYPE of
-                  map   ->
-                      Expected = ?OBJ1(<<"1">>, <<"first">>), % the first (leftmost) value is used
-                      ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]));
-                  tuple ->
-                      Expected = ?OBJ2(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
-                      ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
-              end
+              Expected = ?OBJ2_DUP_KEY(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
       end},
      {"object: trailing comma is disallowed",
       fun () ->
