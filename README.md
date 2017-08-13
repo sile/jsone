@@ -2,6 +2,7 @@ jsone
 =====
 
 [![hex.pm version](https://img.shields.io/hexpm/v/jsone.svg)](https://hex.pm/packages/jsone)
+[![Build Status](https://travis-ci.org/sile/jsone.svg?branch=master)](https://travis-ci.org/sile/jsone)
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
 
