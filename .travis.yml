@@ -10,7 +10,6 @@ otp_release:
   - R16B03-1
 
 install:
-  - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
   - sudo pip install codecov
 script:
   - ./rebar3 compile
