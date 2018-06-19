@@ -265,6 +265,14 @@
 %% but it is not exported from the module.
 %% So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
 
+-ifdef('FUN_STACKTRACE').
+-define(CAPTURE_STACKTRACE, ).
+-define(GET_STACKTRACE, erlang:get_stacktrace()).
+-else.
+-define(CAPTURE_STACKTRACE, :__StackTrace).
+-define(GET_STACKTRACE, __StackTrace).
+-endif.
+
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
@@ -293,8 +301,8 @@ decode(Json, Options) ->
         {ok, Value, _} = try_decode(Json, Options),
         Value
     catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ->
-            erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
+            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
 %% @equiv try_decode(Json, [])
@@ -342,8 +350,8 @@ encode(JsonValue, Options) ->
         {ok, Binary} = try_encode(JsonValue, Options),
         Binary
     catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ->
-            erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
+            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
 %% @equiv try_encode(JsonValue, [])
