@@ -3,6 +3,8 @@ jsone
 
 [![hex.pm version](https://img.shields.io/hexpm/v/jsone.svg)](https://hex.pm/packages/jsone)
 [![Build Status](https://travis-ci.org/sile/jsone.svg?branch=master)](https://travis-ci.org/sile/jsone)
+[![Code Coverage](https://codecov.io/gh/sile/jsone/branch/master/graph/badge.svg)](https://codecov.io/gh/sile/jsone/branch/master)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 An Erlang library for encoding, decoding [JSON](http://json.org/index.html) data.
 
