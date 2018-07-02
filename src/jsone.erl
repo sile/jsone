@@ -265,12 +265,22 @@
 %% but it is not exported from the module.
 %% So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
 
--ifdef('FUN_STACKTRACE').
--define(CAPTURE_STACKTRACE, ).
--define(GET_STACKTRACE, erlang:get_stacktrace()).
+-ifdef('OTP_RELEASE').
+-define(TRY_FUN(Fun),
+  try Fun()
+  catch
+      error:{badmatch, {error, {Reason, [StackItem]}}}:StackTrace ->
+          erlang:raise(error, Reason, [StackItem | StackTrace])
+  end
+).
 -else.
--define(CAPTURE_STACKTRACE, :__StackTrace).
--define(GET_STACKTRACE, __StackTrace).
+-define(TRY_FUN(Fun),
+  try Fun()
+  catch
+      error:{badmatch, {error, {Reason, [StackItem]}}} ->
+        erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
+  end
+).
 -endif.
 
 %%--------------------------------------------------------------------------------
@@ -297,13 +307,12 @@ decode(Json) ->
 %% '''
 -spec decode(binary(), [decode_option()]) -> json_value().
 decode(Json, Options) ->
-    try
-        {ok, Value, _} = try_decode(Json, Options),
-        Value
-    catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
-            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
-    end.
+    ?TRY_FUN(
+        fun() ->
+            {ok, Value, _} = try_decode(Json, Options),
+            Value
+        end
+    ).
 
 %% @equiv try_decode(Json, [])
 -spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [stack_item()]}}.
@@ -346,13 +355,12 @@ encode(JsonValue) ->
 %% '''
 -spec encode(json_value(), [encode_option()]) -> binary().
 encode(JsonValue, Options) ->
-    try
-        {ok, Binary} = try_encode(JsonValue, Options),
-        Binary
-    catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
-            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
-    end.
+    ?TRY_FUN(
+        fun() ->
+          {ok, Binary} = try_encode(JsonValue, Options),
+          Binary
+        end
+    ).
 
 %% @equiv try_encode(JsonValue, [])
 -spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [stack_item()]}}.
