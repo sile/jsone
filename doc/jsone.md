@@ -214,7 +214,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 <pre><code>
-json_object_format_map() = #{}
+json_object_format_map() = map()
 </code></pre>
 
 
