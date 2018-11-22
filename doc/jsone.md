@@ -130,7 +130,7 @@ encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-
 - NOTE: If `scalar` or `value` option is specified, non `json_string()` key will be automatically converted to a `binary()` value (e.g. `1` => `<<"1">>`, `#{}` => `<<"{}">>`) <br />
 
 `{space, N}`: <br />
-- Inserts `N` spaces after every commna and colon <br />
+- Inserts `N` spaces after every comma and colon <br />
 - default: `0` <br />
 
 `{indent, N}`: <br />
