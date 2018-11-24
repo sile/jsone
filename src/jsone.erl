@@ -238,7 +238,7 @@
 %% - default: `map' if OTP version is OTP-17 or more, `tuple' otherwise <br />
 %%
 %% `allow_ctrl_chars': <br />
-%% - If the value is `true', strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
+%% - If the value is `true', strings which contain unescaped control characters will be regarded as a legal JSON string <br />
 %% - default: `false'<br />
 %%
 %% `keys': <br />
