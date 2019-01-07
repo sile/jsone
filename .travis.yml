@@ -12,13 +12,13 @@ otp_release:
 install:
   - sudo pip install codecov
 script:
-  - ./rebar3 compile
-  - ./rebar3 xref
-  - ./rebar3 eunit
-  - ./rebar3 dialyzer
-  - ./rebar3 edoc
-  - ./rebar3 cover
-  - ./rebar3 as test covertool generate
+  - rebar3 compile
+  - rebar3 xref
+  - rebar3 eunit
+  - rebar3 dialyzer
+  - rebar3 edoc
+  - rebar3 cover
+  - rebar3 as test covertool generate
   - cp _build/test/covertool/jsone.covertool.xml ./cobertura.xml
 
 after_success:
