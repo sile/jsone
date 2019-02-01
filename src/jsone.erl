@@ -199,7 +199,7 @@
                        | hex_amp
                        | hex_apos
                        | hex_tag
-                       | undefined_as_null.
+                       | undefined_as_null
                        | common_option().
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
