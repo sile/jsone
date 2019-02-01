@@ -67,7 +67,8 @@
         {
           object_format=?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
           allow_ctrl_chars=false :: boolean(),
-          keys=binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'
+          keys=binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom',
+          undefined_as_null=false :: boolean()
         }).
 -define(OPT, #decode_opt_v2).
 -type opt() :: #decode_opt_v2{}.
@@ -116,6 +117,8 @@ whitespace(<<Bin/binary>>,      Next, Nexts, Buf, Opt) ->
 -spec value(binary(), [next()], binary(), opt()) -> decode_result().
 value(<<"false", Bin/binary>>, Nexts, Buf, Opt) -> next(Bin, false, Nexts, Buf, Opt);
 value(<<"true", Bin/binary>>, Nexts, Buf, Opt)  -> next(Bin, true, Nexts, Buf, Opt);
+value(<<"null", Bin/binary>>, Nexts, Buf,
+      Opt = ?OPT{undefined_as_null = true})     -> next(Bin, undefined, Nexts, Buf, Opt);
 value(<<"null", Bin/binary>>, Nexts, Buf, Opt)  -> next(Bin, null, Nexts, Buf, Opt);
 value(<<$[, Bin/binary>>, Nexts, Buf, Opt)      -> whitespace(Bin, array, Nexts, Buf, Opt);
 value(<<${, Bin/binary>>, Nexts, Buf, Opt)      -> whitespace(Bin, object, Nexts, Buf, Opt);
@@ -301,5 +304,7 @@ parse_option([{allow_ctrl_chars,B}|T], Opt) when is_boolean(B) ->
 parse_option([{keys, K}|T], Opt)
   when K =:= binary; K =:= atom; K =:= existing_atom; K =:= attempt_atom ->
     parse_option(T, Opt?OPT{keys = K});
+parse_option([undefined_as_null|T], Opt) ->
+    parse_option(T, Opt?OPT{undefined_as_null = true});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).

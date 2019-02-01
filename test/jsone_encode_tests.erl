@@ -8,10 +8,12 @@
 -define(OBJ0, {[]}).
 -define(OBJ1(K, V), {[{K, V}]}).
 -define(OBJ2(K1, V1, K2, V2), {[{K1, V1}, {K2, V2}]}).
+-define(OBJECT_FROM_LIST(List), List).
 -else.
 -define(OBJ0, #{}).
 -define(OBJ1(K, V), #{K => V}).
 -define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
+-define(OBJECT_FROM_LIST(List), maps:from_list(List)).
 -endif.
 
 encode_test_() ->
@@ -154,7 +156,14 @@ encode_test_() ->
       end},
      {"datetime: iso8601: local",
       fun () ->
-              ?assertMatch({ok, <<"\"2015-06-25T14:57:25",_:6/binary,"\"">>}, jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, local}}]))
+              {ok, Json} = jsone_encode:encode({{2015,6,25},{14,57,25}}, [{datetime_format, {iso8601, local}}]),
+
+              UTC = {{1970, 1, 2}, {0,0,0}},
+              Local = calendar:universal_time_to_local_time({{1970, 1, 2}, {0,0,0}}),
+              case UTC =:= Local of
+                  false -> ?assertMatch(<<"\"2015-06-25T14:57:25",_:6/binary,"\"">>, Json);
+                  true  -> ?assertMatch(<<"\"2015-06-25T14:57:25Z\"">>, Json)
+              end
       end},
      {"datetime: iso8601: timezone",
       fun () ->
@@ -303,8 +312,8 @@ encode_test_() ->
       end},
      {"canonical_form",
       fun () ->
-          Obj1 = maps:from_list( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(1000, 0, -1)] ),
-          Obj2 = maps:from_list( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(0, 1000, 1)] ),
+          Obj1 = ?OBJECT_FROM_LIST( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(1000, 0, -1)] ),
+          Obj2 = ?OBJECT_FROM_LIST( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(0, 1000, 1)] ),
           ?assertEqual(jsone_encode:encode(Obj1, [canonical_form]), jsone_encode:encode(Obj2, [canonical_form]))
       end}
     ].
