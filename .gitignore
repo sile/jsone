@@ -12,3 +12,4 @@ doc/*
 .rebar
 _build
 .*.sw?
+rebar3.crashdump

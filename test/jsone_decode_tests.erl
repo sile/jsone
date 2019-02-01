@@ -9,11 +9,13 @@
 -define(OBJ0, {[]}).
 -define(OBJ1(K, V), {[{K, V}]}).
 -define(OBJ2(K1, V1, K2, V2), {[{K1, V1}, {K2, V2}]}).
+-define(OBJ2_DUP_KEY(K1, V1, K2, V2), ?OBJ2(K1, V1, K2, V2)).
 -else.
 -define(MAP_OBJECT_TYPE, map).
 -define(OBJ0, #{}).
 -define(OBJ1(K, V), #{K => V}).
 -define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
+-define(OBJ2_DUP_KEY(K1, V1, _K2, _V2), #{K1 => V1}). % the first (leftmost) value is used
 -endif.
 
 decode_test_() ->
@@ -227,14 +229,8 @@ decode_test_() ->
      {"duplicated members: map",
       fun () ->
               Input    = <<"{\"1\":\"first\",\"1\":\"second\"}">>,
-              case ?MAP_OBJECT_TYPE of
-                  map   ->
-                      Expected = ?OBJ1(<<"1">>, <<"first">>), % the first (leftmost) value is used
-                      ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]));
-                  tuple ->
-                      Expected = ?OBJ2(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
-                      ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
-              end
+              Expected = ?OBJ2_DUP_KEY(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
       end},
      {"object: trailing comma is disallowed",
       fun () ->
@@ -278,7 +274,7 @@ decode_test_() ->
               ?assertError(badarg, jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(existing_atom))),
               ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(attempt_atom))),
               ?assertEqual([{<<"@#$%^!">>, <<"ok">>}], jsone:decode(<<"{\"@#$%^!\":\"ok\"}">>, KeyOpt(attempt_atom))),
-              Value = integer_to_binary(rand:uniform(9999)),
+              Value = integer_to_binary(1234),
               % do not make atom in test code
               [{Atom,  <<"ok">>}] = jsone:decode(<<"{\"", Value/binary, "\":\"ok\"}">>, KeyOpt(atom)),
               ?assertEqual(Value, atom_to_binary(Atom, latin1))
@@ -290,5 +286,10 @@ decode_test_() ->
               Input    = <<"  [true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]   ">>,
               Expected = [true, ?OBJ2(<<"1">>, 2, <<"array">>, [[[[1]]], ?OBJ1(<<"ab">>, <<"cd">>), false]), null],
               ?assertEqual({ok, Expected, <<"   ">>}, jsone_decode:decode(Input))
+      end},
+     {"undefined_as_null option",
+      fun() ->
+              ?assertEqual({ok, undefined, <<>>},  jsone_decode:decode(<<"null">>,[undefined_as_null])), % OK
+              ?assertEqual({ok, null, <<>>},       jsone_decode:decode(<<"null">>,[])) % OK
       end}
     ].

@@ -60,7 +60,7 @@
 %%--------------------------------------------------------------------------------
 %% Types & Macros
 %%--------------------------------------------------------------------------------
--type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | json_term().
+-type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | undefined | json_term().
 -type json_boolean()        :: boolean().
 -type json_number()         :: number().
 -type json_string()         :: binary() | atom() | calendar:datetime(). % NOTE: `decode/1' always returns `binary()' value
@@ -183,6 +183,11 @@
 -type timezone() :: utc | local | utc_offset_seconds().
 -type utc_offset_seconds() :: -86399..86399.
 
+-type common_option() :: undefined_as_null.
+%%
+%% `undefined_as_null': <br />
+%% - Treats `undefined' in Erlang as the conversion target for `null' in JSON. This means that `undefined' will be encoded to `null' and `null' will be decoded to `undefined'<br />
+
 -type encode_option() :: native_utf8
                        | canonical_form
                        | {float_format, [float_format_option()]}
@@ -195,6 +200,7 @@
                        | hex_apos
                        | hex_tag
                        | undefined_as_null.
+                       | common_option().
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
 %%
@@ -242,7 +248,8 @@
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
-                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}.
+                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}
+                       | common_option().
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
 %% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
@@ -251,7 +258,7 @@
 %% - default: `map' if OTP version is OTP-17 or more, `tuple' otherwise <br />
 %%
 %% `allow_ctrl_chars': <br />
-%% - If the value is `true', strings which contain ununescaped control characters will be regarded as a legal JSON string <br />
+%% - If the value is `true', strings which contain unescaped control characters will be regarded as a legal JSON string <br />
 %% - default: `false'<br />
 %%
 %% `keys': <br />
@@ -277,6 +284,16 @@
 %% Note that the `erlang' module already defines the same `stack_item/0' type,
 %% but it is not exported from the module.
 %% So, maybe as a temporary measure, we redefine this type for passing full dialyzer analysis.
+
+-ifdef('OTP_RELEASE').
+%% The 'OTP_RELEASE' macro introduced at OTP-21,
+%% so we can use it for detecting whether the Erlang compiler supports new try/catch syntax or not.
+-define(CAPTURE_STACKTRACE, :__StackTrace).
+-define(GET_STACKTRACE, __StackTrace).
+-else.
+-define(CAPTURE_STACKTRACE, ).
+-define(GET_STACKTRACE, erlang:get_stacktrace()).
+-endif.
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -306,8 +323,8 @@ decode(Json, Options) ->
         {ok, Value, _} = try_decode(Json, Options),
         Value
     catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ->
-            erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
+            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
 %% @equiv try_decode(Json, [])
@@ -355,8 +372,8 @@ encode(JsonValue, Options) ->
         {ok, Binary} = try_encode(JsonValue, Options),
         Binary
     catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ->
-            erlang:raise(error, Reason, [StackItem | erlang:get_stacktrace()])
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
+            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
 %% @equiv try_encode(JsonValue, [])
