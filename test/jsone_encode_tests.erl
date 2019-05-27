@@ -104,6 +104,12 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
+     {"string: contains forward slashes",
+      fun () ->
+              Input = <<"1/2">>,
+              ?assertEqual({ok, <<"\"1\\/2\"">>}, jsone_encode:encode(Input)),
+              ?assertEqual({ok, <<"\"1/2\"">>}, jsone_encode:encode(Input, [native_forward_slash]))
+      end},
      {"string: contains control characters",
       fun () ->
               Ctrls    = lists:seq(16#00, 16#1F) -- [$\b, $\f, $\n, $\r, $\t],

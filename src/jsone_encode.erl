@@ -63,6 +63,7 @@
 
 -record(encode_opt_v2, {
           native_utf8 = false :: boolean(),
+          native_forward_slash = false :: boolean(),
           canonical_form = false :: boolean(),
           float_format = [{scientific, 20}] :: [jsone:float_format_option()],
           datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
@@ -237,13 +238,14 @@ escape_string(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt) ->
 -spec escape_string(binary(), [next()], binary(), opt()) -> encode_result().
 escape_string(<<"">>,                   Nexts, Buf, Opt) -> next(Nexts, <<Buf/binary, $">>, Opt);
 escape_string(<<$", Str/binary>>,       Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $">>, Opt);
-escape_string(<<$\/, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\/>>, Opt);
 escape_string(<<$\\, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $\\>>, Opt);
 escape_string(<<$\b, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $b>>, Opt);
 escape_string(<<$\f, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $f>>, Opt);
 escape_string(<<$\n, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $n>>, Opt);
 escape_string(<<$\r, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $r>>, Opt);
 escape_string(<<$\t, Str/binary>>,      Nexts, Buf, Opt) -> escape_string(Str, Nexts, <<Buf/binary, $\\, $t>>, Opt);
+escape_string(<<$\/, Str/binary>>,      Nexts, Buf, Opt) when not Opt?OPT.native_forward_slash ->
+    escape_string(Str, Nexts, <<Buf/binary, $\\, $\/>>, Opt);
 escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) ->
     case C < 16#20 of
         true  -> escape_string(Str, Nexts, <<Buf/binary, "\\u00", ?H8(C)>>, Opt);
@@ -357,6 +359,8 @@ parse_options(Options) ->
 parse_option([], Opt) -> Opt;
 parse_option([native_utf8|T], Opt) ->
     parse_option(T, Opt?OPT{native_utf8=true});
+parse_option([native_forward_slash|T], Opt) ->
+    parse_option(T, Opt?OPT{native_forward_slash=true});
 parse_option([canonical_form|T], Opt) ->
     parse_option(T, Opt?OPT{canonical_form=true});
 parse_option([{float_format, F}|T], Opt) when is_list(F) ->

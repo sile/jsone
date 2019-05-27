@@ -189,6 +189,7 @@
 %% - Treats `undefined' in Erlang as the conversion target for `null' in JSON. This means that `undefined' will be encoded to `null' and `null' will be decoded to `undefined'<br />
 
 -type encode_option() :: native_utf8
+                       | native_slash
                        | canonical_form
                        | {float_format, [float_format_option()]}
                        | {datetime_format, datetime_encode_format()}
@@ -198,6 +199,9 @@
                        | common_option().
 %% `native_utf8': <br />
 %% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+%%
+%% `native_forward_slash': <br />
+%% - Prevents forward slashes in a JSON string from being escaped <br />
 %%
 %% `canonical_form': <br />
 %% - produce a canonical form of a JSON document <br />
