@@ -67,7 +67,7 @@
         {
           object_format=?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
           allow_ctrl_chars=false :: boolean(),
-          allow_invalid_utf8=true :: boolean(),
+          disallow_invalid_utf8=false :: boolean(),
           keys=binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom',
           undefined_as_null=false :: boolean()
         }).
@@ -189,9 +189,9 @@ string(<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt) ->
         <<$u, Bin/binary>> -> unicode_string(Bin, Start, Nexts, <<Buf/binary, Prefix/binary>>, Opt);
         _                  -> ?ERROR(string, [<<$\\, B/binary>>, Base, Start, Nexts, Buf, Opt])
     end;
-string(<<_, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when Opt?OPT.allow_ctrl_chars, Opt?OPT.allow_invalid_utf8 ->
+string(<<_, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when Opt?OPT.allow_ctrl_chars, not Opt?OPT.disallow_invalid_utf8 ->
     string(Bin, Base, Start, Nexts, Buf, Opt);
-string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C, Opt?OPT.allow_invalid_utf8 ->
+string(<<C, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C, not Opt?OPT.disallow_invalid_utf8 ->
     string(Bin, Base, Start, Nexts, Buf, Opt);
 string(<<_/utf8, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when Opt?OPT.allow_ctrl_chars ->
     string(Bin, Base, Start, Nexts, Buf, Opt);
@@ -306,8 +306,8 @@ parse_option([{object_format,F}|T], Opt) when F =:= tuple; F =:= proplist; F =:=
     parse_option(T, Opt?OPT{object_format=F});
 parse_option([{allow_ctrl_chars,B}|T], Opt) when is_boolean(B) ->
     parse_option(T, Opt?OPT{allow_ctrl_chars=B});
-parse_option([{allow_invalid_utf8,B}|T], Opt) when is_boolean(B) ->
-    parse_option(T, Opt?OPT{allow_invalid_utf8=B});
+parse_option([disallow_invalid_utf8|T], Opt) ->
+    parse_option(T, Opt?OPT{disallow_invalid_utf8=true});
 parse_option([{keys, K}|T], Opt)
   when K =:= binary; K =:= atom; K =:= existing_atom; K =:= attempt_atom ->
     parse_option(T, Opt?OPT{keys = K});

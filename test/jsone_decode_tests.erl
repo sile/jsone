@@ -296,7 +296,6 @@ decode_test_() ->
       fun () ->
               Input = <<123,34,105,100,34,58,34,190,72,94,90,253,121,94,71,73,68,91,122,211,253,32,94,86,67,163,253,230,34,125>>,
               ?assertMatch({ok, _, _}, jsone:try_decode(Input)),
-              ?assertMatch({ok, _, _}, jsone:try_decode(Input, [{allow_invalid_utf8, true}])),
-              ?assertMatch({error, {badarg, _}}, jsone:try_decode(Input, [{allow_invalid_utf8, false}]))
+              ?assertMatch({error, {badarg, _}}, jsone:try_decode(Input, [disallow_invalid_utf8]))
       end}
     ].
