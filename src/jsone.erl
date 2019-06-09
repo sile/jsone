@@ -232,6 +232,7 @@
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
+                       | reject_invalid_utf8
                        | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}
                        | common_option().
 %% `object_format': <br />
@@ -244,6 +245,9 @@
 %% `allow_ctrl_chars': <br />
 %% - If the value is `true', strings which contain unescaped control characters will be regarded as a legal JSON string <br />
 %% - default: `false'<br />
+%%
+%% `reject_invalid_utf8': <br />
+%% - Rejects JSON strings which contain invalid UTF-8 byte sequences <br />
 %%
 %% `keys': <br />
 %% Defines way how object keys are decoded. The default value is `binary'.
