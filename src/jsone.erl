@@ -198,7 +198,7 @@
                        | {indent, non_neg_integer()}
                        | common_option().
 %% `native_utf8': <br />
-%% - Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+%% - Encodes non ASCII UTF-8 characters as a human-readable(non-escaped) string <br />
 %%
 %% `native_forward_slash': <br />
 %% - Prevents forward slashes in a JSON string from being escaped <br />
