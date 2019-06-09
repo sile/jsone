@@ -72,7 +72,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | {keys, binary | atom | existing_atom | attempt_atom} | <a href="#type-common_option">common_option()</a>
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `object_format`: <br />
@@ -85,6 +85,9 @@ decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, b
 `allow_ctrl_chars`: <br />
 - If the value is `true`, strings which contain unescaped control characters will be regarded as a legal JSON string <br />
 - default: `false`<br />
+
+`reject_invalid_utf8`: <br />
+- Rejects JSON strings which contain invalid UTF-8 byte sequences <br />
 
 `keys`: <br />
 Defines way how object keys are decoded. The default value is `binary`.
@@ -104,11 +107,14 @@ binary string if fails find one.
 
 
 <pre><code>
-encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | <a href="#type-common_option">common_option()</a>
+encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `native_utf8`: <br />
-- Encodes UTF-8 characters as a human-readable(non-escaped) string <br />
+- Encodes non ASCII UTF-8 characters as a human-readable(non-escaped) string <br />
+
+`native_forward_slash`: <br />
+- Prevents forward slashes in a JSON string from being escaped <br />
 
 `canonical_form`: <br />
 - produce a canonical form of a JSON document <br />
@@ -130,7 +136,7 @@ encode_option() = native_utf8 | canonical_form | {float_format, [<a href="#type-
 - NOTE: If `scalar` or `value` option is specified, non `json_string()` key will be automatically converted to a `binary()` value (e.g. `1` => `<<"1">>`, `#{}` => `<<"{}">>`) <br />
 
 `{space, N}`: <br />
-- Inserts `N` spaces after every comma and colon <br />
+- Inserts `N` spaces after every commna and colon <br />
 - default: `0` <br />
 
 `{indent, N}`: <br />
@@ -214,7 +220,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 <pre><code>
-json_object_format_map() = map()
+json_object_format_map() = #{}
 </code></pre>
 
 
