@@ -303,6 +303,8 @@ hex(X) ->
           ).
 
 -spec array(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
+array([],   Nexts, Buf, Opt) ->
+    next(Nexts, <<Buf/binary, $[, $]>>, Opt);
 array(List, Nexts, Buf, Opt) ->
     array_values(List, Nexts, pp_newline(<<Buf/binary, $[>>, Nexts, 1, Opt), Opt).
 
@@ -311,6 +313,8 @@ array_values([],       Nexts, Buf, Opt) -> next(Nexts, <<(pp_newline(Buf, Nexts,
 array_values([X | Xs], Nexts, Buf, Opt) -> value(X, [{array_values, Xs} | Nexts], Buf, Opt).
 
 -spec object(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
+object([],      Nexts, Buf, Opt) ->
+    next(Nexts, <<Buf/binary, ${, $}>>, Opt);
 object(Members, Nexts, Buf, ?OPT{canonical_form = true}=Opt) ->
   object_members(lists:sort(Members), Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt);
 object(Members, Nexts, Buf, Opt) ->
