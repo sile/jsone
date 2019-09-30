@@ -2,12 +2,10 @@ language: erlang
 
 os: linux
 otp_release:
+  - 22.0
   - 21.0
   - 20.0
   - 19.3
-  - 18.3
-  - 17.5
-  - R16B03-1
 
 install:
   - sudo pip install codecov

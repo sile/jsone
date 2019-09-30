@@ -132,8 +132,8 @@ Usage Example
 <<"null">>
 
 %% Pretty Print
-> Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, false]}, null].
-> io:format("~s\n", [jsone:encode(Data, [{indent, 1}, {space, 2}])]).
+> Data = [true, #{<<"1">> => 2, <<"array">> => [[[[1]]], #{<<"ab">> => <<"cd">>}, [], #{}, false]}, null].
+> io:format("~s\n", [jsone:encode(Data, [{indent, 2}, {space, 1}])]).
 [
   true,
   {
@@ -149,6 +149,8 @@ Usage Example
       {
         "ab": "cd"
       },
+      [],
+      {},
       false
     ]
   },

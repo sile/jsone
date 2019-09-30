@@ -266,22 +266,28 @@ encode_test_() ->
      %% Pretty Print
      {"space",
       fun () ->
+              ?assertEqual({ok, <<"[]">>}, jsone_encode:encode([], [{space, 1}])),
               ?assertEqual({ok, <<"[1, 2, 3]">>}, jsone_encode:encode([1,2,3], [{space, 1}])),
               ?assertEqual({ok, <<"[1,  2,  3]">>}, jsone_encode:encode([1,2,3], [{space, 2}])),
+              ?assertEqual({ok, <<"{}">>}, jsone_encode:encode(?OBJ0, [{space, 1}])),
               ?assertEqual({ok, <<"{\"a\": 1, \"b\": 2}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{space, 1}])),
               ?assertEqual({ok, <<"{\"a\":  1,  \"b\":  2}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{space, 2}]))
       end},
      {"indent",
       fun () ->
+              ?assertEqual({ok, <<"[]">>}, jsone_encode:encode([], [{indent, 1}])),
               ?assertEqual({ok, <<"[\n 1,\n 2,\n 3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 1}])),
               ?assertEqual({ok, <<"[\n  1,\n  2,\n  3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 2}])),
+              ?assertEqual({ok, <<"{}">>}, jsone_encode:encode(?OBJ0, [{indent, 1}])),
               ?assertEqual({ok, <<"{\n \"a\":1,\n \"b\":2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 1}])),
               ?assertEqual({ok, <<"{\n  \"a\":1,\n  \"b\":2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 2}]))
       end},
      {"indent+space",
       fun () ->
+              ?assertEqual({ok, <<"[]">>}, jsone_encode:encode([], [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"[\n 1,\n 2,\n 3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"[\n  1,\n  2,\n  3\n]">>}, jsone_encode:encode([1,2,3], [{indent, 2}, {space, 2}])),
+              ?assertEqual({ok, <<"{}">>}, jsone_encode:encode(?OBJ0, [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"{\n \"a\": 1,\n \"b\": 2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"{\n  \"a\":  1,\n  \"b\":  2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 2}, {space, 2}]))
       end},
@@ -289,11 +295,11 @@ encode_test_() ->
      %% Others
      {"compound data",
       fun () ->
-              Input    = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, false]}]}, null],
-              Expected = <<"[true,{\"1\":2,\"array\":[[[[1]]],{\"ab\":\"cd\"},false]},null]">>,
+              Input    = [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, [], ?OBJ0, false]}]}, null],
+              Expected = <<"[true,{\"1\":2,\"array\":[[[[1]]],{\"ab\":\"cd\"},[],{},false]},null]">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
 
-              PpExpected = <<"[\n true,\n {\n  \"1\": 2,\n  \"array\": [\n   [\n    [\n     [\n      1\n     ]\n    ]\n   ],\n   {\n    \"ab\": \"cd\"\n   },\n   false\n  ]\n },\n null\n]">>,
+              PpExpected = <<"[\n true,\n {\n  \"1\": 2,\n  \"array\": [\n   [\n    [\n     [\n      1\n     ]\n    ]\n   ],\n   {\n    \"ab\": \"cd\"\n   },\n   [],\n   {},\n   false\n  ]\n },\n null\n]">>,
               ?assertEqual({ok, PpExpected}, jsone_encode:encode(Input, [{indent, 1}, {space, 1}]))
       end},
      {"invalid value",
