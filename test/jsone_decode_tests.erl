@@ -16,6 +16,7 @@
 -define(OBJ1(K, V), #{K => V}).
 -define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
 -define(OBJ2_DUP_KEY(K1, V1, _K2, _V2), #{K1 => V1}). % the first (leftmost) value is used
+-define(OBJ2_DUP_KEY_LAST(_K1, _V1, K2, V2), #{K2 => V2}). % the last value is used
 -endif.
 
 decode_test_() ->
@@ -231,6 +232,14 @@ decode_test_() ->
               Input    = <<"{\"1\":\"first\",\"1\":\"second\"}">>,
               Expected = ?OBJ2_DUP_KEY(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input, [{object_format, ?MAP_OBJECT_TYPE}]))
+      end},
+     {"duplicated members last: map",
+      fun () ->
+              Input    = <<"{\"1\":\"first\",\"1\":\"second\"}">>,
+              Expected = ?OBJ2_DUP_KEY_LAST(<<"1">>, <<"first">>, <<"1">>, <<"second">>),
+              ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input,
+                                                                       [{object_format, ?MAP_OBJECT_TYPE},
+                                                                        {duplicate_map_keys, last}]))
       end},
      {"object: trailing comma is disallowed",
       fun () ->
