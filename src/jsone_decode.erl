@@ -69,7 +69,8 @@
           allow_ctrl_chars=false :: boolean(),
           reject_invalid_utf8=false :: boolean(),
           keys=binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom',
-          undefined_as_null=false :: boolean()
+          undefined_as_null=false :: boolean(),
+          duplicate_map_keys=first :: first | last
         }).
 -define(OPT, #decode_opt_v2).
 -type opt() :: #decode_opt_v2{}.
@@ -292,6 +293,8 @@ number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf,
 
 -spec make_object(jsone:json_object_members(), opt()) -> jsone:json_object().
 make_object(Members, ?OPT{object_format = tuple}) -> {lists:reverse(Members)};
+make_object(Members, ?OPT{object_format = map, duplicate_map_keys = last}) ->
+    ?LIST_TO_MAP(lists:reverse(Members));
 make_object(Members, ?OPT{object_format = map})   -> ?LIST_TO_MAP(Members);
 make_object([],      _)                           -> [{}];
 make_object(Members, _)                           -> lists:reverse(Members).
@@ -313,5 +316,8 @@ parse_option([{keys, K}|T], Opt)
     parse_option(T, Opt?OPT{keys = K});
 parse_option([undefined_as_null|T], Opt) ->
     parse_option(T, Opt?OPT{undefined_as_null = true});
+parse_option([{duplicate_map_keys, V} | T], Opt)
+  when V =:= first; V =:= last ->
+    parse_option(T, Opt?OPT{duplicate_map_keys=V});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).

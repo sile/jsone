@@ -234,6 +234,7 @@
                        | {allow_ctrl_chars, boolean()}
                        | reject_invalid_utf8
                        | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}
+                       | {duplicate_map_keys, first | last}
                        | common_option().
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
@@ -260,7 +261,20 @@
 %% existing atom raises `badarg' exception. <br />
 %% - `attempt_atom': Returns existing atom as `existing_atom' but returns a
 %% binary string if fails find one.
-
+%%
+%% `duplicate_map_keys': <br />
+%% https://www.ietf.org/rfc/rfc4627.txt says that keys SHOULD be
+%% unique, but they don't have to be. Most JSON parsers will either
+%% give you the value of the first, or last duplicate property
+%% encountered. When `object_format' is `tuple' or `proplist' all
+%% duplicates are returned. When `object_format' is `map' by default
+%% the first instance of a duplicate is returned. Setting
+%% `duplicate_map_keys' to `last' will change this behaviour to return
+%% the last such instance.
+%% - If the value is `first' then the first duplicate key/value is returned.  <br />
+%% - If the value is `last' then the last duplicate key/value is returned.
+%% - default: `first'<br />
+%%
 
 -type stack_item() :: {Module :: module(),
                        Function :: atom(),
