@@ -324,6 +324,19 @@ encode_test_() ->
           ?assertEqual({ok, <<"[\"fc30:0:0:80::10\"]">>}, jsone_encode:encode([{64560, 0, 0, 128, 0, 0, 0, 16}])),
           ?assertEqual({ok, <<"[\"127.0.0.1\",\"127.0.0.2\"]">>}, jsone_encode:encode([{127,0,0,1}, {127,0,0,2}])),
           ?assertEqual({ok, <<"\"192.168.0.0/16\"">>}, jsone_encode:encode({{192,168,0,0},16})),
-          ?assertEqual({ok, <<"\"fc30:0:0:80::/48\"">>}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 0},48}))
+          ?assertEqual({ok, <<"\"fc30:0:0:80::/48\"">>}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 0},48})),
+          ?assertEqual({ok, <<"\"192.168.0.0/32\"">>}, jsone_encode:encode({{192,168,0,0},32})),
+          ?assertEqual({ok, <<"\"fc30:0:0:80::/128\"">>}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 0},128})),
+          ?assertEqual({ok, <<"\"192.168.0.0/0\"">>}, jsone_encode:encode({{192,168,0,0},0})),
+          ?assertEqual({ok, <<"\"fc30:0:0:80::/0\"">>}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 0},0})),
+
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({127,0,0,-1})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({74560, 0, 0, 128, 0, 0, 0, 16})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({{127,0,0,-1},10})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({{74560, 0, 0, 128, 0, 0, 0, 16},48})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({{127,0,0,1},-1})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 16},-48})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({{127,0,0,1},33})),
+          ?assertMatch({error, {badarg, _}}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 16},129}))
       end}
     ].
