@@ -315,5 +315,15 @@ encode_test_() ->
           Obj1 = ?OBJECT_FROM_LIST( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(1000, 0, -1)] ),
           Obj2 = ?OBJECT_FROM_LIST( [{<<"key", (integer_to_binary(I))/binary >>, I} || I <- lists:seq(0, 1000, 1)] ),
           ?assertEqual(jsone_encode:encode(Obj1, [canonical_form]), jsone_encode:encode(Obj2, [canonical_form]))
+      end},
+     {"inet_form",
+      fun () ->
+          ?assertEqual({ok, <<"\"127.0.0.1\"">>}, jsone_encode:encode({127,0,0,1})),
+          ?assertEqual({ok, <<"\"fc30:0:0:80::10\"">>}, jsone_encode:encode({64560, 0, 0, 128, 0, 0, 0, 16})),
+          ?assertEqual({ok, <<"[\"127.0.0.1\"]">>}, jsone_encode:encode([{127,0,0,1}])),
+          ?assertEqual({ok, <<"[\"fc30:0:0:80::10\"]">>}, jsone_encode:encode([{64560, 0, 0, 128, 0, 0, 0, 16}])),
+          ?assertEqual({ok, <<"[\"127.0.0.1\",\"127.0.0.2\"]">>}, jsone_encode:encode([{127,0,0,1}, {127,0,0,2}])),
+          ?assertEqual({ok, <<"\"192.168.0.0/16\"">>}, jsone_encode:encode({{192,168,0,0},16})),
+          ?assertEqual({ok, <<"\"fc30:0:0:80::/48\"">>}, jsone_encode:encode({{64560, 0, 0, 128, 0, 0, 0, 0},48}))
       end}
     ].

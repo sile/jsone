@@ -47,6 +47,22 @@
                                     ?IS_UINT(H) andalso ?IS_UINT(Mi) andalso
                                     ?IS_PNUM(S))).
 
+-define(IS_IP4_INT(X), (?IS_UINT(X) andalso X =< 255)).
+-define(IS_IP6_INT(X), (?IS_UINT(X) andalso X =< 65536)).
+
+-define(IS_IP4_CIDR_LEN(X), (?IS_UINT(X) andalso X =< 32)).
+-define(IS_IP6_CIDR_LEN(X), (?IS_UINT(X) andalso X =< 128)).
+
+
+-define(IS_IP4(A,B,C,D), (?IS_IP4_INT(A) andalso ?IS_IP4_INT(B) andalso ?IS_IP4_INT(C) andalso ?IS_IP4_INT(D))).
+-define(IS_IP6(A,B,C,D,E,F,G,H), (?IS_IP6_INT(A) andalso ?IS_IP6_INT(B) andalso ?IS_IP6_INT(C) andalso ?IS_IP6_INT(D)
+                                         andalso ?IS_IP6_INT(E) andalso ?IS_IP6_INT(F) andalso ?IS_IP6_INT(G)
+                                         andalso ?IS_IP6_INT(H))).
+
+-define(IS_IP4_CIDR(A,B,C,D,L), (?IS_IP4(A,B,C,D) andalso ?IS_IP4_CIDR_LEN(L))).
+-define(IS_IP6_CIDR(A,B,C,D,E,F,G,H,L), (?IS_IP6(A,B,C,D,E,F,G,H) andalso ?IS_IP6_CIDR_LEN(L))).
+
+
 -ifdef('NO_MAP_TYPE').
 -define(IS_MAP(X), is_tuple(X)).
 -define(ENCODE_MAP(Value, Nexts, Buf, Opt), ?ERROR(value, [Value, Nexts, Buf, Opt])).
@@ -136,6 +152,10 @@ value(Value, Nexts, Buf, Opt) when is_integer(Value) -> next(Nexts, <<Buf/binary
 value(Value, Nexts, Buf, Opt) when is_float(Value)   -> next(Nexts, <<Buf/binary, (float_to_binary(Value, Opt?OPT.float_format))/binary>>, Opt);
 value(Value, Nexts, Buf, Opt) when ?IS_STR(Value)    -> string(Value, Nexts, Buf, Opt);
 value({{_,_,_},{_,_,_}} = Value, Nexts, Buf, Opt)    -> datetime(Value, Nexts, Buf, Opt);
+value({_,_,_,_} = Value, Nexts, Buf, Opt)            -> ip4(Value, Nexts, Buf, Opt);
+value({{_,_,_,_},_} = Value, Nexts, Buf, Opt)        -> ip4cidr(Value, Nexts, Buf, Opt);
+value({_,_,_,_,_,_,_,_} = Value, Nexts, Buf, Opt)    -> ip6(Value, Nexts, Buf, Opt);
+value({{_,_,_,_,_,_,_,_},_} = Value, Nexts, Buf, Opt)-> ip6cidr(Value, Nexts, Buf, Opt);
 value({Value}, Nexts, Buf, Opt)                      -> object(Value, Nexts, Buf, Opt);
 value([{}], Nexts, Buf, Opt)                         -> object([], Nexts, Buf, Opt);
 value([{{_,_,_},{_,_,_}}|_] = Value, Nexts, Buf, Opt)-> array(Value, Nexts, Buf, Opt);
@@ -160,6 +180,39 @@ datetime({{Y,M,D}, {H,Mi,S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y,M,D,H,Mi,S) -
     next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $">>, Opt);
 datetime(Datetime, Nexts, Buf, Opt) ->
     ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
+
+-spec ip4(inet:ip4_address(), [next()], binary(), opt()) -> encode_result().
+ip4({A,B,C,D} = Ip4, Nexts, Buf, Opt) when ?IS_IP4(A,B,C,D) ->
+  Str = inet:ntoa(Ip4),
+  next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $">>, Opt);
+
+ip4(Ip4, Nexts, Buf, Opt) ->
+    ?ERROR(ip4, [Ip4, Nexts, Buf, Opt]).
+
+-spec ip6(inet:ip6_address(), [next()], binary(), opt()) -> encode_result().
+ip6({A,B,C,D,E,F,G,H} = Ip6, Nexts, Buf, Opt) when ?IS_IP6(A,B,C,D,E,F,G,H) ->
+  Str = inet:ntoa(Ip6),
+  next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $">>, Opt);
+
+ip6(Ip4, Nexts, Buf, Opt) ->
+    ?ERROR(ip6, [Ip4, Nexts, Buf, Opt]).
+
+
+-spec ip4cidr({inet:ip4_address(), integer()}, [next()], binary(), opt()) -> encode_result().
+ip4cidr({{A,B,C,D} = Ip4, L}, Nexts, Buf, Opt) when ?IS_IP4_CIDR(A,B,C,D,L) ->
+  Str = inet:ntoa(Ip4),
+  next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $/, (integer_to_binary(L))/binary, $">>, Opt);
+
+ip4cidr(Ip4Cidr, Nexts, Buf, Opt) ->
+    ?ERROR(ip4cidr, [Ip4Cidr, Nexts, Buf, Opt]).
+
+-spec ip6cidr({inet:ip6_address(),integer()}, [next()], binary(), opt()) -> encode_result().
+ip6cidr({{A,B,C,D,E,F,G,H} = Ip6,L}, Nexts, Buf, Opt) when ?IS_IP6_CIDR(A,B,C,D,E,F,G,H,L) ->
+  Str = inet:ntoa(Ip6),
+  next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $/, (integer_to_binary(L))/binary, $">>, Opt);
+
+ip6cidr(Ip6Cidr, Nexts, Buf, Opt) ->
+    ?ERROR(ip6cidr, [Ip6Cidr, Nexts, Buf, Opt]).
 
 -ifndef(NO_DIALYZER_SPEC).
 -dialyzer({no_improper_lists, [format_year/1]}).
