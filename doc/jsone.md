@@ -119,7 +119,7 @@ encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_f
 `canonical_form`: <br />
 - produce a canonical form of a JSON document <br />
 
-`{float_format, Optoins}`:
+`{float_format, Options}`:
 - Encodes a `float()` value in the format which specified by `Options` <br />
 - default: `[{scientific, 20}]` <br />
 
@@ -159,7 +159,7 @@ float_format_option() = {scientific, Decimals::0..249} | {decimals, Decimals::0.
 - The encoded string will contain at most `Decimals` number of digits past the decimal point. <br />
 - If `compact` is provided the trailing zeros at the end of the string are truncated. <br />
 
-For more details, see [erlang:flaot_to_list/2](http://erlang.org/doc/man/erlang.md#float_to_list-2).
+For more details, see [erlang:float_to_list/2](http://erlang.org/doc/man/erlang.html#float_to_list-2).
 
 ```
   > jsone:encode(1.23).
