@@ -72,7 +72,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | <a href="#type-common_option">common_option()</a>
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | {duplicate_map_keys, first | last} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `object_format`: <br />
@@ -100,6 +100,19 @@ regarded as UTF-8 is not a valid atom. <br />
 existing atom raises `badarg` exception. <br />
 - `attempt_atom`: Returns existing atom as `existing_atom` but returns a
 binary string if fails find one.
+
+`duplicate_map_keys`: <br />
+https://www.ietf.org/rfc/rfc4627.txt says that keys SHOULD be
+unique, but they don't have to be. Most JSON parsers will either
+give you the value of the first, or last duplicate property
+encountered. When `object_format` is `tuple` or `proplist` all
+duplicates are returned. When `object_format` is `map` by default
+the first instance of a duplicate is returned. Setting
+`duplicate_map_keys` to `last` will change this behaviour to return
+the last such instance.
+- If the value is `first` then the first duplicate key/value is returned.<br />
+- If the value is `last` then the last duplicate key/value is returned.
+- default: `first`<br />
 
 
 
@@ -220,7 +233,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 <pre><code>
-json_object_format_map() = #{}
+json_object_format_map() = map()
 </code></pre>
 
 
