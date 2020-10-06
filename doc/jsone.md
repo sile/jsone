@@ -72,7 +72,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | <a href="#type-common_option">common_option()</a>
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | {duplicate_map_keys, first | last} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `object_format`: <br />
@@ -101,6 +101,19 @@ existing atom raises `badarg` exception. <br />
 - `attempt_atom`: Returns existing atom as `existing_atom` but returns a
 binary string if fails find one.
 
+`duplicate_map_keys`: <br />
+https://www.ietf.org/rfc/rfc4627.txt says that keys SHOULD be
+unique, but they don't have to be. Most JSON parsers will either
+give you the value of the first, or last duplicate property
+encountered. When `object_format` is `tuple` or `proplist` all
+duplicates are returned. When `object_format` is `map` by default
+the first instance of a duplicate is returned. Setting
+`duplicate_map_keys` to `last` will change this behaviour to return
+the last such instance.
+- If the value is `first` then the first duplicate key/value is returned.<br />
+- If the value is `last` then the last duplicate key/value is returned.
+- default: `first`<br />
+
 
 
 ### <a name="type-encode_option">encode_option()</a> ###
@@ -119,7 +132,7 @@ encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_f
 `canonical_form`: <br />
 - produce a canonical form of a JSON document <br />
 
-`{float_format, Optoins}`:
+`{float_format, Options}`:
 - Encodes a `float()` value in the format which specified by `Options` <br />
 - default: `[{scientific, 20}]` <br />
 
@@ -159,7 +172,7 @@ float_format_option() = {scientific, Decimals::0..249} | {decimals, Decimals::0.
 - The encoded string will contain at most `Decimals` number of digits past the decimal point. <br />
 - If `compact` is provided the trailing zeros at the end of the string are truncated. <br />
 
-For more details, see [erlang:flaot_to_list/2](http://erlang.org/doc/man/erlang.md#float_to_list-2).
+For more details, see [erlang:float_to_list/2](http://erlang.org/doc/man/erlang.html#float_to_list-2).
 
 ```
   > jsone:encode(1.23).
@@ -220,7 +233,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 <pre><code>
-json_object_format_map() = #{}
+json_object_format_map() = map()
 </code></pre>
 
 
