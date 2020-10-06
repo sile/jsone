@@ -292,6 +292,17 @@ encode_test_() ->
               ?assertEqual({ok, <<"{\n  \"a\":  1,\n  \"b\":  2\n}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 2}, {space, 2}]))
       end},
 
+     %% `map_unknown_value` option
+     {"`map_unknown_value` option",
+      fun () ->
+              Input = [{1,2,3,4}],
+              MapFun = fun ({_,_,_,_} = Ip4) -> {ok, list_to_binary(inet:ntoa(Ip4))};
+                           (_)               -> error
+                       end,
+              Expected = <<"[\"1.2.3.4\"]">>,
+              ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
+      end},
+
      %% Others
      {"compound data",
       fun () ->

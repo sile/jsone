@@ -70,7 +70,8 @@
           object_key_type = string :: string | scalar | value,
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer(),
-          undefined_as_null = false :: boolean()
+          undefined_as_null = false :: boolean(),
+          map_unknown_value = undefined :: undefined | fun ((term()) -> {ok, jsone:json_value()} | error)
          }).
 -define(OPT, #encode_opt_v2).
 -type opt() :: #encode_opt_v2{}.
@@ -142,7 +143,15 @@ value([{{_,_,_},{_,_,_}}|_] = Value, Nexts, Buf, Opt)-> array(Value, Nexts, Buf,
 value([{_, _}|_] = Value, Nexts, Buf, Opt)           -> object(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when ?IS_MAP(Value)    -> ?ENCODE_MAP(Value, Nexts, Buf, Opt);
 value(Value, Nexts, Buf, Opt) when is_list(Value)    -> array(Value, Nexts, Buf, Opt);
-value(Value, Nexts, Buf, Opt)                        -> ?ERROR(value, [Value, Nexts, Buf, Opt]).
+value(Value, Nexts, Buf, Opt)                        ->
+    case Opt?OPT.map_unknown_value of
+        undefined -> ?ERROR(value, [Value, Nexts, Buf, Opt]);
+        Fun       ->
+            case Fun(Value) of
+                error          -> ?ERROR(value, [Value, Nexts, Buf, Opt]);
+                {ok, NewValue} -> value(NewValue, Nexts, Buf, Opt)
+            end
+    end.
 
 -spec string(jsone:json_string(), [next()], binary(), opt()) -> encode_result().
 string(<<Str/binary>>, Nexts, Buf, Opt) ->
@@ -385,6 +394,8 @@ parse_option([{datetime_format, Fmt}|T], Opt) ->
     end;
 parse_option([undefined_as_null|T],Opt) ->
     parse_option(T, Opt?OPT{undefined_as_null = true});
+parse_option([{map_unknown_value, F}|T], Opt) when is_function(F, 1) ->
+    parse_option(T, Opt?OPT{map_unknown_value = F});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).
 
