@@ -120,7 +120,7 @@ the last such instance.
 
 
 <pre><code>
-encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | <a href="#type-common_option">common_option()</a>
+encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | {map_unknown_value, fun((term()) -&gt; {ok, <a href="#type-json_value">json_value()</a>} | error)} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `native_utf8`: <br />
@@ -155,6 +155,9 @@ encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_f
 `{indent, N}`: <br />
 - Inserts a newline and `N` spaces for each level of indentation <br />
 - default: `0` <br />
+
+`{map_unknown_value, Fun}`: <br />
+- If specified, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun`.
 
 
 
@@ -233,7 +236,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 <pre><code>
-json_object_format_map() = map()
+json_object_format_map() = #{}
 </code></pre>
 
 
@@ -525,4 +528,3 @@ Encodes an erlang term into json text (a utf8 encoded binary)
                                 [hoge,[{array_values,[2]}],<<"[1,">>],
                                 [{line,86}]}]}}
 ```
-
