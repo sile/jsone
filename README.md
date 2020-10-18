@@ -170,6 +170,16 @@ ok
 
 > jsone:encode(1.23, [{float_format, [{decimals, 4}, compact]}]). % compact decimal notation
 <<"1.23">>
+
+%% If you want to safely cast object keys to atoms, the `attempt_atom' option will help.
+> jsone:decode(<<"{\"hello\": \"world\"}">>, [{keys, attempt_atom}]).
+#{<<"hello">> => <<"world">>}  % There is no atom named "hello", so the key is decoded as binary.
+
+> hello.  % Create "hello" atom.
+hello
+
+> jsone:decode(<<"{\"hello\": \"world\"}">>, [{keys, attempt_atom}]).
+#{hello => <<"world">>} % Now, the key is decoded as atom.
 ```
 
 
