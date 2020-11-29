@@ -71,6 +71,7 @@
           space = 0 :: non_neg_integer(),
           indent = 0 :: non_neg_integer(),
           undefined_as_null = false :: boolean(),
+          skip_undefined = false :: boolean(),
           map_unknown_value = undefined :: undefined | fun ((term()) -> {ok, jsone:json_value()} | error)
          }).
 -define(OPT, #encode_opt_v2).
@@ -330,9 +331,14 @@ object(Members, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
-object_members([],                  Nexts, Buf, Opt) -> next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
-object_members([{Key, Value} | Xs], Nexts, Buf, Opt) -> object_key(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
-object_members(Arg, Nexts, Buf, Opt)                 -> ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
+object_members([], Nexts, Buf, Opt) ->
+    next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
+object_members([{_, undefined} | Xs], Nexts, Buf, ?OPT{skip_undefined=true}=Opt) ->
+    object_members(Xs, Nexts, Buf, Opt);
+object_members([{Key, Value} | Xs], Nexts, Buf, Opt) ->
+    object_key(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
+object_members(Arg, Nexts, Buf, Opt) ->
+    ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
 
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_value(Value, Members, Nexts, Buf, Opt) ->
@@ -394,6 +400,8 @@ parse_option([{datetime_format, Fmt}|T], Opt) ->
     end;
 parse_option([undefined_as_null|T],Opt) ->
     parse_option(T, Opt?OPT{undefined_as_null = true});
+parse_option([skip_undefined|T],Opt) ->
+    parse_option(T, Opt?OPT{skip_undefined = true});
 parse_option([{map_unknown_value, F}|T], Opt) when is_function(F, 1) ->
     parse_option(T, Opt?OPT{map_unknown_value = F});
 parse_option(List, Opt) ->
