@@ -197,6 +197,7 @@
                        | {space, non_neg_integer()}
                        | {indent, non_neg_integer()}
                        | {map_unknown_value, fun ((term()) -> {ok, json_value()} | error)}
+                       | skip_undefined
                        | common_option().
 %% `native_utf8': <br />
 %% - Encodes non ASCII UTF-8 characters as a human-readable(non-escaped) string <br />
@@ -230,6 +231,9 @@
 %% `{indent, N}': <br />
 %% - Inserts a newline and `N' spaces for each level of indentation <br />
 %% - default: `0' <br />
+%%
+%% `skip_undefined': <br />
+%% - If speficied, each entry having `undefined' value in a object isn't included in the result JSON <br />
 %%
 %% `{map_unknown_value, Fun}`: <br />
 %% - If specified, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun'.

@@ -262,6 +262,12 @@ encode_test_() ->
               ?assertEqual({ok,<<"null">>},          jsone_encode:encode(undefined,[undefined_as_null])), % OK
               ?assertEqual({ok,<<"\"undefined\"">>}, jsone_encode:encode(undefined,[])) % OK
       end},
+     {"skip_undefined option",
+      fun() ->
+              Object = #{<<"1">> => undefined, <<"2">> => 3},
+              ?assertEqual({ok,<<"{\"1\":null,\"2\":3}">>}, jsone_encode:encode(Object,[undefined_as_null])),
+              ?assertEqual({ok,<<"{\"2\":3}">>},            jsone_encode:encode(Object,[skip_undefined]))
+      end},
 
      %% Pretty Print
      {"space",
