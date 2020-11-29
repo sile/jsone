@@ -1,6 +1,6 @@
 {application,jsone,
              [{description,"Erlang JSON Library"},
-              {vsn,"1.5.3"},
+              {vsn,"1.5.4"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {licenses,["MIT"]},
