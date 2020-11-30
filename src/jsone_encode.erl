@@ -323,18 +323,22 @@ array_values([],       Nexts, Buf, Opt) -> next(Nexts, <<(pp_newline(Buf, Nexts,
 array_values([X | Xs], Nexts, Buf, Opt) -> value(X, [{array_values, Xs} | Nexts], Buf, Opt).
 
 -spec object(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
-object([],      Nexts, Buf, Opt) ->
-    next(Nexts, <<Buf/binary, ${, $}>>, Opt);
-object(Members, Nexts, Buf, ?OPT{canonical_form = true}=Opt) ->
-  object_members(lists:sort(Members), Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt);
+object(Members, Nexts, Buf, ?OPT{skip_undefined = true}=Opt) ->
+    object1(lists:filter(fun ({_, V}) -> V =/= undefined end, Members), Nexts, Buf, Opt);
 object(Members, Nexts, Buf, Opt) ->
+    object1(Members, Nexts, Buf, Opt).
+
+-spec object1(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
+object1([],      Nexts, Buf, Opt) ->
+    next(Nexts, <<Buf/binary, ${, $}>>, Opt);
+object1(Members, Nexts, Buf, ?OPT{canonical_form = true}=Opt) ->
+    object_members(lists:sort(Members), Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt);
+object1(Members, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_members([], Nexts, Buf, Opt) ->
     next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
-object_members([{_, undefined} | Xs], Nexts, Buf, ?OPT{skip_undefined=true}=Opt) ->
-    object_members(Xs, Nexts, Buf, Opt);
 object_members([{Key, Value} | Xs], Nexts, Buf, Opt) ->
     object_key(Key, [{object_value, Value, Xs} | Nexts], Buf, Opt);
 object_members(Arg, Nexts, Buf, Opt) ->
