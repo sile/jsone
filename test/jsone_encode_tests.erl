@@ -264,9 +264,9 @@ encode_test_() ->
       end},
      {"skip_undefined option",
       fun() ->
-              Object = #{<<"1">> => undefined, <<"2">> => 3},
-              ?assertEqual({ok,<<"{\"1\":null,\"2\":3}">>}, jsone_encode:encode(Object,[undefined_as_null])),
-              ?assertEqual({ok,<<"{\"2\":3}">>},            jsone_encode:encode(Object,[skip_undefined]))
+              Object = #{<<"1">> => undefined, <<"2">> => 3, <<"3">> => undefined},
+              ?assertEqual({ok,<<"{\"1\":null,\"2\":3,\"3\":null}">>}, jsone_encode:encode(Object,[undefined_as_null])),
+              ?assertEqual({ok,<<"{\"2\":3}">>},                       jsone_encode:encode(Object,[skip_undefined]))
       end},
 
      %% Pretty Print
