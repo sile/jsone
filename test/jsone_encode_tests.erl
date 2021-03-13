@@ -308,6 +308,14 @@ encode_test_() ->
               Expected = <<"[\"1.2.3.4\"]">>,
               ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
       end},
+     {"`map_unknown_value` option with singleton tuple",
+      fun () ->
+              Input = [{foo}],
+              MapFun = fun (Value) -> {ok, unicode:characters_to_binary(io_lib:format("~p~n", [Value]))}
+                       end,
+              Expected = <<"[\"{foo}\\n\"]">>,
+              ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
+      end},
 
      %% Others
      {"compound data",
