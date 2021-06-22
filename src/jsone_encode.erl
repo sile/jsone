@@ -156,7 +156,9 @@ value(Value, Nexts, Buf, Opt)                        ->
 
 -spec string(jsone:json_string(), [next()], binary(), opt()) -> encode_result().
 string(<<Str/binary>>, Nexts, Buf, Opt) ->
-    escape_string(Str, Nexts, <<Buf/binary, $">>, Opt);
+    Len = unescaped_string_length(Str, Opt),
+    <<Unescaped:Len/binary, Rest/binary>> = Str,
+    escape_string(Rest, Nexts, <<Buf/binary, $", Unescaped/binary>>, Opt);
 string(Str, Nexts, Buf, Opt) ->
     string(atom_to_binary(Str, utf8), Nexts, Buf, Opt).
 
@@ -259,19 +261,88 @@ escape_string(<<$\/, Str/binary>>,      Nexts, Buf, Opt) when not Opt?OPT.native
 escape_string(<<0:1, C:7, Str/binary>>, Nexts, Buf, Opt) ->
     case C < 16#20 of
         true  -> escape_string(Str, Nexts, <<Buf/binary, "\\u00", ?H8(C)>>, Opt);
-        false -> escape_string(Str, Nexts, <<Buf/binary, C>>, Opt)
+        false ->
+            Len = unescaped_string_length(Str, Opt),
+            <<Unescaped:Len/binary, Rest/binary>> = Str,
+            escape_string(Rest, Nexts, <<Buf/binary, C, Unescaped/binary>>, Opt)
+
     end;
 escape_string(<<Ch/utf8, Str/binary>>,  Nexts, Buf, Opt = ?OPT{native_utf8 = false}) ->
-    NewBuf = if
-                 Ch =< 16#FFFF -> <<Buf/binary, $\\, $u, ?H16(Ch)>>;
-                 true ->
-                     <<H1, H2, L1, L2>> = <<Ch/utf16>>,
-                     <<Buf/binary, $\\, $u, ?H8(H1), ?H8(H2), $\\, $u, ?H8(L1), ?H8(L2)>>
-             end,
-    escape_string(Str, Nexts, NewBuf, Opt);
+     if
+         Ch =< 16#FFFF ->
+             escape_string(Str, Nexts,<<Buf/binary, $\\, $u, ?H16(Ch)>>, Opt);
+         true ->
+             <<H1, H2, L1, L2>> = <<Ch/utf16>>,
+             escape_string(Str, Nexts, <<Buf/binary, $\\, $u, ?H8(H1), ?H8(H2), $\\, $u, ?H8(L1), ?H8(L2)>>, Opt)
+     end;
 ?COPY_UTF8;
 escape_string(Str, Nexts, Buf, Opt) ->
     ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
+
+-define(UNESCAPED_CHARS_WITH_SLASH,
+        {false,false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,true,true,false,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,false,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false}).
+
+-define(UNESCAPED_CHARS_WITHOUT_SLASH,
+        {false,false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,true,true,false,
+         true,true,true,true,true,true,true,true,true,true,true,true,false,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,false,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,true,true,true,true,true,true,
+         true,true,true,true,true,true,true,true,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false,false,false,false,false,false,false,false,false,
+         false,false,false}).
+
+
+-compile({inline, [unescaped_string_length/2]}).
+-spec unescaped_string_length(binary(), opt()) -> non_neg_integer().
+unescaped_string_length(Str, ?OPT{native_forward_slash = true}) ->
+    unescaped_string_length(Str, 0, ?UNESCAPED_CHARS_WITH_SLASH);
+unescaped_string_length(Str, _) ->
+    unescaped_string_length(Str, 0, ?UNESCAPED_CHARS_WITHOUT_SLASH).
+
+-spec unescaped_string_length(binary(), non_neg_integer(), tuple()) -> non_neg_integer().
+unescaped_string_length(<<C, Str/binary>>, N, Table) ->
+    case element(C + 1, Table) of
+        true  -> unescaped_string_length(Str, N + 1, Table);
+        false -> N
+    end;
+unescaped_string_length(_, N, _) ->
+    N.
 
 -compile({inline, [hex/1]}).
 -spec hex(byte()) -> 0..16#FFFF.
