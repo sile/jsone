@@ -17,7 +17,7 @@ Features
 - Pure Erlang
 - Highly Efficient
   - Maybe one of the fastest JSON library (except those which are implemented in NIF)
-      - See [Benchmark](#benchmark)
+      - See [Benchmark](benchmark/README.md)
   - Decode function is written in continuation-passing style(CPS)
       - CPS facilitates application of 'creation of sub binary delayed' optimization
       - See also [Erlang Efficiency Guide](http://www.erlang.org/doc/efficiency_guide/binaryhandling.html)
@@ -228,55 +228,49 @@ Benchmark
 
 The results of [poison](https://github.com/devinus/poison) benchmarking.
 
-See the [BENCHMARK.md](BENCHMARK.md) file for more information.
+See the [benchmark/README.md](benchmark/README.md) file for more information.
 
-### EncoderBench Result
+### Encoding (Unit: IPS=inputs per second)
 
-__Non HiPE__:
+| Input data \ Library | Jason      | jiffy       | JSON*  | jsone      | JSX    | Poison | Tiny   |
+|----------------------|-----------:|------------:|-------:|-----------:|-------:|-------:|-------:|
+| [Blockchain]         |     2.77 K |  **4.55 K** | 0.45 K | 1.44 K (3) | 0.60 K | 1.30 K | 0.99 K |
+| [Giphy]              |     230.65 |  **487.67** |  47.73 | 114.57 (4) |  44.97 | 114.57 | 113.59 |
+| [GitHub]             |     880.03 | **1566.67** | 139.79 | 300.26 (5) |  99.68 | 424.75 | 455.07 |
+| [GovTrack]           |       6.57 |   **24.92** |   2.33 |   5.35 (5) |   2.65 |   7.06 |   7.86 |
+| [Issue 90]           |  **22.80** |       21.92 |   0.77 |  14.30 (3) |   5.33 |  12.60 |  12.95 |
+| [JSON Generateor]    |     200.40 |  **606.81** |  42.45 | 147.12 (4) |  68.73 | 187.95 | 123.93 |
+| [Pokedex]            |     209.51 |  **776.67** |  62.60 | 161.45 (4) |  69.87 | 190.93 | 125.16 |
+| [UTF-8 unescaped]    |     626.25 | **6644.53** |1167.89 | 582.41 (4) | 273.48 | 401.44 | 220.14 |
 
-|                  | jiffy        | jsone             | poison        | jazz          | jsx           |
-|:-----------------|-------------:|------------------:|--------------:|--------------:|--------------:|
-| maps             |   7.23 μs/op |   10.64 μs/op (2) |   13.58 μs/op |   19.30 μs/op |   29.28 μs/op |
-| lists            | 210.40 μs/op |  157.39 μs/op (3) |  109.30 μs/op |  201.82 μs/op |  357.25 μs/op |
-| strings*         |  98.80 μs/op |  595.63 μs/op (5) |  416.78 μs/op |  399.89 μs/op |  262.18 μs/op |
-| string escaping* | 144.01 μs/op |  732.44 μs/op (2) | 1318.82 μs/op | 1197.06 μs/op | 1324.04 μs/op |
-| large value**    | 408.03 μs/op | 1556.85 μs/op (3) | 1447.71 μs/op | 1824.05 μs/op | 2184.59 μs/op |
-| pretty print**   | 420.94 μs/op | 1686.55 μs/op (3) | 1534.74 μs/op | 2041.22 μs/op | 5533.04 μs/op |
+\* Only `JSON` didn't escape non-ASCII unicode characters on the encoding
 
+[Blockchain]: https://github.com/devinus/poison/blob/4.0.1/bench/data/blockchain.json
+[Giphy]: https://github.com/devinus/poison/blob/4.0.1/bench/data/giphy.json
+[GitHub]: https://github.com/devinus/poison/blob/4.0.1/bench/data/github.json
+[GovTrack]: https://github.com/devinus/poison/blob/4.0.1/bench/data/govtrack.json
+[Issue 90]: https://github.com/devinus/poison/blob/4.0.1/bench/data/issue-90.json
+[JSON Generateor]: https://github.com/devinus/poison/blob/4.0.1/bench/data/json-generator.json
+[JSON Generateor (Pretty)]: https://github.com/devinus/poison/blob/4.0.1/bench/data/json-generator-pretty.json
+[Pokedex]: https://github.com/devinus/poison/blob/4.0.1/bench/data/pokedex.json
+[UTF-8 escaped]: https://github.com/devinus/poison/blob/4.0.1/bench/data/utf-8-escaped.json
+[UTF-8 unescaped]: https://github.com/devinus/poison/blob/4.0.1/bench/data/utf-8-unescaped.json
 
-__HiPE__:
+### Decoding (Unit: IPS=inputs per second)
 
-|                  | jiffy        | jsone             | poison        | jazz          | jsx           |
-|:-----------------|-------------:|------------------:|--------------:|--------------:|--------------:|
-| maps             |   7.69 μs/op |    6.12 μs/op (1) |   12.32 μs/op |   22.90 μs/op |   27.03 μs/op |
-| lists            | 207.75 μs/op |   69.93 μs/op (1) |   79.04 μs/op |  229.95 μs/op |  278.01 μs/op |
-| strings*         |  96.67 μs/op |  321.69 μs/op (5) |  142.43 μs/op |  310.10 μs/op |  179.96 μs/op |
-| string escaping* | 146.85 μs/op |  317.10 μs/op (2) | 1277.54 μs/op | 1311.85 μs/op |  767.67 μs/op |
-| large value**    | 409.73 μs/op |  664.34 μs/op (2) |  806.24 μs/op | 1630.21 μs/op | 1777.62 μs/op |
-| pretty print**   | 419.55 μs/op |  724.28 μs/op (2) |  844.76 μs/op | 1888.71 μs/op | 4872.34 μs/op |
+| Input data \ Library       | Jason      | jiffy       | JSON   | jsone      | JSX    | Poison | Tiny   |
+|----------------------------|-----------:|------------:|-------:|-----------:|-------:|-------:|-------:|
+| [Blockchain]               | **2.75 K** |      2.62 K | 0.35 K | 2.21 K (3) | 0.89 K | 1.32 K | 1.49 K |
+| [Giphy]                    |     212.18 |  **243.45** |  35.67 | 109.11 (5) |  64.32 | 110.76 | 114.54 |
+| [GitHub]                   |     973.41 | **1052.94** | 137.02 | 662.39 (3) | 271.97 | 438.79 | 542.67 |
+| [GovTrack]                 |  **10.77** |        8.32 |   0.80 |   5.08 (3) |   2.81 |   3.58 |   3.65 |
+| [Issue 90]                 |      17.85 |   **41.16** |   0.88 |  10.79 (5) |   6.02 |  13.63 |  14.03 |
+| [JSON Generateor]          | **320.79** |      243.93 |  25.16 | 184.23 (3) | 111.24 | 135.47 | 139.78 |
+| [JSON Generateor (Pretty)] | **273.57** |      205.09 |  25.04 | 158.82 (3) |  97.93 | 123.31 | 136.65 |
+| [Pokedex]                  | **527.63** |      285.43 |  33.70 | 245.36 (3) | 140.90 | 172.45 | 152.59 |
+| [UTF-8 escaped]            |    1224.48 | **7923.08** | 326.43 | 573.70 (4) | 550.36 | 918.21 | 520.31 |
+| [UTF-8 unescaped]          |     5.56 K | **12.54 K** | 1.35 K | 5.09 K (3) | 3.30 K | 4.39 K | 1.46 K |
 
-\* binary representation of [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)  <br />
-\** [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json)
-
-### ParserBench Result
-
-__Non HiPE__:
-
-|                    | jiffy        | jsone             | poison        | jsx           |
-|:-------------------|-------------:|------------------:|--------------:|--------------:|
-| json value*        | 544.84 μs/op | 1364.38 μs/op (2) | 1401.35 μs/op | 1844.55 μs/op |
-| UTF-8 unescaping** |  63.01 μs/op |  399.38 μs/op (4) |  249.70 μs/op |  281.84 μs/op |
-
-
-__HiPE__:
-
-|                    | jiffy        | jsone             | poison        | jsx           |
-|:-------------------|-------------:|------------------:|--------------:|--------------:|
-| json value*        | 542.77 μs/op |  561.15 μs/op (2) |  751.36 μs/op | 1435.10 μs/op |
-| UTF-8 unescaping** |  62.42 μs/op |   92.63 μs/op (2) |  118.97 μs/op |  172.07 μs/op |
-
-\* [generated.json](https://github.com/devinus/poison/blob/2.1.0/bench/data/generated.json) <br />
-\** [UTF-8-demo.txt](https://github.com/devinus/poison/blob/2.1.0/bench/data/UTF-8-demo.txt)
 
 License
 -------

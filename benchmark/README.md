@@ -56,7 +56,6 @@ Summary
 | [UTF-8 unescaped]          |     5.56 K | **12.54 K** | 1.35 K | 5.09 K (3) | 3.30 K | 4.39 K | 1.46 K |
 
 
-
 Details
 -------
 
