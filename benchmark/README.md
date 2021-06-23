@@ -16,18 +16,18 @@ Summary
 
 ### Encoding (Unit: IPS=inputs per second)
 
-| Input data \ Library | Jason  | jiffy  | JSON*  | jsone  | JSX    | Poison | Tiny   |
-|----------------------|-------:|-------:|-------:|-------:|-------:|-------:|-------:|
-| [Blockchain]         | 2.77 K | 4.55 K | 0.45 K | 1.44 K | 0.60 K | 1.30 K | 0.99 K |
-| [Giphy]              | 230.65 | 487.67 |  47.73 | 114.57 |  44.97 | 114.57 | 113.59 |
-| [GitHub]             | 880.03 |1566.67 | 139.79 | 300.26 |  99.68 | 424.75 | 455.07 |
-| [GovTrack]           |   6.57 |  24.92 |   2.33 |   5.35 |   2.65 |   7.06 |   7.86 |
-| [Issue 90]           |  22.80 |  21.92 |   0.77 |  14.30 |   5.33 |  12.60 |  12.95 |
-| [JSON Generateor]    | 200.40 | 606.81 |  42.45 | 147.12 |  68.73 | 187.95 | 123.93 |
-| [Pokedex]            | 209.51 | 776.67 |  62.60 | 161.45 |  69.87 | 190.93 | 125.16 |
-| [UTF-8 unescaped]    | 626.25 |6644.53 |1167.89 | 582.41 | 273.48 | 401.44 | 220.14 |
+| Input data \ Library | Jason      | jiffy       | JSON*  | jsone      | JSX    | Poison | Tiny   |
+|----------------------|-----------:|------------:|-------:|-----------:|-------:|-------:|-------:|
+| [Blockchain]         |     2.77 K |  **4.55 K** | 0.45 K | 1.44 K (3) | 0.60 K | 1.30 K | 0.99 K |
+| [Giphy]              |     230.65 |  **487.67** |  47.73 | 114.57 (4) |  44.97 | 114.57 | 113.59 |
+| [GitHub]             |     880.03 | **1566.67** | 139.79 | 300.26 (5) |  99.68 | 424.75 | 455.07 |
+| [GovTrack]           |       6.57 |   **24.92** |   2.33 |   5.35 (5) |   2.65 |   7.06 |   7.86 |
+| [Issue 90]           |  **22.80** |       21.92 |   0.77 |  14.30 (3) |   5.33 |  12.60 |  12.95 |
+| [JSON Generateor]    |     200.40 |  **606.81** |  42.45 | 147.12 (4) |  68.73 | 187.95 | 123.93 |
+| [Pokedex]            |     209.51 |  **776.67** |  62.60 | 161.45 (4) |  69.87 | 190.93 | 125.16 |
+| [UTF-8 unescaped]    |     626.25 | **6644.53** |1167.89 | 582.41 (4) | 273.48 | 401.44 | 220.14 |
 
-* `JSON` doesn't escape non-ASCII unicode characters on the encoding
+\* Only `JSON` didn't escape non-ASCII unicode characters on the encoding
 
 [Blockchain]: https://github.com/devinus/poison/blob/4.0.1/bench/data/blockchain.json
 [Giphy]: https://github.com/devinus/poison/blob/4.0.1/bench/data/giphy.json
@@ -35,11 +35,27 @@ Summary
 [GovTrack]: https://github.com/devinus/poison/blob/4.0.1/bench/data/govtrack.json
 [Issue 90]: https://github.com/devinus/poison/blob/4.0.1/bench/data/issue-90.json
 [JSON Generateor]: https://github.com/devinus/poison/blob/4.0.1/bench/data/json-generator.json
+[JSON Generateor (Pretty)]: https://github.com/devinus/poison/blob/4.0.1/bench/data/json-generator-pretty.json
 [Pokedex]: https://github.com/devinus/poison/blob/4.0.1/bench/data/pokedex.json
+[UTF-8 escaped]: https://github.com/devinus/poison/blob/4.0.1/bench/data/utf-8-escaped.json
 [UTF-8 unescaped]: https://github.com/devinus/poison/blob/4.0.1/bench/data/utf-8-unescaped.json
 
-
 ### Decoding (Unit: IPS=inputs per second)
+
+| Input data \ Library       | Jason      | jiffy       | JSON   | jsone      | JSX    | Poison | Tiny   |
+|----------------------------|-----------:|------------:|-------:|-----------:|-------:|-------:|-------:|
+| [Blockchain]               | **2.75 K** |      2.62 K | 0.35 K | 2.21 K (3) | 0.89 K | 1.32 K | 1.49 K |
+| [Giphy]                    |     212.18 |  **243.45** |  35.67 | 109.11 (5) |  64.32 | 110.76 | 114.54 |
+| [GitHub]                   |     973.41 | **1052.94** | 137.02 | 662.39 (3) | 271.97 | 438.79 | 542.67 |
+| [GovTrack]                 |  **10.77** |        8.32 |   0.80 |   5.08 (3) |   2.81 |   3.58 |   3.65 |
+| [Issue 90]                 |      17.85 |   **41.16** |   0.88 |  10.79 (5) |   6.02 |  13.63 |  14.03 |
+| [JSON Generateor]          | **320.79** |      243.93 |  25.16 | 184.23 (3) | 111.24 | 135.47 | 139.78 |
+| [JSON Generateor (Pretty)] | **273.57** |      205.09 |  25.04 | 158.82 (3) |  97.93 | 123.31 | 136.65 |
+| [Pokedex]                  | **527.63** |      285.43 |  33.70 | 245.36 (3) | 140.90 | 172.45 | 152.59 |
+| [UTF-8 escaped]            |    1224.48 | **7923.08** | 326.43 | 573.70 (4) | 550.36 | 918.21 | 520.31 |
+| [UTF-8 unescaped]          |     5.56 K | **12.54 K** | 1.35 K | 5.09 K (3) | 3.30 K | 4.39 K | 1.46 K |
+
+
 
 Details
 -------
