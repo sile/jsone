@@ -4,10 +4,45 @@ Benchmark
 Using [poision](https://github.com/devinus/poison)'s benchmark.
 Please execute the `./run.sh` script in this directory to run the benchmark.
 
-Full benchmark result
----------------------
+Benchmark Result
+----------------
 
-- jsone version: [v1.6.0](https://github.com/sile/jsone/releases/tag/1.6.0)
+Version:
+- OTP-24
+- jsone: [v1.6.0](https://github.com/sile/jsone/releases/tag/1.6.0)
+
+Summary
+-------
+
+### Encoding (Unit: IPS=inputs per second)
+
+| Input data \ Library | Jason  | jiffy  | JSON*  | jsone  | JSX    | Poison | Tiny   |
+|----------------------|-------:|-------:|-------:|-------:|-------:|-------:|-------:|
+| [Blockchain]         | 2.77 K | 4.55 K | 0.45 K | 1.44 K | 0.60 K | 1.30 K | 0.99 K |
+| [Giphy]              | 230.65 | 487.67 |  47.73 | 114.57 |  44.97 | 114.57 | 113.59 |
+| [GitHub]             | 880.03 |1566.67 | 139.79 | 300.26 |  99.68 | 424.75 | 455.07 |
+| [GovTrack]           |   6.57 |  24.92 |   2.33 |   5.35 |   2.65 |   7.06 |   7.86 |
+| [Issue 90]           |  22.80 |  21.92 |   0.77 |  14.30 |   5.33 |  12.60 |  12.95 |
+| [JSON Generateor]    | 200.40 | 606.81 |  42.45 | 147.12 |  68.73 | 187.95 | 123.93 |
+| [Pokedex]            | 209.51 | 776.67 |  62.60 | 161.45 |  69.87 | 190.93 | 125.16 |
+| [UTF-8 unescaped]    | 626.25 |6644.53 |1167.89 | 582.41 | 273.48 | 401.44 | 220.14 |
+
+* `JSON` doesn't escape non-ASCII unicode characters on the encoding
+
+[Blockchain]: https://github.com/devinus/poison/blob/4.0.1/bench/data/blockchain.json
+[Giphy]: https://github.com/devinus/poison/blob/4.0.1/bench/data/giphy.json
+[GitHub]: https://github.com/devinus/poison/blob/4.0.1/bench/data/github.json
+[GovTrack]: https://github.com/devinus/poison/blob/4.0.1/bench/data/govtrack.json
+[Issue 90]: https://github.com/devinus/poison/blob/4.0.1/bench/data/issue-90.json
+[JSON Generateor]: https://github.com/devinus/poison/blob/4.0.1/bench/data/json-generator.json
+[Pokedex]: https://github.com/devinus/poison/blob/4.0.1/bench/data/pokedex.json
+[UTF-8 unescaped]: https://github.com/devinus/poison/blob/4.0.1/bench/data/utf-8-unescaped.json
+
+
+### Decoding (Unit: IPS=inputs per second)
+
+Details
+-------
 
 ```
 $ ./run.sh
