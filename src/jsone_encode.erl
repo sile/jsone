@@ -72,7 +72,7 @@
           indent = 0 :: non_neg_integer(),
           undefined_as_null = false :: boolean(),
           skip_undefined = false :: boolean(),
-          map_unknown_value = undefined :: undefined | fun ((term()) -> {ok, jsone:json_value()} | error)
+          map_unknown_value = fun jsone:term_to_json_string/1 :: undefined | fun ((term()) -> {ok, jsone:json_value()} | error)
          }).
 -define(OPT, #encode_opt_v2).
 -type opt() :: #encode_opt_v2{}.
@@ -477,7 +477,7 @@ parse_option([undefined_as_null|T],Opt) ->
     parse_option(T, Opt?OPT{undefined_as_null = true});
 parse_option([skip_undefined|T],Opt) ->
     parse_option(T, Opt?OPT{skip_undefined = true});
-parse_option([{map_unknown_value, F}|T], Opt) when is_function(F, 1) ->
+parse_option([{map_unknown_value, F}|T], Opt) when is_function(F, 1); F =:= undefined ->
     parse_option(T, Opt?OPT{map_unknown_value = F});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).
