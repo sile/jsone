@@ -33,7 +33,8 @@
          decode/1, decode/2,
          try_decode/1, try_decode/2,
          encode/1, encode/2,
-         try_encode/1, try_encode/2
+         try_encode/1, try_encode/2,
+         term_to_json_string/1
         ]).
 
 -export_type([
@@ -196,7 +197,7 @@
                        | {object_key_type, string | scalar | value}
                        | {space, non_neg_integer()}
                        | {indent, non_neg_integer()}
-                       | {map_unknown_value, fun ((term()) -> {ok, json_value()} | error)}
+                       | {map_unknown_value, undefined | fun ((term()) -> {ok, json_value()} | error)}
                        | skip_undefined
                        | common_option().
 %% `native_utf8': <br />
@@ -236,7 +237,9 @@
 %% - If speficied, each entry having `undefined' value in a object isn't included in the result JSON <br />
 %%
 %% `{map_unknown_value, Fun}`: <br />
-%% - If specified, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun'.
+%% - If `Fun' is a function, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun'. <br />
+%% - If `Fun' is `undefined', the encoding results in an error if there are unknown values. <br />
+%% - default: `term_to_json_string/1' <br />
 
 -type decode_option() :: {object_format, tuple | proplist | map}
                        | {allow_ctrl_chars, boolean()}
@@ -405,3 +408,8 @@ try_encode(JsonValue) ->
 -spec try_encode(json_value(), [encode_option()]) -> {ok, binary()} | {error, {Reason::term(), [stack_item()]}}.
 try_encode(JsonValue, Options) ->
     jsone_encode:encode(JsonValue, Options).
+
+%% @doc Converts the given term `X' to its string representation (i.e., the result of `io_lib:format("~p", [X])').
+-spec term_to_json_string(term()) -> {ok, json_string()} | error.
+term_to_json_string(X) ->
+    {ok, list_to_binary(io_lib:format("~p", [X]))}.

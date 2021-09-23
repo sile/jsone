@@ -329,7 +329,10 @@ encode_test_() ->
       end},
      {"invalid value",
       fun () ->
-              ?assertMatch({error, {badarg, _}}, jsone_encode:encode(self()))
+              Pid = self(),
+              PidString = list_to_binary(io_lib:format("~p", [Pid])),
+              ?assertEqual({ok, <<$", PidString/binary, $">>}, jsone_encode:encode(Pid)),
+              ?assertMatch({error, {badarg, _}}, jsone_encode:encode(Pid, [{map_unknown_value, undefined}]))
       end},
      {"wrong option",
       fun () ->
