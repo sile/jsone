@@ -77,7 +77,8 @@ decode_test_() ->
               ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345E2">>)),
               ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345e+2">>)), % exponent part can begin with plus sign
               ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"0.12345E+2">>)),
-              ?assertEqual({ok, -12.345, <<"">>}, jsone_decode:decode(<<"-0.012345e3">>))
+              ?assertEqual({ok, -12.345, <<"">>}, jsone_decode:decode(<<"-0.012345e3">>)),
+              ?assertEqual({ok, 123.0, <<"">>}, jsone_decode:decode(<<"1.23000000000000000000e+02">>))
       end},
      {"float: invalid format",
       fun () ->
