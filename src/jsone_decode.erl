@@ -283,7 +283,11 @@ number_exponation_part(<<C, Bin/binary>>, N, DecimalOffset, ExpSign, Exp, _, Nex
     number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp * 10 + C - $0, false, Nexts, Buf, Opt);
 number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Nexts, Buf, Opt) ->
     Pos = ExpSign * Exp - DecimalOffset,
-    try N * math:pow(10, Pos)
+    try
+        case Pos of
+            Pos when Pos >= 0 -> N * math:pow(10, Pos);
+            _                 -> N / math:pow(10, -Pos) % multiplying by decimal makes float errors larger.
+        end
     of Res -> next(Bin, Res, Nexts, Buf, Opt)
     catch error:badarith ->
         ?ERROR(number_exponation_part, [Bin, N, DecimalOffset, ExpSign, Exp, false, Nexts, Buf, Opt])
