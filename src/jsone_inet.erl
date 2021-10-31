@@ -51,23 +51,31 @@
 %% @doc Convert an IP address into a text representation.
 %%
 %% Please refer to the doc of `jsone:ip_address_to_json_string/1' for the detail.
--spec ip_address_to_json_string(inet:ip_address()|any()) -> {ok, jsone:jsone_string()} | error.
+-spec ip_address_to_json_string(inet:ip_address()|any()) -> {ok, jsone:json_string()} | error.
 ip_address_to_json_string({A, B, C, D}) when ?IS_IPV4(A, B, C, D) ->
     {ok, iolist_to_binary(io_lib:format("~p.~p.~p.~p", [A, B, C, D]))};
 ip_address_to_json_string({A, B, C, D, E, F, G, H}) when ?IS_IPV6(A, B, C, D, E, F, G, H) ->
     Text =
         case {A, B, C, D, E, F} of
             {0, 0, 0, 0, 0, 0} ->
-                %% IPv4-mapped address
-                io_lib:format("::~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, G band 16#ff]);
-            {0, 0, 0, 0, 0, 16#ffff} ->
                 %% IPv4-compatible address
-                io_lib:format("::ffff:~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, G band 16#ff]);
+                io_lib:format("::~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, H band 16#ff]);
+            {0, 0, 0, 0, 0, 16#ffff} ->
+                %% IPv4-mapped address
+                io_lib:format("::ffff:~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, H band 16#ff]);
             {0, 0, 0, 0, 16#ffff, 0} ->
                 %% IPv4-translated address
-                io_lib:format("::ffff:0:~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, G band 16#ff]);
+                io_lib:format("::ffff:0:~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, H band 16#ff]);
+            {16#64, 16#ff9b, 0, 0, 0, 0} ->
+                %% IPv4/IPv6 translation
+                io_lib:format("64:ff9b::~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, H band 16#ff]);
+            {16#64, 16#ff9b, 1, _, _, _} ->
+                %% IPv4/IPv6 translation
+                {Prefix, _} = format_ipv6([A, B, C, D, E, F], 0, 0),
+                Last = lists:flatten(io_lib:format("~p.~p.~p.~p", [G bsr 8, G band 16#ff, H bsr 8, H band 16#ff])),
+                string:join(Prefix ++ [Last], ":");
             _ ->
-                format_ipv6([A, B, C, D, E, F, G, H]);
+                format_ipv6([A, B, C, D, E, F, G, H])
         end,
     {ok, iolist_to_binary(Text)};
 ip_address_to_json_string(_) ->
@@ -78,11 +86,18 @@ ip_address_to_json_string(_) ->
 %%--------------------------------------------------------------------------------
 -spec format_ipv6([0..65535]) -> string().
 format_ipv6(Xs) ->
-    {Ys, _} = format_ipv6(Xs, 0, 0),
-    string:join(Ys, ":").
+    case format_ipv6(Xs, 0, 0) of
+        {Ys, shortening} -> [$: | string:join(Ys, ":")];
+        {Ys, _} ->
+            Text = string:join(Ys, ":"),
+            case lists:last(Text) of
+                $: -> [Text | ":"];
+                _  -> Text
+            end
+    end.
 
 -spec format_ipv6([0..65535], non_neg_integer(), non_neg_integer()) -> {[string()], not_shortened | shortening | shortened}.
-format_ipv6([], Zeros, MaxZeros) ->
+format_ipv6([], _Zeros, _MaxZeros) ->
     {[], not_shortened};
 format_ipv6([X | Xs], Zeros0, MaxZeros) ->
     Zeros1 =
@@ -90,15 +105,19 @@ format_ipv6([X | Xs], Zeros0, MaxZeros) ->
             0 -> Zeros0 + 1;
             _ -> 0
         end,
-    Longest = Zeros1 > MaxZeros,
+    Shorten = Zeros1 > MaxZeros andalso Zeros1 > 1,
     case format_ipv6(Xs, Zeros1, max(Zeros1, MaxZeros)) of
         {Ys, not_shortened} ->
-            case Longest of
-                true  -> {Ys, shortening};
-                false -> {[integer_to_list(X, 16) | Ys], not_shortened}
+            case Shorten of
+                true  -> {["" | Ys], shortening};
+                false -> {[to_hex(X) | Ys], not_shortened}
             end;
         {Ys, shortening} when X =:= 0 ->
             {Ys, shortening};
         {Ys, _} ->
-            {[integer_to_list(X, 16) | Ys], shortened}
+            {[to_hex(X) | Ys], shortened}
     end.
+
+-spec to_hex(0..65535) -> string().
+to_hex(N) ->
+    string:lowercase(integer_to_list(N, 16)).
