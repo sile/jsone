@@ -316,6 +316,15 @@ encode_test_() ->
               Expected = <<"[\"{foo}\\n\"]">>,
               ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
       end},
+     {"IP address",
+      fun () ->
+              Input = #{ip => {127, 0, 0, 1}},
+              Expected = <<"{\"ip\":\"127.0.0.1\"}">>,
+              ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, fun jsone:ip_address_to_json_string/1}])),
+
+              %% Without `map_unknown_value' option.
+              ?assertMatch({error, _}, jsone:try_encode(Input, [{map_unknown_value, undefined}]))
+      end},
 
      %% Others
      {"compound data",

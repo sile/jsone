@@ -34,7 +34,8 @@
          try_decode/1, try_decode/2,
          encode/1, encode/2,
          try_encode/1, try_encode/2,
-         term_to_json_string/1
+         term_to_json_string/1,
+         ip_address_to_json_string/1
         ]).
 
 -export_type([
@@ -413,3 +414,30 @@ try_encode(JsonValue, Options) ->
 -spec term_to_json_string(term()) -> {ok, json_string()} | error.
 term_to_json_string(X) ->
     {ok, list_to_binary(io_lib:format("~p", [X]))}.
+
+%% @doc Convert an IP address into a text representation.
+%%
+%% This function can be specified as the value of the `map_unknown_value' encoding option.
+%%
+%% This function formats IPv6 addresses by following the recommendation defined in RFC 5952.
+%% Note that the trailing 32 bytes of special IPv6 addresses such as IPv4-Compatible (::X.X.X.X),
+%% IPv4-Mapped (::ffff:X.X.X.X), IPv4-Translated (::ffff:0:X.X.X.X) and IPv4/IPv6 translation
+%% (64:ff9b::X.X.X.X and 64:ff9b:1::X.X.X.X ~ 64:ff9b:1:ffff:ffff:ffff:X.X.X.X) are formatted
+%% using the IPv4 format.
+%%
+%% ```
+%% > EncodeOpt = [{map_unknown_value, fun jsone:ip_address_to_json_string/1}].
+%%
+%% > jsone:encode(#{ip => {127, 0, 0, 1}}, EncodeOpt).
+%% <<"{\"ip\":\"127.0.0.1\"}">>
+%%
+%% > {ok, Addr} = inet:parse_address("2001:DB8:0000:0000:0001:0000:0000:0001").
+%% > jsone:encode(Addr, EncodeOpt).
+%% <<"\"2001:db8::1:0:0:1\"">>
+%%
+%% > jsone:encode([foo, {0, 0, 0, 0, 0, 16#FFFF, 16#7F00, 16#0001}], EncodeOpt).
+%% <<"[\"foo\",\"::ffff:127.0.0.1\"]">>
+%% '''
+-spec ip_address_to_json_string(inet:ip_address()|any()) -> {ok, json_string()} | error.
+ip_address_to_json_string(X) ->
+    jsone_inet:ip_address_to_json_string(X).
