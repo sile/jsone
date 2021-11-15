@@ -289,6 +289,11 @@ decode_test_() ->
               [{Atom,  <<"ok">>}] = jsone:decode(<<"{\"", Value/binary, "\":\"ok\"}">>, KeyOpt(atom)),
               ?assertEqual(Value, atom_to_binary(Atom, latin1))
       end},
+     {"garbage remainings chars",
+      fun () ->
+              ?assertError(badarg, jsone:decode(<<"1@">>)),
+              ?assertEqual(1, jsone:decode(<<"1 \n\t\r ">>)) % Whitespaces are OK
+      end},
 
      %% Others
      {"compound data",

@@ -334,7 +334,8 @@ decode(Json) ->
 -spec decode(binary(), [decode_option()]) -> json_value().
 decode(Json, Options) ->
     try
-        {ok, Value, _} = try_decode(Json, Options),
+        {ok, Value, Remainings} = try_decode(Json, Options),
+        check_decode_remainings(Remainings),
         Value
     catch
         error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
@@ -441,3 +442,20 @@ term_to_json_string(X) ->
 -spec ip_address_to_json_string(inet:ip_address()|any()) -> {ok, json_string()} | error.
 ip_address_to_json_string(X) ->
     jsone_inet:ip_address_to_json_string(X).
+
+%%--------------------------------------------------------------------------------
+%% Internal Functions
+%%--------------------------------------------------------------------------------
+-spec check_decode_remainings(binary()) -> ok.
+check_decode_remainings(<<>>) ->
+    ok;
+check_decode_remainings(<<$  , Bin/binary>>) ->
+    check_decode_remainings(Bin);
+check_decode_remainings(<<$\t, Bin/binary>>) ->
+    check_decode_remainings(Bin);
+check_decode_remainings(<<$\r, Bin/binary>>) ->
+    check_decode_remainings(Bin);
+check_decode_remainings(<<$\n, Bin/binary>>) ->
+    check_decode_remainings(Bin);
+check_decode_remainings(<<Bin/binary>>) ->
+    erlang:error(badarg, [Bin]).
