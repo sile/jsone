@@ -29,17 +29,18 @@
 %%--------------------------------------------------------------------------------
 %% Exported API
 %%--------------------------------------------------------------------------------
--export([
-         decode/1, decode/2,
-         try_decode/1, try_decode/2,
-         encode/1, encode/2,
-         try_encode/1, try_encode/2,
+-export([decode/1,
+         decode/2,
+         try_decode/1,
+         try_decode/2,
+         encode/1,
+         encode/2,
+         try_encode/1,
+         try_encode/2,
          term_to_json_string/1,
-         ip_address_to_json_string/1
-        ]).
+         ip_address_to_json_string/1]).
 
--export_type([
-              json_value/0,
+-export_type([json_value/0,
               json_boolean/0,
               json_number/0,
               json_string/0,
@@ -55,23 +56,30 @@
               encode_option/0,
               decode_option/0,
               float_format_option/0,
-              datetime_encode_format/0, datetime_format/0,
-              timezone/0, utc_offset_seconds/0, stack_item/0
-             ]).
+              datetime_encode_format/0,
+              datetime_format/0,
+              timezone/0,
+              utc_offset_seconds/0,
+              stack_item/0]).
 
 %%--------------------------------------------------------------------------------
 %% Types & Macros
 %%--------------------------------------------------------------------------------
--type json_value()          :: json_number() | json_string() | json_array() | json_object() | json_boolean() | null | undefined | json_term().
--type json_boolean()        :: boolean().
--type json_number()         :: number().
--type json_string()         :: binary() | atom() | calendar:datetime(). % NOTE: `decode/1' always returns `binary()' value
--type json_array()          :: [json_value()].
--type json_object()         :: json_object_format_tuple()
-                             | json_object_format_proplist()
-                             | json_object_format_map().
+-type json_value() :: json_number() |
+                      json_string() |
+                      json_array() |
+                      json_object() |
+                      json_boolean() |
+                      null |
+                      undefined |
+                      json_term().
+-type json_boolean() :: boolean().
+-type json_number() :: number().
+-type json_string() :: binary() | atom() | calendar:datetime().  % NOTE: `decode/1' always returns `binary()' value
+-type json_array() :: [json_value()].
+-type json_object() :: json_object_format_tuple() | json_object_format_proplist() | json_object_format_map().
 -type json_object_members() :: [{json_string(), json_value()}].
--type json_term()           :: {{json, iolist()}} | {{json_utf8, unicode:chardata()}}.
+-type json_term() :: {{json, iolist()}} | {{json_utf8, unicode:chardata()}}.
 %% `json_term()' allows inline already encoded JSON value. `json' variant
 %% expects byte encoded utf8 data values as list members. `json_utf8' expect
 %% Unicode code points as list members. Binaries are copied "as is" in both
@@ -126,9 +134,7 @@
 
 -type json_scalar() :: json_boolean() | json_number() | json_string().
 
--type float_format_option() :: {scientific, Decimals :: 0..249}
-                             | {decimals, Decimals :: 0..253}
-                             | compact.
+-type float_format_option() :: {scientific, Decimals :: 0 .. 249} | {decimals, Decimals :: 0 .. 253} | compact.
 %% `scientific': <br />
 %% - The float will be formatted using scientific notation with `Decimals' digits of precision. <br />
 %%
@@ -155,8 +161,7 @@
 %% <<"1.23">>
 %% '''
 
--type datetime_encode_format() :: Format::datetime_format()
-                                | {Format::datetime_format(), TimeZone::timezone()}.
+-type datetime_encode_format() :: Format :: datetime_format() | {Format :: datetime_format(), TimeZone :: timezone()}.
 %% Datetime encoding format.
 %%
 %% The default value of `TimeZone' is `utc'.
@@ -183,24 +188,24 @@
 
 -type datetime_format() :: iso8601.
 -type timezone() :: utc | local | utc_offset_seconds().
--type utc_offset_seconds() :: -86399..86399.
+-type utc_offset_seconds() :: -86399 .. 86399.
 
 -type common_option() :: undefined_as_null.
 %%
 %% `undefined_as_null': <br />
 %% - Treats `undefined' in Erlang as the conversion target for `null' in JSON. This means that `undefined' will be encoded to `null' and `null' will be decoded to `undefined'<br />
 
--type encode_option() :: native_utf8
-                       | native_forward_slash
-                       | canonical_form
-                       | {float_format, [float_format_option()]}
-                       | {datetime_format, datetime_encode_format()}
-                       | {object_key_type, string | scalar | value}
-                       | {space, non_neg_integer()}
-                       | {indent, non_neg_integer()}
-                       | {map_unknown_value, undefined | fun ((term()) -> {ok, json_value()} | error)}
-                       | skip_undefined
-                       | common_option().
+-type encode_option() :: native_utf8 |
+                         native_forward_slash |
+                         canonical_form |
+                         {float_format, [float_format_option()]} |
+                         {datetime_format, datetime_encode_format()} |
+                         {object_key_type, string | scalar | value} |
+                         {space, non_neg_integer()} |
+                         {indent, non_neg_integer()} |
+                         {map_unknown_value, undefined | fun ((term()) -> {ok, json_value()} | error)} |
+                         skip_undefined |
+                         common_option().
 %% `native_utf8': <br />
 %% - Encodes non ASCII UTF-8 characters as a human-readable(non-escaped) string <br />
 %%
@@ -242,12 +247,12 @@
 %% - If `Fun' is `undefined', the encoding results in an error if there are unknown values. <br />
 %% - default: `term_to_json_string/1' <br />
 
--type decode_option() :: {object_format, tuple | proplist | map}
-                       | {allow_ctrl_chars, boolean()}
-                       | reject_invalid_utf8
-                       | {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'}
-                       | {duplicate_map_keys, first | last}
-                       | common_option().
+-type decode_option() :: {object_format, tuple | proplist | map} |
+                         {allow_ctrl_chars, boolean()} |
+                         reject_invalid_utf8 |
+                         {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'} |
+                         {duplicate_map_keys, first | last} |
+                         common_option().
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
 %% - `tuple': An object is decoded as `{[]}' if it is empty, otherwise `{[{Key, Value}]}'. <br />
@@ -291,8 +296,7 @@
 -type stack_item() :: {Module :: module(),
                        Function :: atom(),
                        Arity :: arity() | (Args :: [term()]),
-                       Location :: [{file, Filename :: string()} |
-                                    {line, Line :: pos_integer()}]}.
+                       Location :: [{file, Filename :: string()} | {line, Line :: pos_integer()}]}.
 %% An item in a stack back-trace.
 %%
 %% Note that the `erlang' module already defines the same `stack_item/0' type,
@@ -338,12 +342,12 @@ decode(Json, Options) ->
         check_decode_remainings(Remainings),
         Value
     catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
             erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
 %% @equiv try_decode(Json, [])
--spec try_decode(binary()) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [stack_item()]}}.
+-spec try_decode(binary()) -> {ok, json_value(), Remainings :: binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_decode(Json) ->
     try_decode(Json, []).
 
@@ -358,7 +362,8 @@ try_decode(Json) ->
 %%                               [<<"wrong json">>,1,[],<<>>],
 %%                               [{line,208}]}]}}
 %% '''
--spec try_decode(binary(), [decode_option()]) -> {ok, json_value(), Remainings::binary()} | {error, {Reason::term(), [stack_item()]}}.
+-spec try_decode(binary(), [decode_option()]) ->
+          {ok, json_value(), Remainings :: binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_decode(Json, Options) ->
     jsone_decode:decode(Json, Options).
 
@@ -387,12 +392,12 @@ encode(JsonValue, Options) ->
         {ok, Binary} = try_encode(JsonValue, Options),
         Binary
     catch
-        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE ->
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
             erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
 %% @equiv try_encode(JsonValue, [])
--spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason::term(), [stack_item()]}}.
+-spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_encode(JsonValue) ->
     try_encode(JsonValue, []).
 
@@ -407,7 +412,7 @@ try_encode(JsonValue) ->
 %%                               [hoge,[{array_values,[2]}],<<"[1,">>],
 %%                               [{line,86}]}]}}
 %% '''
--spec try_encode(json_value(), [encode_option()]) -> {ok, binary()} | {error, {Reason::term(), [stack_item()]}}.
+-spec try_encode(json_value(), [encode_option()]) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_encode(JsonValue, Options) ->
     jsone_encode:encode(JsonValue, Options).
 
@@ -439,7 +444,7 @@ term_to_json_string(X) ->
 %% > jsone:encode([foo, {0, 0, 0, 0, 0, 16#FFFF, 16#7F00, 16#0001}], EncodeOpt).
 %% <<"[\"foo\",\"::ffff:127.0.0.1\"]">>
 %% '''
--spec ip_address_to_json_string(inet:ip_address()|any()) -> {ok, json_string()} | error.
+-spec ip_address_to_json_string(inet:ip_address() | any()) -> {ok, json_string()} | error.
 ip_address_to_json_string(X) ->
     jsone_inet:ip_address_to_json_string(X).
 
@@ -449,7 +454,7 @@ ip_address_to_json_string(X) ->
 -spec check_decode_remainings(binary()) -> ok.
 check_decode_remainings(<<>>) ->
     ok;
-check_decode_remainings(<<$  , Bin/binary>>) ->
+check_decode_remainings(<<$ , Bin/binary>>) ->
     check_decode_remainings(Bin);
 check_decode_remainings(<<$\t, Bin/binary>>) ->
     check_decode_remainings(Bin);
