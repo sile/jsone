@@ -51,7 +51,7 @@
 %% @doc Convert an IP address into a text representation.
 %%
 %% Please refer to the doc of `jsone:ip_address_to_json_string/1' for the detail.
--spec ip_address_to_json_string(inet:ip_address()|any()) -> {ok, jsone:json_string()} | error.
+-spec ip_address_to_json_string(inet:ip_address() | any()) -> {ok, jsone:json_string()} | error.
 ip_address_to_json_string({A, B, C, D}) when ?IS_IPV4(A, B, C, D) ->
     {ok, iolist_to_binary(io_lib:format("~p.~p.~p.~p", [A, B, C, D]))};
 ip_address_to_json_string({A, B, C, D, E, F, G, H}) when ?IS_IPV6(A, B, C, D, E, F, G, H) ->
@@ -84,33 +84,41 @@ ip_address_to_json_string(_) ->
 %%--------------------------------------------------------------------------------
 %% Internal Functions
 %%--------------------------------------------------------------------------------
--spec format_ipv6([0..65535]) -> string().
+-spec format_ipv6([0 .. 65535]) -> string().
 format_ipv6(Xs) ->
     case format_ipv6(Xs, 0, 0) of
-        {Ys, shortening} -> [$: | string:join(Ys, ":")];
+        {Ys, shortening} ->
+            [$: | string:join(Ys, ":")];
         {Ys, _} ->
             Text = string:join(Ys, ":"),
             case lists:last(Text) of
-                $: -> [Text | ":"];
-                _  -> Text
+                $: ->
+                    [Text | ":"];
+                _ ->
+                    Text
             end
     end.
 
--spec format_ipv6([0..65535], non_neg_integer(), non_neg_integer()) -> {[string()], not_shortened | shortening | shortened}.
+-spec format_ipv6([0 .. 65535], non_neg_integer(), non_neg_integer()) ->
+          {[string()], not_shortened | shortening | shortened}.
 format_ipv6([], _Zeros, _MaxZeros) ->
     {[], not_shortened};
 format_ipv6([X | Xs], Zeros0, MaxZeros) ->
     Zeros1 =
         case X of
-            0 -> Zeros0 + 1;
-            _ -> 0
+            0 ->
+                Zeros0 + 1;
+            _ ->
+                0
         end,
     Shorten = Zeros1 > MaxZeros andalso Zeros1 > 1,
     case format_ipv6(Xs, Zeros1, max(Zeros1, MaxZeros)) of
         {Ys, not_shortened} ->
             case Shorten of
-                true  -> {["" | Ys], shortening};
-                false -> {[to_hex(X) | Ys], not_shortened}
+                true ->
+                    {["" | Ys], shortening};
+                false ->
+                    {[to_hex(X) | Ys], not_shortened}
             end;
         {Ys, shortening} when X =:= 0 ->
             {Ys, shortening};
@@ -118,6 +126,6 @@ format_ipv6([X | Xs], Zeros0, MaxZeros) ->
             {[to_hex(X) | Ys], shortened}
     end.
 
--spec to_hex(0..65535) -> string().
+-spec to_hex(0 .. 65535) -> string().
 to_hex(N) ->
     string:lowercase(integer_to_list(N, 16)).

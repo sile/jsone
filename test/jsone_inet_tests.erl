@@ -11,8 +11,7 @@ format_ipv4_test() ->
 
 format_ipv6_test() ->
     Addresses =
-        [
-         <<"::127.0.0.1">>,
+        [<<"::127.0.0.1">>,
          <<"::ffff:192.0.2.1">>,
          <<"::ffff:0:255.255.255.255">>,
          <<"64:ff9b::0.0.0.0">>,
@@ -24,15 +23,13 @@ format_ipv6_test() ->
          <<"2001:db8::1:0:0:1">>,
          <<"2001:db8:0:1:1:1:1:1">>,
          <<"2001:0:0:1::1">>,
-         <<"2001:db8:85a3::8a2e:370:7334">>
-        ],
-    lists:foreach(
-      fun (Expected) ->
-              {ok, Addr} = inet:parse_ipv6_address(binary_to_list(Expected)),
-              {ok, Bin} = jsone_inet:ip_address_to_json_string(Addr),
-              ?assertEqual(Expected, Bin)
-      end,
-      Addresses).
+         <<"2001:db8:85a3::8a2e:370:7334">>],
+    lists:foreach(fun (Expected) ->
+                          {ok, Addr} = inet:parse_ipv6_address(binary_to_list(Expected)),
+                          {ok, Bin} = jsone_inet:ip_address_to_json_string(Addr),
+                          ?assertEqual(Expected, Bin)
+                  end,
+                  Addresses).
 
 invalid_ip_addr_test() ->
     ?assertEqual(jsone_inet:ip_address_to_json_string(foo), error),
