@@ -22,14 +22,14 @@
 decode_test_() ->
     [
      %% Symbols
-     {"false", fun () -> ?assertEqual({ok, false, <<"">>}, jsone_decode:decode(<<"false">>))end},
-     {"true", fun () -> ?assertEqual({ok, true, <<"">>}, jsone_decode:decode(<<"true">>))end},
-     {"null", fun () -> ?assertEqual({ok, null, <<"">>}, jsone_decode:decode(<<"null">>))end},
+     {"false", fun () -> ?assertEqual({ok, false, <<"">>}, jsone_decode:decode(<<"false">>)) end},
+     {"true", fun () -> ?assertEqual({ok, true, <<"">>}, jsone_decode:decode(<<"true">>)) end},
+     {"null", fun () -> ?assertEqual({ok, null, <<"">>}, jsone_decode:decode(<<"null">>)) end},
 
      %% Numbers: Integer
-     {"positive integer", fun () -> ?assertEqual({ok, 1, <<"">>}, jsone_decode:decode(<<"1">>))end},
-     {"zero", fun () -> ?assertEqual({ok, 0, <<"">>}, jsone_decode:decode(<<"0">>))end},
-     {"negative integer", fun () -> ?assertEqual({ok, -1, <<"">>}, jsone_decode:decode(<<"-1">>))end},
+     {"positive integer", fun () -> ?assertEqual({ok, 1, <<"">>}, jsone_decode:decode(<<"1">>)) end},
+     {"zero", fun () -> ?assertEqual({ok, 0, <<"">>}, jsone_decode:decode(<<"0">>)) end},
+     {"negative integer", fun () -> ?assertEqual({ok, -1, <<"">>}, jsone_decode:decode(<<"-1">>)) end},
      {"large integer (no limit on size)",
       fun () ->
               ?assertEqual({ok, 111111111111111111111111111111111111111111111111111111111111111111111111111111, <<"">>},
@@ -42,10 +42,10 @@ decode_test_() ->
               ?assertEqual({ok, 0, <<"1">>}, jsone_decode:decode(<<"-01">>))
       end},
      {"integer can't begin with an explicit plus sign",
-      fun () -> ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"+1">>))end},
+      fun () -> ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"+1">>)) end},
 
      %% Numbers: Floats
-     {"float: decimal notation", fun () -> ?assertEqual({ok, 1.23, <<"">>}, jsone_decode:decode(<<"1.23">>))end},
+     {"float: decimal notation", fun () -> ?assertEqual({ok, 1.23, <<"">>}, jsone_decode:decode(<<"1.23">>)) end},
      {"float: exponential notation",
       fun () ->
               ?assertEqual({ok, 12.345, <<"">>}, jsone_decode:decode(<<"12345e-3">>)),  % lower case 'e'
@@ -73,7 +73,7 @@ decode_test_() ->
       end},
 
      %% Strings
-     {"simple string", fun () -> ?assertEqual({ok, <<"abc">>, <<"">>}, jsone_decode:decode(<<"\"abc\"">>))end},
+     {"simple string", fun () -> ?assertEqual({ok, <<"abc">>, <<"">>}, jsone_decode:decode(<<"\"abc\"">>)) end},
      {"string: escaped characters",
       fun () ->
               Input = list_to_binary([$", [[$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t]], $"]),
@@ -247,7 +247,7 @@ decode_test_() ->
       end},
      {"atom keys",
       fun () ->
-              KeyOpt = fun (Keys) -> [{keys, Keys}, {object_format, proplist}]end,
+              KeyOpt = fun (Keys) -> [{keys, Keys}, {object_format, proplist}] end,
               Input = <<"{\"foo\":\"ok\"}">>,
               ?assertEqual([{<<"foo">>, <<"ok">>}], jsone:decode(Input, KeyOpt(binary))),
               ?assertEqual([{foo, <<"ok">>}], jsone:decode(Input, KeyOpt(atom))),

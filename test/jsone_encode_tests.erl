@@ -19,9 +19,9 @@
 encode_test_() ->
     [
      %% Symbols
-     {"false", fun () -> ?assertEqual({ok, <<"false">>}, jsone_encode:encode(false))end},
-     {"true", fun () -> ?assertEqual({ok, <<"true">>}, jsone_encode:encode(true))end},
-     {"null", fun () -> ?assertEqual({ok, <<"null">>}, jsone_encode:encode(null))end},
+     {"false", fun () -> ?assertEqual({ok, <<"false">>}, jsone_encode:encode(false)) end},
+     {"true", fun () -> ?assertEqual({ok, <<"true">>}, jsone_encode:encode(true)) end},
+     {"null", fun () -> ?assertEqual({ok, <<"null">>}, jsone_encode:encode(null)) end},
 
      %% Numbers: Inline json term
      {"json",
@@ -40,9 +40,9 @@ encode_test_() ->
               ?assertEqual({ok, <<"[[1,2,3]]">>}, jsone_encode:encode([{{json, <<"[1,2,3]">>}}]))
       end},
      %% Numbers: Integer
-     {"zero", fun () -> ?assertEqual({ok, <<"0">>}, jsone_encode:encode(0))end},
-     {"positive integer", fun () -> ?assertEqual({ok, <<"1">>}, jsone_encode:encode(1))end},
-     {"negative integer", fun () -> ?assertEqual({ok, <<"-1">>}, jsone_encode:encode(-1))end},
+     {"zero", fun () -> ?assertEqual({ok, <<"0">>}, jsone_encode:encode(0)) end},
+     {"positive integer", fun () -> ?assertEqual({ok, <<"1">>}, jsone_encode:encode(1)) end},
+     {"negative integer", fun () -> ?assertEqual({ok, <<"-1">>}, jsone_encode:encode(-1)) end},
      {"large number",
       fun () ->
               ?assertEqual({ok, <<"11111111111111111111111111111111111111111111111111111111111111111111111">>},
@@ -67,8 +67,8 @@ encode_test_() ->
       end},
 
      %% Strings
-     {"simple string", fun () -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(<<"abc">>))end},
-     {"atom is regarded as string", fun () -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(abc))end},
+     {"simple string", fun () -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(<<"abc">>)) end},
+     {"atom is regarded as string", fun () -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(abc)) end},
      {"string: contains escaped characters",
       fun () ->
               Input = <<"\"\/\\\b\f\n\r\t">>,
@@ -301,7 +301,7 @@ encode_test_() ->
      {"`map_unknown_value` option with singleton tuple",
       fun () ->
               Input = [{foo}],
-              MapFun = fun (Value) -> {ok, unicode:characters_to_binary(io_lib:format("~p~n", [Value]))}end,
+              MapFun = fun (Value) -> {ok, unicode:characters_to_binary(io_lib:format("~p~n", [Value]))} end,
               Expected = <<"[\"{foo}\\n\"]">>,
               ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
       end},
@@ -334,7 +334,7 @@ encode_test_() ->
               ?assertEqual({ok, <<$", PidString/binary, $">>}, jsone_encode:encode(Pid)),
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode(Pid, [{map_unknown_value, undefined}]))
       end},
-     {"wrong option", fun () -> ?assertError(badarg, jsone_encode:encode(1, [{no_such_option, hoge}]))end},
+     {"wrong option", fun () -> ?assertError(badarg, jsone_encode:encode(1, [{no_such_option, hoge}])) end},
      {"canonical_form",
       fun () ->
               Obj1 = ?OBJECT_FROM_LIST([{<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(1000, 0, -1)]),
