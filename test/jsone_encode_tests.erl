@@ -106,7 +106,7 @@ encode_test_() ->
               Expected22 = <<$", Input2/binary, $">>,
               ?assertEqual({ok, Expected22}, jsone_encode:encode(Input2, [native_utf8]))
       end},
-     {"string: containts surrogate pairs",
+     {"string: contains surrogate pairs",
       fun () ->
               Input = <<"𢁉𢂚𢃼">>,
               Expected = <<"\"\\ud848\\udc49\\ud848\\udc9a\\ud848\\udcfc\"">>,
