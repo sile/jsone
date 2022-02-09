@@ -62,8 +62,8 @@ decode_test_() ->
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<".123">>)),  % omitted integer part
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.">>)),  % omitted fraction part: EOS
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.e+3">>)),  % omitted fraction part: with exponent part
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e">>)),  % imcomplete fraction part
-              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e-">>)),  % imcomplete fraction part
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e">>)),  % incomplete fraction part
+              ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e-">>)),  % incomplete fraction part
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1ee-1">>)),  % duplicated 'e'
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"0.1e--1">>)),  % duplicated sign
               ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"1e999">>)),  % exponent out of range

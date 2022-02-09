@@ -232,7 +232,7 @@
 %% - NOTE: If `scalar' or `value' option is specified, non `json_string()' key will be automatically converted to a `binary()' value (e.g. `1' => `<<"1">>', `#{}' => `<<"{}">>') <br />
 %%
 %% `{space, N}': <br />
-%% - Inserts `N' spaces after every commna and colon <br />
+%% - Inserts `N' spaces after every comma and colon <br />
 %% - default: `0' <br />
 %%
 %% `{indent, N}': <br />
@@ -240,7 +240,7 @@
 %% - default: `0' <br />
 %%
 %% `skip_undefined': <br />
-%% - If speficied, each entry having `undefined' value in a object isn't included in the result JSON <br />
+%% - If specified, each entry having `undefined' value in a object isn't included in the result JSON <br />
 %%
 %% `{map_unknown_value, Fun}`: <br />
 %% - If `Fun' is a function, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun'. <br />
