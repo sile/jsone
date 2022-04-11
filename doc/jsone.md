@@ -72,7 +72,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | {duplicate_map_keys, first | last} | <a href="#type-common_option">common_option()</a>
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | {duplicate_map_keys, first | last} | stream | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `object_format`: <br />
@@ -114,13 +114,21 @@ the last such instance.
 - If the value is `last` then the last duplicate key/value is returned.
 - default: `first`<br />
 
+`stream`: <br />
+
+Decode the input in multiple chunks. Instead of a result or error,
+`{incomplete, fun()}` is returned. The returned fun takes a single argument
+and it should called to continue the decoding. When all the input has been
+provided, the fun should be called with `end_stream` or `end_json` to signal
+the end of input and then the fun returns a result or an error.
+
 
 
 ### <a name="type-encode_option">encode_option()</a> ###
 
 
 <pre><code>
-encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | {map_unknown_value, fun((term()) -&gt; {ok, <a href="#type-json_value">json_value()</a>} | error)} | <a href="#type-common_option">common_option()</a>
+encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_format, [<a href="#type-float_format_option">float_format_option()</a>]} | {datetime_format, <a href="#type-datetime_encode_format">datetime_encode_format()</a>} | {object_key_type, string | scalar | value} | {space, non_neg_integer()} | {indent, non_neg_integer()} | {map_unknown_value, undefined | fun((term()) -&gt; {ok, <a href="#type-json_value">json_value()</a>} | error)} | skip_undefined | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `native_utf8`: <br />
@@ -156,8 +164,13 @@ encode_option() = native_utf8 | native_forward_slash | canonical_form | {float_f
 - Inserts a newline and `N` spaces for each level of indentation <br />
 - default: `0` <br />
 
+`skip_undefined`: <br />
+- If specified, each entry having `undefined` value in a object isn't included in the result JSON <br />
+
 `{map_unknown_value, Fun}`: <br />
-- If specified, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun`.
+- If `Fun` is a function, unknown values encountered during an encoding process are converted to `json_value()` by applying `Fun`. <br />
+- If `Fun` is `undefined`, the encoding results in an error if there are unknown values. <br />
+- default: `term_to_json_string/1` <br />
 
 
 
@@ -175,7 +188,7 @@ float_format_option() = {scientific, Decimals::0..249} | {decimals, Decimals::0.
 - The encoded string will contain at most `Decimals` number of digits past the decimal point. <br />
 - If `compact` is provided the trailing zeros at the end of the string are truncated. <br />
 
-For more details, see [erlang:float_to_list/2](http://erlang.org/doc/man/erlang.html#float_to_list-2).
+For more details, see [erlang:float_to_list/2](http://erlang.org/doc/man/erlang.md#float_to_list-2).
 
 ```
   > jsone:encode(1.23).
@@ -189,6 +202,16 @@ For more details, see [erlang:float_to_list/2](http://erlang.org/doc/man/erlang.
   > jsone:encode(1.23, [{float_format, [{decimals, 4}, compact]}]).
   <<"1.23">>
 ```
+
+
+
+### <a name="type-incomplete">incomplete()</a> ###
+
+
+<pre><code>
+incomplete() = {incomplete, function()}
+</code></pre>
+
 
 
 
@@ -236,7 +259,7 @@ json_object() = <a href="#type-json_object_format_tuple">json_object_format_tupl
 
 
 <pre><code>
-json_object_format_map() = #{}
+json_object_format_map() = map()
 </code></pre>
 
 
@@ -392,7 +415,7 @@ utc_offset_seconds() = -86399..86399
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Equivalent to <a href="#decode-2"><tt>decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#decode-2">decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Equivalent to <a href="#try_decode-2"><tt>try_decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_decode-2">try_decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Equivalent to <a href="#decode-2"><tt>decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#decode-2">decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#ip_address_to_json_string-1">ip_address_to_json_string/1</a></td><td>Convert an IP address into a text representation.</td></tr><tr><td valign="top"><a href="#term_to_json_string-1">term_to_json_string/1</a></td><td>Converts the given term <code>X</code> to its string representation (i.e., the result of <code>io_lib:format("~p", [X])</code>).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Equivalent to <a href="#try_decode-2"><tt>try_decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_decode-2">try_decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
 
 
 <a name="functions"></a>
@@ -404,7 +427,7 @@ utc_offset_seconds() = -86399..86399
 ### decode/1 ###
 
 <pre><code>
-decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
+decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a> | <a href="#type-incomplete">incomplete()</a>
 </code></pre>
 <br />
 
@@ -415,7 +438,7 @@ Equivalent to [`decode(Json, [])`](#decode-2).
 ### decode/2 ###
 
 <pre><code>
-decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-json_value">json_value()</a>
+decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-json_value">json_value()</a> | <a href="#type-incomplete">incomplete()</a>
 </code></pre>
 <br />
 
@@ -467,12 +490,53 @@ Raises an error exception if input is not an instance of type `json_value()`
        in call from jsone:encode/1 (src/jsone.erl, line 97)
 ```
 
+<a name="ip_address_to_json_string-1"></a>
+
+### ip_address_to_json_string/1 ###
+
+<pre><code>
+ip_address_to_json_string(X::<a href="inet.md#type-ip_address">inet:ip_address()</a> | any()) -&gt; {ok, <a href="#type-json_string">json_string()</a>} | error
+</code></pre>
+<br />
+
+Convert an IP address into a text representation.
+
+This function can be specified as the value of the `map_unknown_value` encoding option.
+
+This function formats IPv6 addresses by following the recommendation defined in RFC 5952.
+Note that the trailing 32 bytes of special IPv6 addresses such as IPv4-Compatible (::X.X.X.X),
+IPv4-Mapped (::ffff:X.X.X.X), IPv4-Translated (::ffff:0:X.X.X.X) and IPv4/IPv6 translation
+(64:ff9b::X.X.X.X and 64:ff9b:1::X.X.X.X ~ 64:ff9b:1:ffff:ffff:ffff:X.X.X.X) are formatted
+using the IPv4 format.
+
+```
+  > EncodeOpt = [{map_unknown_value, fun jsone:ip_address_to_json_string/1}].
+  > jsone:encode(#{ip => {127, 0, 0, 1}}, EncodeOpt).
+  <<"{\"ip\":\"127.0.0.1\"}">>
+  > {ok, Addr} = inet:parse_address("2001:DB8:0000:0000:0001:0000:0000:0001").
+  > jsone:encode(Addr, EncodeOpt).
+  <<"\"2001:db8::1:0:0:1\"">>
+  > jsone:encode([foo, {0, 0, 0, 0, 0, 16#FFFF, 16#7F00, 16#0001}], EncodeOpt).
+  <<"[\"foo\",\"::ffff:127.0.0.1\"]">>
+```
+
+<a name="term_to_json_string-1"></a>
+
+### term_to_json_string/1 ###
+
+<pre><code>
+term_to_json_string(X::term()) -&gt; {ok, <a href="#type-json_string">json_string()</a>} | error
+</code></pre>
+<br />
+
+Converts the given term `X` to its string representation (i.e., the result of `io_lib:format("~p", [X])`).
+
 <a name="try_decode-1"></a>
 
 ### try_decode/1 ###
 
 <pre><code>
-try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
+try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | <a href="#type-incomplete">incomplete()</a> | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -483,7 +547,7 @@ Equivalent to [`try_decode(Json, [])`](#try_decode-2).
 ### try_decode/2 ###
 
 <pre><code>
-try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
+try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | <a href="#type-incomplete">incomplete()</a> | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -528,3 +592,4 @@ Encodes an erlang term into json text (a utf8 encoded binary)
                                 [hoge,[{array_values,[2]}],<<"[1,">>],
                                 [{line,86}]}]}}
 ```
+
