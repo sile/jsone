@@ -53,6 +53,7 @@
               json_object_format_map/0,
               json_scalar/0,
 
+              incomplete/0,
               encode_option/0,
               decode_option/0,
               float_format_option/0,
@@ -133,6 +134,8 @@
 -endif.
 
 -type json_scalar() :: json_boolean() | json_number() | json_string().
+
+-type incomplete() :: {incomplete, fun()}.
 
 -type float_format_option() :: {scientific, Decimals :: 0 .. 249} | {decimals, Decimals :: 0 .. 253} | compact.
 %% `scientific': <br />
@@ -252,6 +255,7 @@
                          reject_invalid_utf8 |
                          {'keys', 'binary' | 'atom' | 'existing_atom' | 'attempt_atom'} |
                          {duplicate_map_keys, first | last} |
+                         stream |
                          common_option().
 %% `object_format': <br />
 %% - Decoded JSON object format <br />
@@ -292,6 +296,13 @@
 %% - If the value is `last' then the last duplicate key/value is returned.
 %% - default: `first'<br />
 %%
+%% `stream': <br />
+%%
+%% Decode the input in multiple chunks. Instead of a result or error,
+%% `{incomplete, fun()}' is returned. The returned fun takes a single argument
+%% and it should called to continue the decoding. When all the input has been
+%% provided, the fun should be called with `end_stream' or `end_json' to signal
+%% the end of input and then the fun returns a result or an error.
 
 -type stack_item() :: {Module :: module(),
                        Function :: atom(),
@@ -317,7 +328,7 @@
 %% Exported Functions
 %%--------------------------------------------------------------------------------
 %% @equiv decode(Json, [])
--spec decode(binary()) -> json_value().
+-spec decode(binary()) -> json_value() | incomplete().
 decode(Json) ->
     decode(Json, []).
 
@@ -335,19 +346,44 @@ decode(Json) ->
 %%        called as jsone_decode:number_integer_part(<<"wrong json">>,1,[],<<>>)
 %%     in call from jsone:decode/1 (src/jsone.erl, line 71)
 %% '''
--spec decode(binary(), [decode_option()]) -> json_value().
+-spec decode(binary(), [decode_option()]) -> json_value() | incomplete().
 decode(Json, Options) ->
     try
-        {ok, Value, Remainings} = try_decode(Json, Options),
-        check_decode_remainings(Remainings),
-        Value
+        try_decode(Json, Options)
+    of
+        {ok, Value, Remainings} ->
+            check_decode_remainings(Remainings),
+            Value;
+        {incomplete, ContinueFun} ->
+            {incomplete, replace_incomplete_fun(ContinueFun)}
     catch
         error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
             erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
+%% Replace the fun in `{incomplete, Fun}' from `jsone_decode:decode/2' with a
+%% fun that returns the same result as `jsone:decode/2'.
+replace_incomplete_fun(Fun) ->
+    fun (Input) ->
+            try
+                Fun(Input)
+            of
+                {ok, Value, Remainings} ->
+                    check_decode_remainings(Remainings),
+                    Value;
+                {incomplete, ContinueFun} ->
+                    {incomplete, replace_incomplete_fun(ContinueFun)}
+            catch
+                error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
+                    erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
+            end
+    end.
+
 %% @equiv try_decode(Json, [])
--spec try_decode(binary()) -> {ok, json_value(), Remainings :: binary()} | {error, {Reason :: term(), [stack_item()]}}.
+-spec try_decode(binary()) ->
+          {ok, json_value(), Remainings :: binary()} |
+          incomplete() |
+          {error, {Reason :: term(), [stack_item()]}}.
 try_decode(Json) ->
     try_decode(Json, []).
 
@@ -363,7 +399,9 @@ try_decode(Json) ->
 %%                               [{line,208}]}]}}
 %% '''
 -spec try_decode(binary(), [decode_option()]) ->
-          {ok, json_value(), Remainings :: binary()} | {error, {Reason :: term(), [stack_item()]}}.
+          {ok, json_value(), Remainings :: binary()} |
+          incomplete() |
+          {error, {Reason :: term(), [stack_item()]}}.
 try_decode(Json, Options) ->
     jsone_decode:decode(Json, Options).
 

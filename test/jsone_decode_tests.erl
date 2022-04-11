@@ -286,3 +286,89 @@ decode_test_() ->
               ?assertMatch({ok, _, _}, jsone:try_decode(Input)),
               ?assertMatch({error, {badarg, _}}, jsone:try_decode(Input, [reject_invalid_utf8]))
       end}].
+
+stream_decode_full_test_() ->
+    [{"stream one chunk",
+      fun () ->
+              {incomplete, Fun} = jsone_decode:decode(<<"null">>, [stream]),
+              ?assertEqual({ok, null, <<>>}, Fun(end_stream))
+      end},
+     {"stream two chunks",
+      fun () ->
+              {incomplete, Fun1} = jsone_decode:decode(<<"nul">>, [stream]),
+              {incomplete, Fun2} = Fun1(<<"l">>),
+              ?assertEqual({ok, null, <<>>}, Fun2(end_stream))
+      end}].
+
+stream_decode_byte_by_byte_test_() ->
+    %% A complex JSON document without errors.
+    %% Escaped strings include japanese, ascii, surrugate pairs and mixed.
+    %%Jsons = [<<"true">>],
+    %%Jsons = [<<"0.5">>],
+    Jsons =
+        [<<"true">>, <<"false">>, <<"null">>,   % symbols
+         <<"1">>, <<"0">>, <<"-1">>, <<"-0">>,  % integers
+         %% large integer
+         <<"111111111111111111111111111111111111111111111111111111111111111111111111111111">>,
+         %% floats
+         <<"1.23">>, <<"12345e-3">>, <<"12345E-3">>, <<"12345.0e-3">>,
+         <<"0.12345E2">>, <<"0.12345e+2">>, <<"0.12345E+2">>, <<"-0.012345e3">>,
+         <<"1.23000000000000000000e+02">>,
+         %% strings
+         <<"\"abc\"">>, <<"\"\\\"\\/\\\\\\b\\f\\n\\r\\t\"">>,
+         <<"\"\\u3042\\u3044\\u3046\\u3048\\u304A\"">>,
+         <<"\"\\u0061\\u0062\\u0063\"">>,
+         <<"\"\\u06DD\\u06DE\\u10AE\\u10AF\"">>,
+         <<"\"a\\u30421\\u3044bb\\u304622\\u3048ccc\\u304A333\"">>,
+         <<"\"\\ud848\\udc49\\ud848\\udc9a\\ud848\\udcfc\"">>,
+         <<"[1,2,\"abc\",null]">>,              % simple array
+         <<"[  1,\t2, \n \"abc\",\r null]">>,   % array: contains whitespaces
+         <<"[]">>, <<"[ \t\r\n]">>,             % empty array
+         <<"{\"1\":2,\"key\":\"value\"}">>,     % simple object
+         %% object: contains whitespaces
+         <<"{  \"1\" :\t 2,\n\r\"key\" :   \n  \"value\"}">>,
+         <<"{}">>, <<"{ \t\r\n}">>,             % empty object
+         <<"{\"1\":\"first\",\"1\":\"second\"}">>, % duplicated members
+         %% compound data
+         <<"[true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]">>],
+    %% Test cases
+    [{"'" ++ binary_to_list(Json) ++ "'",
+      fun () -> byte_by_byte(Json) end}
+     || Json <- Jsons].
+
+%% Parse one byte at a time, interleaved with parsing an empty binary
+%% between every chunk.
+byte_by_byte(Bin) ->
+    Result = lists:foldl(fun (Byte, {incomplete, Continue1}) ->
+                                 {incomplete, Continue2} = Continue1(<<Byte>>),
+                                 Continue2(<<>>)
+                         end,
+                         jsone_decode:decode(<<>>, [stream]),
+                         binary_to_list(Bin)),
+    {incomplete, Fun} = Result,
+    {ok, Expected, <<>>} = jsone_decode:decode(Bin),
+    ?assertEqual({ok, Expected, <<>>}, Fun(end_stream)).
+
+stream_decode_byte_by_byte_using_jsone_test_() ->
+    Cases =
+        [{"trailing whitespace",
+          <<"[true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null]  ">>},
+         {"trailing garbage",
+          <<"[true, {\"1\" : 2, \"array\":[[[[1]]], {\"ab\":\"cd\"}, false]}, null] bla bla">>}],
+    [{Name, fun () -> byte_by_byte_using_jsone(Bin) end}
+     || {Name, Bin} <- Cases].
+
+%% Using jsone:decode/2 directly as opposed to jsone_decode:decode/2.
+byte_by_byte_using_jsone(Bin) ->
+    %% Parse one byte at a time, interleaved with parsing an empty binary
+    %% between every chunk.
+    {incomplete, Fun} =
+        lists:foldl(fun (Byte, {incomplete, Continue1}) ->
+                            {incomplete, Continue2} = Continue1(<<Byte>>),
+                            Continue2(<<>>)
+                    end,
+                    jsone:decode(<<>>, [stream]),
+                    binary_to_list(Bin)),
+    Expected = try jsone:decode(Bin) catch C1:E1 -> {C1, E1} end,
+    Actual   = try Fun(end_stream)   catch C2:E2 -> {C2, E2} end,
+    ?assertEqual(Expected, Actual).
