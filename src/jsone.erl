@@ -29,14 +29,10 @@
 %%--------------------------------------------------------------------------------
 %% Exported API
 %%--------------------------------------------------------------------------------
--export([decode/1,
-         decode/2,
-         try_decode/1,
-         try_decode/2,
-         encode/1,
-         encode/2,
-         try_encode/1,
-         try_encode/2,
+-export([decode/1, decode/2,
+         try_decode/1, try_decode/2,
+         encode/1, encode/2,
+         try_encode/1, try_encode/2,
          term_to_json_string/1,
          ip_address_to_json_string/1]).
 
@@ -206,7 +202,7 @@
                          {object_key_type, string | scalar | value} |
                          {space, non_neg_integer()} |
                          {indent, non_neg_integer()} |
-                         {map_unknown_value, undefined | fun ((term()) -> {ok, json_value()} | error)} |
+                         {map_unknown_value, undefined | fun((term()) -> {ok, json_value()} | error)} |
                          skip_undefined |
                          common_option().
 %% `native_utf8': <br />
@@ -318,11 +314,12 @@
 %% The 'OTP_RELEASE' macro introduced at OTP-21,
 %% so we can use it for detecting whether the Erlang compiler supports new try/catch syntax or not.
 -define(CAPTURE_STACKTRACE, :__StackTrace).
--define(GET_STACKTRACE, __StackTrace).
+-define(GET_STACKTRACE,     __StackTrace).
 -else.
 -define(CAPTURE_STACKTRACE, ).
--define(GET_STACKTRACE, erlang:get_stacktrace()).
+-define(GET_STACKTRACE,     erlang:get_stacktrace()).
 -endif.
+
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -331,6 +328,7 @@
 -spec decode(binary()) -> json_value() | incomplete().
 decode(Json) ->
     decode(Json, []).
+
 
 %% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 %%
@@ -387,6 +385,7 @@ replace_incomplete_fun(Fun) ->
 try_decode(Json) ->
     try_decode(Json, []).
 
+
 %% @doc Decodes an erlang term from json text (a utf8 encoded binary)
 %%
 %% ```
@@ -405,10 +404,12 @@ try_decode(Json) ->
 try_decode(Json, Options) ->
     jsone_decode:decode(Json, Options).
 
+
 %% @equiv encode(JsonValue, [])
 -spec encode(json_value()) -> binary().
 encode(JsonValue) ->
     encode(JsonValue, []).
+
 
 %% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 %%
@@ -434,10 +435,12 @@ encode(JsonValue, Options) ->
             erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
     end.
 
+
 %% @equiv try_encode(JsonValue, [])
 -spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_encode(JsonValue) ->
     try_encode(JsonValue, []).
+
 
 %% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 %%
@@ -454,10 +457,12 @@ try_encode(JsonValue) ->
 try_encode(JsonValue, Options) ->
     jsone_encode:encode(JsonValue, Options).
 
+
 %% @doc Converts the given term `X' to its string representation (i.e., the result of `io_lib:format("~p", [X])').
 -spec term_to_json_string(term()) -> {ok, json_string()} | error.
 term_to_json_string(X) ->
     {ok, list_to_binary(io_lib:format("~p", [X]))}.
+
 
 %% @doc Convert an IP address into a text representation.
 %%
@@ -485,6 +490,7 @@ term_to_json_string(X) ->
 -spec ip_address_to_json_string(inet:ip_address() | any()) -> {ok, json_string()} | error.
 ip_address_to_json_string(X) ->
     jsone_inet:ip_address_to_json_string(X).
+
 
 %%--------------------------------------------------------------------------------
 %% Internal Functions

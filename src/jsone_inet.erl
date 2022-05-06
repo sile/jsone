@@ -44,6 +44,7 @@
         ?IS_IPV6_RANGE(A) andalso ?IS_IPV6_RANGE(B) andalso ?IS_IPV6_RANGE(C) andalso ?IS_IPV6_RANGE(D) andalso
         ?IS_IPV6_RANGE(E) andalso ?IS_IPV6_RANGE(F) andalso ?IS_IPV6_RANGE(G) andalso ?IS_IPV6_RANGE(H)).
 
+
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
@@ -81,6 +82,7 @@ ip_address_to_json_string({A, B, C, D, E, F, G, H}) when ?IS_IPV6(A, B, C, D, E,
 ip_address_to_json_string(_) ->
     error.
 
+
 %%--------------------------------------------------------------------------------
 %% Internal Functions
 %%--------------------------------------------------------------------------------
@@ -98,6 +100,7 @@ format_ipv6(Xs) ->
                     Text
             end
     end.
+
 
 -spec format_ipv6([0 .. 65535], non_neg_integer(), non_neg_integer()) ->
           {[string()], not_shortened | shortening | shortened}.
@@ -125,6 +128,7 @@ format_ipv6([X | Xs], Zeros0, MaxZeros) ->
         {Ys, _} ->
             {[to_hex(X) | Ys], shortened}
     end.
+
 
 -spec to_hex(0 .. 65535) -> string().
 to_hex(N) ->
