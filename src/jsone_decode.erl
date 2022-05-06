@@ -63,15 +63,17 @@
 
 -type decode_result() :: {ok, jsone:json_value(), Rest :: binary()} | {error, {Reason :: term(), [jsone:stack_item()]}}.
 
--record(decode_opt_v2,
-        {object_format = ?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
-         allow_ctrl_chars = false :: boolean(),
-         reject_invalid_utf8 = false :: boolean(),
-         keys = binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom',
-         undefined_as_null = false :: boolean(),
-         duplicate_map_keys = first :: first | last}).
+-record(decode_opt_v2, {
+          object_format = ?DEFAULT_OBJECT_FORMAT :: tuple | proplist | map,
+          allow_ctrl_chars = false :: boolean(),
+          reject_invalid_utf8 = false :: boolean(),
+          keys = binary :: 'binary' | 'atom' | 'existing_atom' | 'attempt_atom',
+          undefined_as_null = false :: boolean(),
+          duplicate_map_keys = first :: first | last
+         }).
 -define(OPT, #decode_opt_v2).
 -type opt() :: #decode_opt_v2{}.
+
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -80,10 +82,12 @@
 decode(Json) ->
     decode(Json, []).
 
+
 -spec decode(binary(), [jsone:decode_option()]) -> decode_result().
 decode(<<Json/binary>>, Options) ->
     Opt = parse_options(Options),
     whitespace(Json, value, [], <<"">>, Opt).
+
 
 %%--------------------------------------------------------------------------------
 %% Internal Functions
@@ -100,6 +104,7 @@ next(<<Bin/binary>>, Value, [Next | Nexts], Buf, Opt) ->
         {object_next, Key, Members} ->
             whitespace(Bin, {object_next, [{Key, Value} | Members]}, Nexts, Buf, Opt)
     end.
+
 
 -spec whitespace(binary(), whitespace_next(), [next()], binary(), opt()) -> decode_result().
 whitespace(<<$ , Bin/binary>>, Next, Nexts, Buf, Opt) ->
@@ -128,6 +133,7 @@ whitespace(<<Bin/binary>>, Next, Nexts, Buf, Opt) ->
             object_next(Bin, Members, Nexts, Buf, Opt)
     end.
 
+
 -spec value(binary(), [next()], binary(), opt()) -> decode_result().
 value(<<"false", Bin/binary>>, Nexts, Buf, Opt) ->
     next(Bin, false, Nexts, Buf, Opt);
@@ -146,11 +152,13 @@ value(<<$", Bin/binary>>, Nexts, Buf, Opt) ->
 value(<<Bin/binary>>, Nexts, Buf, Opt) ->
     number(Bin, Nexts, Buf, Opt).
 
+
 -spec array(binary(), [next()], binary(), opt()) -> decode_result().
 array(<<$], Bin/binary>>, Nexts, Buf, Opt) ->
     next(Bin, [], Nexts, Buf, Opt);
 array(<<Bin/binary>>, Nexts, Buf, Opt) ->
     value(Bin, [{array_next, []} | Nexts], Buf, Opt).
+
 
 -spec array_next(binary(), [jsone:json_value()], [next()], binary(), opt()) -> decode_result().
 array_next(<<$], Bin/binary>>, Values, Nexts, Buf, Opt) ->
@@ -160,17 +168,20 @@ array_next(<<$,, Bin/binary>>, Values, Nexts, Buf, Opt) ->
 array_next(Bin, Values, Nexts, Buf, Opt) ->
     ?ERROR(array_next, [Bin, Values, Nexts, Buf, Opt]).
 
+
 -spec object(binary(), [next()], binary(), opt()) -> decode_result().
 object(<<$}, Bin/binary>>, Nexts, Buf, Opt) ->
     next(Bin, make_object([], Opt), Nexts, Buf, Opt);
 object(<<Bin/binary>>, Nexts, Buf, Opt) ->
     object_key(Bin, [], Nexts, Buf, Opt).
 
+
 -spec object_key(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
 object_key(<<$", Bin/binary>>, Members, Nexts, Buf, Opt) ->
     string(Bin, byte_size(Buf), [{object_value, Members} | Nexts], Buf, Opt);
 object_key(<<Bin/binary>>, Members, Nexts, Buf, Opt) ->
     ?ERROR(object_key, [Bin, Members, Nexts, Buf, Opt]).
+
 
 -spec object_value(binary(), jsone:json_string(), jsone:json_object_members(), [next()], binary(), opt()) ->
           decode_result().
@@ -180,6 +191,8 @@ object_value(Bin, Key, Members, Nexts, Buf, Opt) ->
     ?ERROR(object_value, [Bin, Key, Members, Nexts, Buf, Opt]).
 
 -compile({inline, [object_key/2]}).
+
+
 object_key(Key, ?OPT{keys = binary}) ->
     Key;
 object_key(Key, ?OPT{keys = atom}) ->
@@ -194,6 +207,7 @@ object_key(Key, ?OPT{keys = attempt_atom}) ->
             Key
     end.
 
+
 -spec object_next(binary(), jsone:json_object_members(), [next()], binary(), opt()) -> decode_result().
 object_next(<<$}, Bin/binary>>, Members, Nexts, Buf, Opt) ->
     next(Bin, make_object(Members, Opt), Nexts, Buf, Opt);
@@ -202,9 +216,11 @@ object_next(<<$,, Bin/binary>>, Members, Nexts, Buf, Opt) ->
 object_next(Bin, Members, Nexts, Buf, Opt) ->
     ?ERROR(object_next, [Bin, Members, Nexts, Buf, Opt]).
 
+
 -spec string(binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 string(<<Bin/binary>>, Start, Nexts, Buf, Opt) ->
     string(Bin, Bin, Start, Nexts, Buf, Opt).
+
 
 -spec string(binary(), binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 string(<<$", Bin/binary>>, Base, Start, Nexts, Buf, Opt) ->
@@ -252,6 +268,7 @@ string(<<C/utf8, Bin/binary>>, Base, Start, Nexts, Buf, Opt) when 16#20 =< C ->
 string(Bin, Base, Start, Nexts, Buf, Opt) ->
     ?ERROR(string, [Bin, Base, Start, Nexts, Buf, Opt]).
 
+
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
     try
@@ -290,11 +307,13 @@ unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
 unicode_string(Bin, Start, Nexts, Buf, Opt) ->
     ?ERROR(unicode_string, [Bin, Start, Nexts, Buf, Opt]).
 
+
 -spec number(binary(), [next()], binary(), opt()) -> decode_result().
 number(<<$-, Bin/binary>>, Nexts, Buf, Opt) ->
     number_integer_part(Bin, -1, Nexts, Buf, Opt);
 number(<<Bin/binary>>, Nexts, Buf, Opt) ->
     number_integer_part(Bin, 1, Nexts, Buf, Opt).
+
 
 -spec number_integer_part(binary(), 1 | -1, [next()], binary(), opt()) -> decode_result().
 number_integer_part(<<$0, Bin/binary>>, Sign, Nexts, Buf, Opt) ->
@@ -304,17 +323,20 @@ number_integer_part(<<C, Bin/binary>>, Sign, Nexts, Buf, Opt) when $1 =< C, C =<
 number_integer_part(Bin, Sign, Nexts, Buf, Opt) ->
     ?ERROR(number_integer_part, [Bin, Sign, Nexts, Buf, Opt]).
 
+
 -spec number_integer_part_rest(binary(), non_neg_integer(), 1 | -1, [next()], binary(), opt()) -> decode_result().
 number_integer_part_rest(<<C, Bin/binary>>, N, Sign, Nexts, Buf, Opt) when $0 =< C, C =< $9 ->
     number_integer_part_rest(Bin, N * 10 + C - $0, Sign, Nexts, Buf, Opt);
 number_integer_part_rest(<<Bin/binary>>, N, Sign, Nexts, Buf, Opt) ->
     number_fraction_part(Bin, Sign, N, Nexts, Buf, Opt).
 
+
 -spec number_fraction_part(binary(), 1 | -1, non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 number_fraction_part(<<$., Bin/binary>>, Sign, Int, Nexts, Buf, Opt) ->
     number_fraction_part_rest(Bin, Sign, Int, 0, Nexts, Buf, Opt);
 number_fraction_part(<<Bin/binary>>, Sign, Int, Nexts, Buf, Opt) ->
     number_exponation_part(Bin, Sign * Int, 0, Nexts, Buf, Opt).
+
 
 -spec number_fraction_part_rest(binary(), 1 | -1, non_neg_integer(), non_neg_integer(), [next()], binary(), opt()) ->
           decode_result().
@@ -324,6 +346,7 @@ number_fraction_part_rest(<<Bin/binary>>, Sign, N, DecimalOffset, Nexts, Buf, Op
     number_exponation_part(Bin, Sign * N, DecimalOffset, Nexts, Buf, Opt);
 number_fraction_part_rest(Bin, Sign, N, DecimalOffset, Nexts, Buf, Opt) ->
     ?ERROR(number_fraction_part_rest, [Bin, Sign, N, DecimalOffset, Nexts, Buf, Opt]).
+
 
 -spec number_exponation_part(binary(), integer(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 number_exponation_part(<<$e, $+, Bin/binary>>, N, DecimalOffset, Nexts, Buf, Opt) ->
@@ -345,6 +368,7 @@ number_exponation_part(<<Bin/binary>>, N, DecimalOffset, Nexts, Buf, Opt) ->
         _ ->
             next(Bin, N / math:pow(10, DecimalOffset), Nexts, Buf, Opt)
     end.
+
 
 -spec number_exponation_part(binary(),
                              integer(),
@@ -376,6 +400,7 @@ number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Ne
 number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt) ->
     ?ERROR(number_exponation_part, [Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf, Opt]).
 
+
 -spec make_object(jsone:json_object_members(), opt()) -> jsone:json_object().
 make_object(Members, ?OPT{object_format = tuple}) ->
     {lists:reverse(Members)};
@@ -388,9 +413,11 @@ make_object([], _) ->
 make_object(Members, _) ->
     lists:reverse(Members).
 
+
 -spec parse_options([jsone:decode_option()]) -> opt().
 parse_options(Options) ->
     parse_option(Options, ?OPT{}).
+
 
 -spec parse_option([jsone:decode_option()], opt()) -> opt().
 parse_option([], Opt) ->

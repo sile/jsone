@@ -61,21 +61,23 @@
                 {object_members, jsone:json_object_members()} |
                 {char, binary()}.
 
--record(encode_opt_v2,
-        {native_utf8 = false :: boolean(),
-         native_forward_slash = false :: boolean(),
-         canonical_form = false :: boolean(),
-         float_format = [{scientific, 20}] :: [jsone:float_format_option()],
-         datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
-         object_key_type = string :: string | scalar | value,
-         space = 0 :: non_neg_integer(),
-         indent = 0 :: non_neg_integer(),
-         undefined_as_null = false :: boolean(),
-         skip_undefined = false :: boolean(),
-         map_unknown_value = fun jsone:term_to_json_string/1 :: undefined |
-                                                                fun ((term()) -> {ok, jsone:json_value()} | error)}).
+-record(encode_opt_v2, {
+          native_utf8 = false :: boolean(),
+          native_forward_slash = false :: boolean(),
+          canonical_form = false :: boolean(),
+          float_format = [{scientific, 20}] :: [jsone:float_format_option()],
+          datetime_format = {iso8601, 0} :: {jsone:datetime_format(), jsone:utc_offset_seconds()},
+          object_key_type = string :: string | scalar | value,
+          space = 0 :: non_neg_integer(),
+          indent = 0 :: non_neg_integer(),
+          undefined_as_null = false :: boolean(),
+          skip_undefined = false :: boolean(),
+          map_unknown_value = fun jsone:term_to_json_string/1 :: undefined |
+                                                                 fun((term()) -> {ok, jsone:json_value()} | error)
+         }).
 -define(OPT, #encode_opt_v2).
 -type opt() :: #encode_opt_v2{}.
+
 
 %%--------------------------------------------------------------------------------
 %% Exported Functions
@@ -84,10 +86,12 @@
 encode(Value) ->
     encode(Value, []).
 
+
 -spec encode(jsone:json_value(), [jsone:encode_option()]) -> encode_result().
 encode(Value, Options) ->
     Opt = parse_options(Options),
     value(Value, [], <<"">>, Opt).
+
 
 %%--------------------------------------------------------------------------------
 %% Internal Functions
@@ -117,6 +121,7 @@ next(Level = [Next | Nexts], Buf, Opt) ->
             next(Nexts, <<Buf/binary, C>>, Opt)
     end.
 
+
 -spec value(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
 value(null, Nexts, Buf, Opt) ->
     next(Nexts, <<Buf/binary, "null">>, Opt);
@@ -138,9 +143,8 @@ value({{json_utf8, T}}, Nexts, Buf, Opt) ->
         unicode:characters_to_binary(T)
     of
         {error, OK, Invalid} ->
-            {error,
-             {{invalid_json_utf8, OK, Invalid},
-              [{?MODULE, value, [{json_utf8, T}, Nexts, Buf, Opt], [{line, ?LINE}]}]}};
+            {error, {{invalid_json_utf8, OK, Invalid},
+                     [{?MODULE, value, [{json_utf8, T}, Nexts, Buf, Opt], [{line, ?LINE}]}]}};
         B when is_binary(B) ->
             next(Nexts, <<Buf/binary, B/binary>>, Opt)
     catch
@@ -180,6 +184,7 @@ value(Value, Nexts, Buf, Opt) ->
             end
     end.
 
+
 -spec string(jsone:json_string(), [next()], binary(), opt()) -> encode_result().
 string(<<Str/binary>>, Nexts, Buf, Opt) ->
     Len = unescaped_string_length(Str, Opt),
@@ -188,22 +193,22 @@ string(<<Str/binary>>, Nexts, Buf, Opt) ->
 string(Str, Nexts, Buf, Opt) ->
     string(atom_to_binary(Str, utf8), Nexts, Buf, Opt).
 
+
 -spec datetime(calendar:datetime(), [next()], binary(), opt()) -> encode_result().
 datetime({{Y, M, D}, {H, Mi, S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y, M, D, H, Mi, S) ->
     {iso8601, Tz} = Opt?OPT.datetime_format,
-    Str =
-        [format_year(Y),
-         $-,
-         format2digit(M),
-         $-,
-         format2digit(D),
-         $T,
-         format2digit(H),
-         $:,
-         format2digit(Mi),
-         $:,
-         format_seconds(S),
-         format_tz(Tz)],
+    Str = [format_year(Y),
+           $-,
+           format2digit(M),
+           $-,
+           format2digit(D),
+           $T,
+           format2digit(H),
+           $:,
+           format2digit(Mi),
+           $:,
+           format_seconds(S),
+           format_tz(Tz)],
     next(Nexts, <<Buf/binary, $", (list_to_binary(Str))/binary, $">>, Opt);
 datetime(Datetime, Nexts, Buf, Opt) ->
     ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
@@ -211,12 +216,15 @@ datetime(Datetime, Nexts, Buf, Opt) ->
 -ifndef(NO_DIALYZER_SPEC).
 -dialyzer({no_improper_lists, [format_year/1]}).
 -endif.
+
+
 -spec format_year(non_neg_integer()) -> iodata().
 format_year(Y) when Y > 999 ->
     integer_to_binary(Y);
 format_year(Y) ->
     B = integer_to_binary(Y),
     [lists:duplicate(4 - byte_size(B), $0) | B].
+
 
 -spec format2digit(non_neg_integer()) -> iolist().
 format2digit(0) ->
@@ -242,11 +250,13 @@ format2digit(9) ->
 format2digit(X) ->
     integer_to_list(X).
 
+
 -spec format_seconds(non_neg_integer() | float()) -> iolist().
 format_seconds(S) when is_integer(S) ->
     format2digit(S);
 format_seconds(S) when is_float(S) ->
     io_lib:format("~6.3.0f", [S]).
+
 
 -spec format_tz(integer()) -> byte() | iolist().
 format_tz(0) ->
@@ -257,13 +267,16 @@ format_tz(Tz) ->
     [$- | format_tz_(-Tz)].
 
 -define(SECONDS_PER_MINUTE, 60).
--define(SECONDS_PER_HOUR, 3600).
+-define(SECONDS_PER_HOUR,   3600).
+
+
 -spec format_tz_(integer()) -> iolist().
 format_tz_(S) ->
     H = S div ?SECONDS_PER_HOUR,
     S1 = S rem ?SECONDS_PER_HOUR,
     M = S1 div ?SECONDS_PER_MINUTE,
     [format2digit(H), $:, format2digit(M)].
+
 
 -spec object_key(jsone:json_value(), [next()], binary(), opt()) -> encode_result().
 object_key(Key, Nexts, Buf, Opt) when ?IS_STR(Key) ->
@@ -299,6 +312,7 @@ escape_string(<<2#11110:5, C1:3, C2:24, Str/binary>>, Nexts, Buf, Opt) ->
         escape_string(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt) ->
     escape_string(Str, Nexts, <<Buf/binary, Ch/utf8>>, Opt)).
 -endif.
+
 
 -spec escape_string(binary(), [next()], binary(), opt()) -> encode_result().
 escape_string(<<"">>, Nexts, Buf, Opt) ->
@@ -343,46 +357,51 @@ escape_string(Str, Nexts, Buf, Opt) ->
 
 -define(UNESCAPED_CHARS_WITH_SLASH,
         {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false}).
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false}).
 
 -define(UNESCAPED_CHARS_WITHOUT_SLASH,
         {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true,
-         true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-         true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-         false, false, false, false, false, false}).
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, false,
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false}).
 
 -compile({inline, [unescaped_string_length/2]}).
+
+
 -spec unescaped_string_length(binary(), opt()) -> non_neg_integer().
 unescaped_string_length(Str, ?OPT{native_forward_slash = true}) ->
     unescaped_string_length(Str, 0, ?UNESCAPED_CHARS_WITH_SLASH);
 unescaped_string_length(Str, _) ->
     unescaped_string_length(Str, 0, ?UNESCAPED_CHARS_WITHOUT_SLASH).
+
 
 -spec unescaped_string_length(binary(), non_neg_integer(), tuple()) -> non_neg_integer().
 unescaped_string_length(<<C, Str/binary>>, N, Table) ->
@@ -396,6 +415,8 @@ unescaped_string_length(_, N, _) ->
     N.
 
 -compile({inline, [hex/1]}).
+
+
 -spec hex(byte()) -> 0 .. 16#FFFF.
 hex(X) ->
     element(X + 1,
@@ -422,11 +443,13 @@ hex(X) ->
              16#6630, 16#6631, 16#6632, 16#6633, 16#6634, 16#6635, 16#6636, 16#6637, 16#6638, 16#6639, 16#6661, 16#6662,
              16#6663, 16#6664, 16#6665, 16#6666}).
 
+
 -spec array(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
 array([], Nexts, Buf, Opt) ->
     next(Nexts, <<Buf/binary, $[, $]>>, Opt);
 array(List, Nexts, Buf, Opt) ->
     array_values(List, Nexts, pp_newline(<<Buf/binary, $[>>, Nexts, 1, Opt), Opt).
+
 
 -spec array_values(jsone:json_array(), [next()], binary(), opt()) -> encode_result().
 array_values([], Nexts, Buf, Opt) ->
@@ -434,11 +457,13 @@ array_values([], Nexts, Buf, Opt) ->
 array_values([X | Xs], Nexts, Buf, Opt) ->
     value(X, [{array_values, Xs} | Nexts], Buf, Opt).
 
+
 -spec object(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object(Members, Nexts, Buf, ?OPT{skip_undefined = true} = Opt) ->
-    object1(lists:filter(fun ({_, V}) -> V =/= undefined end, Members), Nexts, Buf, Opt);
+    object1(lists:filter(fun({_, V}) -> V =/= undefined end, Members), Nexts, Buf, Opt);
 object(Members, Nexts, Buf, Opt) ->
     object1(Members, Nexts, Buf, Opt).
+
 
 -spec object1(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object1([], Nexts, Buf, Opt) ->
@@ -448,6 +473,7 @@ object1(Members, Nexts, Buf, ?OPT{canonical_form = true} = Opt) ->
 object1(Members, Nexts, Buf, Opt) ->
     object_members(Members, Nexts, pp_newline(<<Buf/binary, ${>>, Nexts, 1, Opt), Opt).
 
+
 -spec object_members(jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_members([], Nexts, Buf, Opt) ->
     next(Nexts, <<(pp_newline(Buf, Nexts, Opt))/binary, $}>>, Opt);
@@ -456,17 +482,21 @@ object_members([{Key, Value} | Xs], Nexts, Buf, Opt) ->
 object_members(Arg, Nexts, Buf, Opt) ->
     ?ERROR(object_members, [Arg, Nexts, Buf, Opt]).
 
+
 -spec object_value(jsone:json_value(), jsone:json_object_members(), [next()], binary(), opt()) -> encode_result().
 object_value(Value, Members, Nexts, Buf, Opt) ->
     value(Value, [{object_members, Members} | Nexts], Buf, Opt).
+
 
 -spec pp_space(binary(), opt()) -> binary().
 pp_space(Buf, Opt) ->
     padding(Buf, Opt?OPT.space).
 
+
 -spec pp_newline(binary(), list(), opt()) -> binary().
 pp_newline(Buf, Level, Opt) ->
     pp_newline(Buf, Level, 0, Opt).
+
 
 -spec pp_newline(binary(), list(), non_neg_integer(), opt()) -> binary().
 pp_newline(Buf, _, _, ?OPT{indent = 0}) ->
@@ -474,11 +504,13 @@ pp_newline(Buf, _, _, ?OPT{indent = 0}) ->
 pp_newline(Buf, L, Extra, ?OPT{indent = N}) ->
     padding(<<Buf/binary, $\n>>, Extra * N + length(L) * N).
 
+
 -spec pp_newline_or_space(binary(), list(), opt()) -> binary().
 pp_newline_or_space(Buf, _, Opt = ?OPT{indent = 0}) ->
     pp_space(Buf, Opt);
 pp_newline_or_space(Buf, L, Opt) ->
     pp_newline(Buf, L, Opt).
+
 
 -spec padding(binary(), non_neg_integer()) -> binary().
 padding(Buf, 0) ->
@@ -502,9 +534,11 @@ padding(Buf, 8) ->
 padding(Buf, N) ->
     padding(<<Buf/binary, "         ">>, N - 9).
 
+
 -spec parse_options([jsone:encode_option()]) -> opt().
 parse_options(Options) ->
     parse_option(Options, ?OPT{}).
+
 
 -spec parse_option([jsone:encode_option()], opt()) -> opt().
 parse_option([], Opt) ->
@@ -544,6 +578,7 @@ parse_option([{map_unknown_value, F} | T], Opt) when is_function(F, 1); F =:= un
     parse_option(T, Opt?OPT{map_unknown_value = F});
 parse_option(List, Opt) ->
     error(badarg, [List, Opt]).
+
 
 -spec local_offset() -> jsone:utc_offset_seconds().
 local_offset() ->

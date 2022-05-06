@@ -16,16 +16,17 @@
 -define(OBJECT_FROM_LIST(List), maps:from_list(List)).
 -endif.
 
+
 encode_test_() ->
     [
      %% Symbols
-     {"false", fun () -> ?assertEqual({ok, <<"false">>}, jsone_encode:encode(false)) end},
-     {"true", fun () -> ?assertEqual({ok, <<"true">>}, jsone_encode:encode(true)) end},
-     {"null", fun () -> ?assertEqual({ok, <<"null">>}, jsone_encode:encode(null)) end},
+     {"false", fun() -> ?assertEqual({ok, <<"false">>}, jsone_encode:encode(false)) end},
+     {"true", fun() -> ?assertEqual({ok, <<"true">>}, jsone_encode:encode(true)) end},
+     {"null", fun() -> ?assertEqual({ok, <<"null">>}, jsone_encode:encode(null)) end},
 
      %% Numbers: Inline json term
      {"json",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"{\"foo\":[1,2,3],\"bar\":\"", 195, 169, "ok\"}">>},
                            jsone_encode:encode(?OBJ2(foo,
                                                      {{json, ["[" | [$1, ",2", <<",3]">>]]}},
@@ -40,24 +41,24 @@ encode_test_() ->
               ?assertEqual({ok, <<"[[1,2,3]]">>}, jsone_encode:encode([{{json, <<"[1,2,3]">>}}]))
       end},
      %% Numbers: Integer
-     {"zero", fun () -> ?assertEqual({ok, <<"0">>}, jsone_encode:encode(0)) end},
-     {"positive integer", fun () -> ?assertEqual({ok, <<"1">>}, jsone_encode:encode(1)) end},
-     {"negative integer", fun () -> ?assertEqual({ok, <<"-1">>}, jsone_encode:encode(-1)) end},
+     {"zero", fun() -> ?assertEqual({ok, <<"0">>}, jsone_encode:encode(0)) end},
+     {"positive integer", fun() -> ?assertEqual({ok, <<"1">>}, jsone_encode:encode(1)) end},
+     {"negative integer", fun() -> ?assertEqual({ok, <<"-1">>}, jsone_encode:encode(-1)) end},
      {"large number",
-      fun () ->
-              ?assertEqual({ok, <<"11111111111111111111111111111111111111111111111111111111111111111111111">>},
-                           jsone_encode:encode(11111111111111111111111111111111111111111111111111111111111111111111111))
+      fun() ->
+             ?assertEqual({ok, <<"11111111111111111111111111111111111111111111111111111111111111111111111">>},
+                          jsone_encode:encode(11111111111111111111111111111111111111111111111111111111111111111111111))
       end},
 
      %% Numbers: Float",
      {"float",
-      fun () ->
+      fun() ->
               Input = 1.234,
               ?assertMatch({ok, _}, jsone_encode:encode(Input)),
               ?assertEqual(Input, binary_to_float(element(2, jsone_encode:encode(Input))))
       end},
      {"float_format option",
-      fun () ->
+      fun() ->
               Input = 1.23,
               ?assertEqual({ok, <<"1.22999999999999998224e+00">>}, jsone_encode:encode(Input)),
               ?assertEqual({ok, <<"1.2300e+00">>}, jsone_encode:encode(Input, [{float_format, [{scientific, 4}]}])),
@@ -67,23 +68,23 @@ encode_test_() ->
       end},
 
      %% Strings
-     {"simple string", fun () -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(<<"abc">>)) end},
-     {"atom is regarded as string", fun () -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(abc)) end},
+     {"simple string", fun() -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(<<"abc">>)) end},
+     {"atom is regarded as string", fun() -> ?assertEqual({ok, <<"\"abc\"">>}, jsone_encode:encode(abc)) end},
      {"string: contains escaped characters",
-      fun () ->
+      fun() ->
               Input = <<"\"\/\\\b\f\n\r\t">>,
               Expected = list_to_binary([$", [[$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t]], $"]),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
      {"string: contains forward slashes",
-      fun () ->
+      fun() ->
               Input = <<"1/2">>,
               ?assertEqual({ok, <<"\"1\\/2\"">>}, jsone_encode:encode(Input)),
               ?assertEqual({ok, <<"\"1/2\"">>}, jsone_encode:encode(Input, [native_forward_slash]))
       end},
      {"string: contains control characters",
-      fun () ->
+      fun() ->
               Ctrls = lists:seq(16#00, 16#1F) -- [$\b, $\f, $\n, $\r, $\t],
               Input = list_to_binary(Ctrls),
               Expected = list_to_binary([$", [io_lib:format("\\u00~2.16.0b", [C]) || C <- Ctrls], $"]),
@@ -91,7 +92,7 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
      {"string: contains multi-byte (UTF-8 encoded) characters",
-      fun () ->
+      fun() ->
               %% japanese
               Input1 = <<"あいうえお">>,  % assumed that the encoding of this file is UTF-8
               Expected1 = <<"\"\\u3042\\u3044\\u3046\\u3048\\u304a\"">>,
@@ -107,7 +108,7 @@ encode_test_() ->
               ?assertEqual({ok, Expected22}, jsone_encode:encode(Input2, [native_utf8]))
       end},
      {"string: contains surrogate pairs",
-      fun () ->
+      fun() ->
               Input = <<"𢁉𢂚𢃼">>,
               Expected = <<"\"\\ud848\\udc49\\ud848\\udc9a\\ud848\\udcfc\"">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
@@ -115,7 +116,7 @@ encode_test_() ->
 
      %% Strings variant: Datetimes
      {"datetime: iso8601: utc",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>}, jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}})),
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>},
                            jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}}, [{datetime_format, iso8601}])),
@@ -123,7 +124,7 @@ encode_test_() ->
                            jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}}, [{datetime_format, {iso8601, utc}}]))
       end},
      {"datetime: iso8601: local",
-      fun () ->
+      fun() ->
               {ok, Json} = jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}}, [{datetime_format, {iso8601, local}}]),
 
               UTC = {{1970, 1, 2}, {0, 0, 0}},
@@ -136,7 +137,7 @@ encode_test_() ->
               end
       end},
      {"datetime: iso8601: timezone",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>},
                            jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}}, [{datetime_format, {iso8601, 0}}])),
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25+00:01\"">>},
@@ -148,7 +149,7 @@ encode_test_() ->
       ?_assertEqual({ok, <<"[\"2015-06-25T14:57:25Z\"]">>}, jsone_encode:encode([{{2015, 6, 25}, {14, 57, 25}}]))},
 
      {"datetime: iso8601: with fractions of seconds",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25.325Z\"">>},
                            jsone_encode:encode({{2015, 6, 25}, {14, 57, 25.3245}})),
               ?assertEqual({ok, <<"\"2015-06-25T14:57:05.320Z\"">>},
@@ -157,13 +158,13 @@ encode_test_() ->
 
      %% Arrays
      {"simple array",
-      fun () ->
+      fun() ->
               Input = [1, 2, 3],
               Expected = <<"[1,2,3]">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
      {"empty array",
-      fun () ->
+      fun() ->
               Input = [],
               Expected = <<"[]">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
@@ -171,7 +172,7 @@ encode_test_() ->
 
      %% Objects
      {"simple object",
-      fun () ->
+      fun() ->
               Input1 = {[{<<"key">>, <<"value">>}, {<<"1">>, 2}]},
               Input2 = [{<<"key">>, <<"value">>}, {<<"1">>, 2}],
               Expected = <<"{\"key\":\"value\",\"1\":2}">>,
@@ -179,7 +180,7 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
       end},
      {"empty object",
-      fun () ->
+      fun() ->
               Input1 = {[]},
               Input2 = [{}],
               Expected = <<"{}">>,
@@ -187,24 +188,24 @@ encode_test_() ->
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input2))
       end},
      {"simple object: map",
-      fun () ->
+      fun() ->
               Input = ?OBJ2(<<"1">>, 2, <<"key">>, <<"value">>),
               Expected = <<"{\"1\":2,\"key\":\"value\"}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
      {"empty object: map",
-      fun () ->
+      fun() ->
               Input = ?OBJ0,
               Expected = <<"{}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input))
       end},
      {"atom key is allowed",
-      fun () ->
+      fun() ->
               Expected = <<"{\"key\":2}">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode({[{key, 2}]}))
       end},
      {"object_key_type option",
-      fun () ->
+      fun() ->
               %% key: atom
               ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(?OBJ1(a, 2), [{object_key_type, string}])),  % OK
               ?assertEqual({ok, <<"{\"a\":2}">>}, jsone_encode:encode(?OBJ1(a, 2), [{object_key_type, scalar}])),  % OK
@@ -234,18 +235,22 @@ encode_test_() ->
               ?assertEqual({ok, <<"{\"{}\":2}">>}, jsone_encode:encode(?OBJ1(?OBJ0, 2), [{object_key_type, value}]))  % OK
       end},
      {"non binary object member key is disallowed",
-      fun () ->
+      fun() ->
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{1, 2}]})),
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode({[{"1", 2}]}))
       end},
      {"undefined_as_null option",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"null">>}, jsone_encode:encode(undefined, [undefined_as_null])),  % OK
               ?assertEqual({ok, <<"\"undefined\"">>}, jsone_encode:encode(undefined, []))  % OK
       end},
      {"skip_undefined option",
-      fun () ->
-              Object = #{<<"1">> => undefined, <<"2">> => 3, <<"3">> => undefined},
+      fun() ->
+              Object = #{
+                         <<"1">> => undefined,
+                         <<"2">> => 3,
+                         <<"3">> => undefined
+                        },
               ?assertEqual({ok, <<"{\"1\":null,\"2\":3,\"3\":null}">>},
                            jsone_encode:encode(Object, [undefined_as_null])),
               ?assertEqual({ok, <<"{\"2\":3}">>}, jsone_encode:encode(Object, [skip_undefined]))
@@ -253,7 +258,7 @@ encode_test_() ->
 
      %% Pretty Print
      {"space",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"[]">>}, jsone_encode:encode([], [{space, 1}])),
               ?assertEqual({ok, <<"[1, 2, 3]">>}, jsone_encode:encode([1, 2, 3], [{space, 1}])),
               ?assertEqual({ok, <<"[1,  2,  3]">>}, jsone_encode:encode([1, 2, 3], [{space, 2}])),
@@ -262,7 +267,7 @@ encode_test_() ->
               ?assertEqual({ok, <<"{\"a\":  1,  \"b\":  2}">>}, jsone_encode:encode(?OBJ2(a, 1, b, 2), [{space, 2}]))
       end},
      {"indent",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"[]">>}, jsone_encode:encode([], [{indent, 1}])),
               ?assertEqual({ok, <<"[\n 1,\n 2,\n 3\n]">>}, jsone_encode:encode([1, 2, 3], [{indent, 1}])),
               ?assertEqual({ok, <<"[\n  1,\n  2,\n  3\n]">>}, jsone_encode:encode([1, 2, 3], [{indent, 2}])),
@@ -273,7 +278,7 @@ encode_test_() ->
                            jsone_encode:encode(?OBJ2(a, 1, b, 2), [{indent, 2}]))
       end},
      {"indent+space",
-      fun () ->
+      fun() ->
               ?assertEqual({ok, <<"[]">>}, jsone_encode:encode([], [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"[\n 1,\n 2,\n 3\n]">>}, jsone_encode:encode([1, 2, 3], [{indent, 1}, {space, 1}])),
               ?assertEqual({ok, <<"[\n  1,\n  2,\n  3\n]">>},
@@ -287,26 +292,25 @@ encode_test_() ->
 
      %% `map_unknown_value` option
      {"`map_unknown_value` option",
-      fun () ->
+      fun() ->
               Input = [{1, 2, 3, 4}],
-              MapFun =
-                  fun ({_, _, _, _} = Ip4) ->
-                          {ok, list_to_binary(inet:ntoa(Ip4))};
-                      (_) ->
-                          error
-                  end,
+              MapFun = fun({_, _, _, _} = Ip4) ->
+                               {ok, list_to_binary(inet:ntoa(Ip4))};
+                          (_) ->
+                               error
+                       end,
               Expected = <<"[\"1.2.3.4\"]">>,
               ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
       end},
      {"`map_unknown_value` option with singleton tuple",
-      fun () ->
+      fun() ->
               Input = [{foo}],
-              MapFun = fun (Value) -> {ok, unicode:characters_to_binary(io_lib:format("~p~n", [Value]))} end,
+              MapFun = fun(Value) -> {ok, unicode:characters_to_binary(io_lib:format("~p~n", [Value]))} end,
               Expected = <<"[\"{foo}\\n\"]">>,
               ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, MapFun}]))
       end},
      {"IP address",
-      fun () ->
+      fun() ->
               Input = #{ip => {127, 0, 0, 1}},
               Expected = <<"{\"ip\":\"127.0.0.1\"}">>,
               ?assertEqual(Expected, jsone:encode(Input, [{map_unknown_value, fun jsone:ip_address_to_json_string/1}])),
@@ -317,9 +321,10 @@ encode_test_() ->
 
      %% Others
      {"compound data",
-      fun () ->
-              Input =
-                  [true, {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, [], ?OBJ0, false]}]}, null],
+      fun() ->
+              Input = [true,
+                       {[{<<"1">>, 2}, {<<"array">>, [[[[1]]], {[{<<"ab">>, <<"cd">>}]}, [], ?OBJ0, false]}]},
+                       null],
               Expected = <<"[true,{\"1\":2,\"array\":[[[[1]]],{\"ab\":\"cd\"},[],{},false]},null]">>,
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
 
@@ -328,15 +333,15 @@ encode_test_() ->
               ?assertEqual({ok, PpExpected}, jsone_encode:encode(Input, [{indent, 1}, {space, 1}]))
       end},
      {"invalid value",
-      fun () ->
+      fun() ->
               Pid = self(),
               PidString = list_to_binary(io_lib:format("~p", [Pid])),
               ?assertEqual({ok, <<$", PidString/binary, $">>}, jsone_encode:encode(Pid)),
               ?assertMatch({error, {badarg, _}}, jsone_encode:encode(Pid, [{map_unknown_value, undefined}]))
       end},
-     {"wrong option", fun () -> ?assertError(badarg, jsone_encode:encode(1, [{no_such_option, hoge}])) end},
+     {"wrong option", fun() -> ?assertError(badarg, jsone_encode:encode(1, [{no_such_option, hoge}])) end},
      {"canonical_form",
-      fun () ->
+      fun() ->
               Obj1 = ?OBJECT_FROM_LIST([{<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(1000, 0, -1)]),
               Obj2 = ?OBJECT_FROM_LIST([{<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(0, 1000, 1)]),
               ?assertEqual(jsone_encode:encode(Obj1, [canonical_form]), jsone_encode:encode(Obj2, [canonical_form]))
