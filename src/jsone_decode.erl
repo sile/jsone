@@ -161,8 +161,6 @@ value(<<${, Bin/binary>>, Nexts, Buf, Opt) ->
     whitespace(Bin, object, Nexts, Buf, Opt);
 value(<<$", Bin/binary>>, Nexts, Buf, Opt) ->
     string(Bin, byte_size(Buf), Nexts, Buf, Opt);
-%% value(<<>>, Nexts, Buf, Opt) when Opt?OPT.stream ->
-%%     incomplete(fun value/4, [<<>>, Nexts, Buf, Opt]);
 value(<<C, _/binary>> = Bin, Nexts, Buf, Opt) when
       Opt?OPT.stream,
       (C =:= $f andalso byte_size(Bin) < 5) orelse % incomplete "false"
@@ -466,14 +464,14 @@ number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp, IsFirst, Nexts, Buf,
 incomplete_result({ok, Value, Rest} = Result) ->
     %% The user needs to call Fun(end_stream) to get the ok tuple.
     {incomplete,
-     fun (End) when End =:= end_stream; End =:= end_json ->
+     fun (end_stream) ->
              Result;
          (<<More/binary>>) ->
              incomplete_result({ok, Value, <<Rest/binary, More/binary>>})
      end};
 incomplete_result({error, _} = Error) ->
     {incomplete,
-     fun (End) when End =:= end_stream; End =:= end_json ->
+     fun (end_stream) ->
              Error;
          (<<_More/binary>>) ->
              incomplete_result(Error)
@@ -484,7 +482,7 @@ incomplete_result({incomplete, _} = Incomplete) ->
 -spec incomplete(fun(), list()) -> jsone:incomplete().
 incomplete(Fun, [Remains | Args]) ->
     {incomplete,
-     fun F(End) when End =:= end_stream; End =:= end_json ->
+     fun F(end_stream) ->
              %% The last arg is always Opts
              [Opt | RevArgs] = lists:reverse(Args),
              Args1 = lists:reverse([Opt?OPT{stream = false} | RevArgs]),
@@ -500,8 +498,7 @@ incomplete(Fun, [Remains | Args]) ->
           jsone:incomplete().
 incomplete_string(Remains, Base, Start, Nexts, Buf, Opt) ->
     {incomplete,
-     fun F(End) when End =:= end_stream;
-                    End =:= end_json ->
+     fun F(end_stream) ->
              string(Remains, Base, Start, Nexts, Buf, Opt?OPT{stream = false});
          F(<<>>) ->
              {incomplete, F};

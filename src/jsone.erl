@@ -297,8 +297,8 @@
 %% Decode the input in multiple chunks. Instead of a result or error,
 %% `{incomplete, fun()}' is returned. The returned fun takes a single argument
 %% and it should called to continue the decoding. When all the input has been
-%% provided, the fun should be called with `end_stream' or `end_json' to signal
-%% the end of input and then the fun returns a result or an error.
+%% provided, the fun should be called with `end_stream' to signal the end of
+%% input and then the fun returns a result or an error.
 
 -type stack_item() :: {Module :: module(),
                        Function :: atom(),
