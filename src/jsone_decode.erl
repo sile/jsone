@@ -34,7 +34,7 @@
 %%--------------------------------------------------------------------------------
 %% Exported API
 %%--------------------------------------------------------------------------------
--export([decode/1, decode/2]).
+-export([decode/1, decode/2, decode_stream/2]).
 
 %%--------------------------------------------------------------------------------
 %% Macros & Records & Types
@@ -61,8 +61,10 @@
                            {object_value, jsone:json_string(), jsone:json_object_members()} |
                            {object_next, jsone:json_object_members()}.
 
+-type incomplete() :: jsone:incomplete_try().
+
 -type decode_result() :: {ok, jsone:json_value(), Rest :: binary()} |
-                         jsone:incomplete() |
+                         incomplete() |
                          {error, {Reason :: term(), [jsone:stack_item()]}}.
 
 -record(decode_opt_v3, {
@@ -82,25 +84,33 @@
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
--spec decode(binary()) -> decode_result().
+-spec decode(binary()) ->
+          {ok, jsone:json_value(), Rest :: binary()} |
+          {error, {Reason :: term(), [jsone:stack_item()]}}
 decode(Json) ->
     decode(Json, []).
 
 
--spec decode(binary(), [jsone:decode_option()]) -> decode_result().
+-spec decode(binary(), [jsone:decode_option()]) ->
+          {ok, jsone:json_value(), Rest :: binary()} |
+          {error, {Reason :: term(), [jsone:stack_item()]}}
 decode(<<Json/binary>>, Options) ->
     Opt = parse_options(Options),
-    case whitespace(Json, value, [], <<"">>, Opt) of
-        Result when Opt?OPT.stream ->
-            incomplete_result(Result);
-        Result ->
-            Result
-    end.
+    whitespace(Json, value, [], <<"">>, Opt).
 
+-spec decode_stream(binary(), [jsone:decode_option()]) -> incomplete().
+decode_stream(<<Json/binary>>, Options) ->
+    Opt0 = parse_options(Options),
+    Opt = Opt0?OPT{stream = true},
+    Result = whitespace(Json, value, [], <<"">>, Opt),
+    incomplete_result(Result).
 
 %%--------------------------------------------------------------------------------
 %% Internal Functions
 %%--------------------------------------------------------------------------------
+
+%% The functions which return decode_result() can only return incomplete() if
+%% the stream option is set.
 
 -spec next(binary(), jsone:json_value(), [next()], binary(), opt()) -> decode_result().
 next(<<Bin/binary>>, Value, [], _Buf, _Opt) ->
@@ -479,7 +489,7 @@ incomplete_result({error, _} = Error) ->
 incomplete_result({incomplete, _} = Incomplete) ->
     Incomplete.
 
--spec incomplete(fun(), list()) -> jsone:incomplete().
+-spec incomplete(fun(), list()) -> jsone:incomplete_try().
 incomplete(Fun, [Remains | Args]) ->
     {incomplete,
      fun F(end_stream) ->
