@@ -63,9 +63,10 @@ index c07cf0d..8426e22 100644
        {:jason, "~> 1.1", only: [:test, :bench]},
        {:exjsx, "~> 4.0", only: :bench},
        {:tiny, "~> 1.0", only: :bench},
-       {:jsone, "~> 1.4", only: :bench},
+-      {:jsone, "~> 1.4", only: :bench},
 -      {:jiffy, "~> 0.15", only: :bench},
 -      {:json, "~> 1.2", only: :bench}
++      {:jsone, path: "../..", only: :bench},
 +      {:jiffy, "~> 1.0", only: :bench},
 +      {:json, "~> 1.4", only: :bench}
      ]

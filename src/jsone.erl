@@ -31,6 +31,8 @@
 %%--------------------------------------------------------------------------------
 -export([decode/1, decode/2,
          try_decode/1, try_decode/2,
+         decode_stream/1, decode_stream/2,
+         try_decode_stream/1, try_decode_stream/2,
          encode/1, encode/2,
          try_encode/1, try_encode/2,
          term_to_json_string/1,
@@ -49,6 +51,8 @@
               json_object_format_map/0,
               json_scalar/0,
 
+              incomplete/0,
+              incomplete_try/0,
               encode_option/0,
               decode_option/0,
               float_format_option/0,
@@ -129,6 +133,17 @@
 -endif.
 
 -type json_scalar() :: json_boolean() | json_number() | json_string().
+
+-type incomplete_fun() :: fun((binary() | end_stream) ->
+                                     incomplete() | json_value()).
+-type incomplete() :: {incomplete, incomplete_fun()}.
+
+-type incomplete_try_fun() :: fun((binary() | end_stream) ->
+                                         incomplete_try() |
+                                         {ok, json_value(), Remainings :: binary()} |
+                                         {error, {Reason :: term(), [stack_item()]}}).
+
+-type incomplete_try() :: {incomplete, incomplete_try_fun()}.
 
 -type float_format_option() :: {scientific, Decimals :: 0 .. 249} | {decimals, Decimals :: 0 .. 253} | compact.
 %% `scientific': <br />
@@ -287,7 +302,6 @@
 %% - If the value is `first' then the first duplicate key/value is returned.  <br />
 %% - If the value is `last' then the last duplicate key/value is returned.
 %% - default: `first'<br />
-%%
 
 -type stack_item() :: {Module :: module(),
                        Function :: atom(),
@@ -346,7 +360,9 @@ decode(Json, Options) ->
 
 
 %% @equiv try_decode(Json, [])
--spec try_decode(binary()) -> {ok, json_value(), Remainings :: binary()} | {error, {Reason :: term(), [stack_item()]}}.
+-spec try_decode(binary()) ->
+          {ok, json_value(), Remainings :: binary()} |
+          {error, {Reason :: term(), [stack_item()]}}.
 try_decode(Json) ->
     try_decode(Json, []).
 
@@ -363,9 +379,65 @@ try_decode(Json) ->
 %%                               [{line,208}]}]}}
 %% '''
 -spec try_decode(binary(), [decode_option()]) ->
-          {ok, json_value(), Remainings :: binary()} | {error, {Reason :: term(), [stack_item()]}}.
+          {ok, json_value(), Remainings :: binary()} |
+          {error, {Reason :: term(), [stack_item()]}}.
 try_decode(Json, Options) ->
     jsone_decode:decode(Json, Options).
+
+
+%% @equiv decode_stream(Json, [])
+-spec decode_stream(binary()) -> incomplete().
+decode_stream(Json) ->
+    decode_stream(Json, []).
+
+
+%% @doc Decodes an Erlang from JSON text in chunks.
+%%
+%% Instead of returning a result, `{incomplete, fun()}' is returned. The
+%% returned fun takes a single argument and it should called to continue the
+%% decoding. When all the input has been provided, the fun should be called with
+%% `end_stream' to signal the end of input and then the fun returns a result or
+%% an error, as `decode/2' would do.
+%%
+%% ```
+%% 1> {incomplete, F1} = jsone:decode(<<"[1,2,">>, []).
+%% {incomplete, #Fun<jsone.44.79398840>}
+%% 2> {incomplete, F2} = F1(<<"3]>>).
+%% {incomplete, #Fun<jsone.45.79398840>}
+%% 3> F2(end_stream).
+%% [1,2,3]
+%% '''
+
+-spec decode_stream(binary(), [decode_option()]) -> incomplete().
+decode_stream(Json, Options) ->
+    try
+        {incomplete, ContinueFun} = try_decode_stream(Json, Options),
+        {incomplete, replace_incomplete_fun(ContinueFun)}
+    catch
+        error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
+            erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
+    end.
+
+
+%% @equiv try_decode_stream(Json, [])
+-spec try_decode_stream(binary()) -> incomplete_try().
+try_decode_stream(Json) ->
+    try_decode_stream(Json, []).
+
+
+%% @doc Decodes an Erlang from JSON text in chunks.
+%%
+%% ```
+%% 1> {incomplete, F1} = jsone:try_decode(<<"[1,2,">>, []).
+%% {incomplete, #Fun<jsone.46.79398840>}
+%% 2> {incomplete, F2} = F1(<<"3] \"next value\"">>).
+%% {incomplete, #Fun<jsone.47.79398840>}
+%% 2> F2(end_stream).
+%% {ok,[1,2,3],<<" \"next value\"">>}
+%% '''
+-spec try_decode_stream(binary(), [decode_option()]) -> incomplete_try().
+try_decode_stream(Json, Options) ->
+    jsone_decode:decode_stream(Json, Options).
 
 
 %% @equiv encode(JsonValue, [])
@@ -471,3 +543,25 @@ check_decode_remainings(<<$\n, Bin/binary>>) ->
     check_decode_remainings(Bin);
 check_decode_remainings(<<Bin/binary>>) ->
     erlang:error(badarg, [Bin]).
+
+%% Replace the fun in `{incomplete, Fun}' from `jsone_decode:decode_steram/2'
+%% with a fun that returns the same result as `jsone:decode/1,2'.
+replace_incomplete_fun(Fun) ->
+    fun (end_stream) ->
+            try
+                {ok, Value, Remainings} = Fun(end_stream),
+                check_decode_remainings(Remainings),
+                Value
+            catch
+                error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
+                    erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
+            end;
+        (Input) ->
+            try
+                {incomplete, ContinueFun} = Fun(Input),
+                {incomplete, replace_incomplete_fun(ContinueFun)}
+            catch
+                error:{badmatch, {error, {Reason, [StackItem]}}} ?CAPTURE_STACKTRACE->
+                    erlang:raise(error, Reason, [StackItem | ?GET_STACKTRACE])
+            end
+    end.
