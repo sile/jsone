@@ -72,7 +72,7 @@ datetime_format() = iso8601
 
 
 <pre><code>
-decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | {duplicate_map_keys, first | last} | stream | <a href="#type-common_option">common_option()</a>
+decode_option() = {object_format, tuple | proplist | map} | {allow_ctrl_chars, boolean()} | reject_invalid_utf8 | {keys, binary | atom | existing_atom | attempt_atom} | {duplicate_map_keys, first | last} | <a href="#type-common_option">common_option()</a>
 </code></pre>
 
 `object_format`: <br />
@@ -113,14 +113,6 @@ the last such instance.
 - If the value is `first` then the first duplicate key/value is returned.<br />
 - If the value is `last` then the last duplicate key/value is returned.
 - default: `first`<br />
-
-`stream`: <br />
-
-Decode the input in multiple chunks. Instead of a result or error,
-`{incomplete, fun()}` is returned. The returned fun takes a single argument
-and it should called to continue the decoding. When all the input has been
-provided, the fun should be called with `end_stream` or `end_json` to signal
-the end of input and then the fun returns a result or an error.
 
 
 
@@ -209,7 +201,37 @@ For more details, see [erlang:float_to_list/2](http://erlang.org/doc/man/erlang.
 
 
 <pre><code>
-incomplete() = {incomplete, function()}
+incomplete() = {incomplete, <a href="#type-incomplete_fun">incomplete_fun()</a>}
+</code></pre>
+
+
+
+
+### <a name="type-incomplete_fun">incomplete_fun()</a> ###
+
+
+<pre><code>
+incomplete_fun() = fun((binary() | end_stream) -&gt; <a href="#type-incomplete">incomplete()</a> | <a href="#type-json_value">json_value()</a>)
+</code></pre>
+
+
+
+
+### <a name="type-incomplete_try">incomplete_try()</a> ###
+
+
+<pre><code>
+incomplete_try() = {incomplete, <a href="#type-incomplete_try_fun">incomplete_try_fun()</a>}
+</code></pre>
+
+
+
+
+### <a name="type-incomplete_try_fun">incomplete_try_fun()</a> ###
+
+
+<pre><code>
+incomplete_try_fun() = fun((binary() | end_stream) -&gt; <a href="#type-incomplete_try">incomplete_try()</a> | {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}})
 </code></pre>
 
 
@@ -415,7 +437,7 @@ utc_offset_seconds() = -86399..86399
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Equivalent to <a href="#decode-2"><tt>decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#decode-2">decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#ip_address_to_json_string-1">ip_address_to_json_string/1</a></td><td>Convert an IP address into a text representation.</td></tr><tr><td valign="top"><a href="#term_to_json_string-1">term_to_json_string/1</a></td><td>Converts the given term <code>X</code> to its string representation (i.e., the result of <code>io_lib:format("~p", [X])</code>).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Equivalent to <a href="#try_decode-2"><tt>try_decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_decode-2">try_decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#decode-1">decode/1</a></td><td>Equivalent to <a href="#decode-2"><tt>decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#decode-2">decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#decode_stream-1">decode_stream/1</a></td><td>Equivalent to <a href="#decode_stream-2"><tt>decode_stream(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#decode_stream-2">decode_stream/2</a></td><td>Decodes an Erlang from JSON text in chunks.</td></tr><tr><td valign="top"><a href="#encode-1">encode/1</a></td><td>Equivalent to <a href="#encode-2"><tt>encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#encode-2">encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#ip_address_to_json_string-1">ip_address_to_json_string/1</a></td><td>Convert an IP address into a text representation.</td></tr><tr><td valign="top"><a href="#term_to_json_string-1">term_to_json_string/1</a></td><td>Converts the given term <code>X</code> to its string representation (i.e., the result of <code>io_lib:format("~p", [X])</code>).</td></tr><tr><td valign="top"><a href="#try_decode-1">try_decode/1</a></td><td>Equivalent to <a href="#try_decode-2"><tt>try_decode(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_decode-2">try_decode/2</a></td><td>Decodes an erlang term from json text (a utf8 encoded binary).</td></tr><tr><td valign="top"><a href="#try_decode_stream-1">try_decode_stream/1</a></td><td>Equivalent to <a href="#try_decode_stream-2"><tt>try_decode_stream(Json, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_decode_stream-2">try_decode_stream/2</a></td><td>Decodes an Erlang from JSON text in chunks.</td></tr><tr><td valign="top"><a href="#try_encode-1">try_encode/1</a></td><td>Equivalent to <a href="#try_encode-2"><tt>try_encode(JsonValue, [])</tt></a>.</td></tr><tr><td valign="top"><a href="#try_encode-2">try_encode/2</a></td><td>Encodes an erlang term into json text (a utf8 encoded binary).</td></tr></table>
 
 
 <a name="functions"></a>
@@ -427,7 +449,7 @@ utc_offset_seconds() = -86399..86399
 ### decode/1 ###
 
 <pre><code>
-decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a> | <a href="#type-incomplete">incomplete()</a>
+decode(Json::binary()) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
 <br />
 
@@ -438,7 +460,7 @@ Equivalent to [`decode(Json, [])`](#decode-2).
 ### decode/2 ###
 
 <pre><code>
-decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-json_value">json_value()</a> | <a href="#type-incomplete">incomplete()</a>
+decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-json_value">json_value()</a>
 </code></pre>
 <br />
 
@@ -454,6 +476,43 @@ Raises an error exception if input is not valid json
       in function  jsone_decode:number_integer_part/4
          called as jsone_decode:number_integer_part(<<"wrong json">>,1,[],<<>>)
       in call from jsone:decode/1 (src/jsone.erl, line 71)
+```
+
+<a name="decode_stream-1"></a>
+
+### decode_stream/1 ###
+
+<pre><code>
+decode_stream(Json::binary()) -&gt; <a href="#type-incomplete">incomplete()</a>
+</code></pre>
+<br />
+
+Equivalent to [`decode_stream(Json, [])`](#decode_stream-2).
+
+<a name="decode_stream-2"></a>
+
+### decode_stream/2 ###
+
+<pre><code>
+decode_stream(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-incomplete">incomplete()</a>
+</code></pre>
+<br />
+
+Decodes an Erlang from JSON text in chunks.
+
+Instead of returning a result, `{incomplete, fun()}` is returned. The
+returned fun takes a single argument and it should called to continue the
+decoding. When all the input has been provided, the fun should be called with
+`end_stream` to signal the end of input and then the fun returns a result or
+an error, as `decode/2` would do.
+
+```
+  1> {incomplete, F1} = jsone:decode(<<"[1,2,">>, []).
+  {incomplete, #Fun<jsone.44.79398840>}
+  2> {incomplete, F2} = F1(<<"3]>>).
+  {incomplete, #Fun<jsone.45.79398840>}
+  3> F2(end_stream).
+  [1,2,3]
 ```
 
 <a name="encode-1"></a>
@@ -536,7 +595,7 @@ Converts the given term `X` to its string representation (i.e., the result of `i
 ### try_decode/1 ###
 
 <pre><code>
-try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | <a href="#type-incomplete">incomplete()</a> | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
+try_decode(Json::binary()) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -547,7 +606,7 @@ Equivalent to [`try_decode(Json, [])`](#try_decode-2).
 ### try_decode/2 ###
 
 <pre><code>
-try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | <a href="#type-incomplete">incomplete()</a> | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
+try_decode(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; {ok, <a href="#type-json_value">json_value()</a>, Remainings::binary()} | {error, {Reason::term(), [<a href="#type-stack_item">stack_item()</a>]}}
 </code></pre>
 <br />
 
@@ -560,6 +619,37 @@ Decodes an erlang term from json text (a utf8 encoded binary)
   {error,{badarg,[{jsone_decode,number_integer_part,
                                 [<<"wrong json">>,1,[],<<>>],
                                 [{line,208}]}]}}
+```
+
+<a name="try_decode_stream-1"></a>
+
+### try_decode_stream/1 ###
+
+<pre><code>
+try_decode_stream(Json::binary()) -&gt; <a href="#type-incomplete_try">incomplete_try()</a>
+</code></pre>
+<br />
+
+Equivalent to [`try_decode_stream(Json, [])`](#try_decode_stream-2).
+
+<a name="try_decode_stream-2"></a>
+
+### try_decode_stream/2 ###
+
+<pre><code>
+try_decode_stream(Json::binary(), Options::[<a href="#type-decode_option">decode_option()</a>]) -&gt; <a href="#type-incomplete_try">incomplete_try()</a>
+</code></pre>
+<br />
+
+Decodes an Erlang from JSON text in chunks.
+
+```
+  1> {incomplete, F1} = jsone:try_decode(<<"[1,2,">>, []).
+  {incomplete, #Fun<jsone.46.79398840>}
+  2> {incomplete, F2} = F1(<<"3] \"next value\"">>).
+  {incomplete, #Fun<jsone.47.79398840>}
+  2> F2(end_stream).
+  {ok,[1,2,3],<<" \"next value\"">>}
 ```
 
 <a name="try_encode-1"></a>
