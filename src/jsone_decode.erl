@@ -86,14 +86,14 @@
 %%--------------------------------------------------------------------------------
 -spec decode(binary()) ->
           {ok, jsone:json_value(), Rest :: binary()} |
-          {error, {Reason :: term(), [jsone:stack_item()]}}
+          {error, {Reason :: term(), [jsone:stack_item()]}}.
 decode(Json) ->
     decode(Json, []).
 
 
 -spec decode(binary(), [jsone:decode_option()]) ->
           {ok, jsone:json_value(), Rest :: binary()} |
-          {error, {Reason :: term(), [jsone:stack_item()]}}
+          {error, {Reason :: term(), [jsone:stack_item()]}}.
 decode(<<Json/binary>>, Options) ->
     Opt = parse_options(Options),
     whitespace(Json, value, [], <<"">>, Opt).
