@@ -13,14 +13,14 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp: [20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
+        otp: [23.0, 24.0, 25.0]
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
-          rebar3-version: '3.10.0'
+#          rebar3-version: '3.10.0'
       - run: rebar3 compile
       - run: rebar3 xref
       - run: rebar3 efmt -c
