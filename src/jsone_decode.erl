@@ -190,6 +190,7 @@ object_value(<<$:, Bin/binary>>, Key, Members, Nexts, Buf, Opt) ->
 object_value(Bin, Key, Members, Nexts, Buf, Opt) ->
     ?ERROR(object_value, [Bin, Key, Members, Nexts, Buf, Opt]).
 
+
 -compile({inline, [object_key/2]}).
 
 
@@ -271,16 +272,12 @@ string(Bin, Base, Start, Nexts, Buf, Opt) ->
 
 -spec unicode_string(binary(), non_neg_integer(), [next()], binary(), opt()) -> decode_result().
 unicode_string(<<N:4/binary, Bin/binary>>, Start, Nexts, Buf, Opt) ->
-    try
-        binary_to_integer(N, 16)
-    of
+    try binary_to_integer(N, 16) of
         High when 16#D800 =< High, High =< 16#DBFF ->
             %% surrogate pair
             case Bin of
                 <<$\\, $u, N2:4/binary, Bin2/binary>> ->
-                    try
-                        binary_to_integer(N2, 16)
-                    of
+                    try binary_to_integer(N2, 16) of
                         Low when 16#DC00 =< Low, Low =< 16#DFFF ->
                             <<Unicode/utf16>> = <<High:16, Low:16>>,
                             string(Bin2, Start, Nexts, <<Buf/binary, Unicode/utf8>>, Opt);
@@ -383,14 +380,12 @@ number_exponation_part(<<C, Bin/binary>>, N, DecimalOffset, ExpSign, Exp, _, Nex
     number_exponation_part(Bin, N, DecimalOffset, ExpSign, Exp * 10 + C - $0, false, Nexts, Buf, Opt);
 number_exponation_part(<<Bin/binary>>, N, DecimalOffset, ExpSign, Exp, false, Nexts, Buf, Opt) ->
     Pos = ExpSign * Exp - DecimalOffset,
-    try
-        case Pos of
+    try case Pos of
             Pos when Pos >= 0 ->
                 N * math:pow(10, Pos);
             _ ->
                 N / math:pow(10, -Pos)  % multiplying by decimal makes float errors larger.
-        end
-    of
+        end of
         Res ->
             next(Bin, Res, Nexts, Buf, Opt)
     catch

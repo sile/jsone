@@ -130,7 +130,7 @@
 
 -type json_scalar() :: json_boolean() | json_number() | json_string().
 
--type float_format_option() :: {scientific, Decimals :: 0 .. 249} | {decimals, Decimals :: 0 .. 253} | compact.
+-type float_format_option() :: {scientific, Decimals :: 0..249} | {decimals, Decimals :: 0..253} | compact.
 %% `scientific': <br />
 %% - The float will be formatted using scientific notation with `Decimals' digits of precision. <br />
 %%
@@ -184,7 +184,7 @@
 
 -type datetime_format() :: iso8601.
 -type timezone() :: utc | local | utc_offset_seconds().
--type utc_offset_seconds() :: -86399 .. 86399.
+-type utc_offset_seconds() :: -86399..86399.
 
 -type common_option() :: undefined_as_null.
 %%

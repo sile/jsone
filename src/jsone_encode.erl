@@ -139,9 +139,7 @@ value({{json, T}}, Nexts, Buf, Opt) ->
             ?ERROR(value, [{json, T}, Nexts, Buf, Opt])
     end;
 value({{json_utf8, T}}, Nexts, Buf, Opt) ->
-    try
-        unicode:characters_to_binary(T)
-    of
+    try unicode:characters_to_binary(T) of
         {error, OK, Invalid} ->
             {error, {{invalid_json_utf8, OK, Invalid},
                      [{?MODULE, value, [{json_utf8, T}, Nexts, Buf, Opt], [{line, ?LINE}]}]}};
@@ -213,6 +211,7 @@ datetime({{Y, M, D}, {H, Mi, S}}, Nexts, Buf, Opt) when ?IS_DATETIME(Y, M, D, H,
 datetime(Datetime, Nexts, Buf, Opt) ->
     ?ERROR(datetime, [Datetime, Nexts, Buf, Opt]).
 
+
 -ifndef(NO_DIALYZER_SPEC).
 -dialyzer({no_improper_lists, [format_year/1]}).
 -endif.
@@ -266,6 +265,7 @@ format_tz(Tz) when Tz > 0 ->
 format_tz(Tz) ->
     [$- | format_tz_(-Tz)].
 
+
 -define(SECONDS_PER_MINUTE, 60).
 -define(SECONDS_PER_HOUR,   3600).
 
@@ -295,6 +295,7 @@ object_key(Key, Nexts, Buf, Opt = ?OPT{object_key_type = value}) ->
     end;
 object_key(Key, Nexts, Buf, Opt) ->
     ?ERROR(object_key, [Key, Nexts, Buf, Opt]).
+
 
 -define(H8(X), (hex(X)):16).
 -define(H16(X), ?H8(X bsr 8), ?H8(X band 16#FF)).
@@ -355,6 +356,7 @@ escape_string(<<Ch/utf8, Str/binary>>, Nexts, Buf, Opt = ?OPT{native_utf8 = fals
 escape_string(Str, Nexts, Buf, Opt) ->
     ?ERROR(escape_string, [Str, Nexts, Buf, Opt]).
 
+
 -define(UNESCAPED_CHARS_WITH_SLASH,
         {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
                 false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
@@ -414,10 +416,11 @@ unescaped_string_length(<<C, Str/binary>>, N, Table) ->
 unescaped_string_length(_, N, _) ->
     N.
 
+
 -compile({inline, [hex/1]}).
 
 
--spec hex(byte()) -> 0 .. 16#FFFF.
+-spec hex(byte()) -> 0..16#FFFF.
 hex(X) ->
     element(X + 1,
             {16#3030, 16#3031, 16#3032, 16#3033, 16#3034, 16#3035, 16#3036, 16#3037, 16#3038, 16#3039, 16#3061, 16#3062,

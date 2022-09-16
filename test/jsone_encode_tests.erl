@@ -46,8 +46,8 @@ encode_test_() ->
      {"negative integer", fun() -> ?assertEqual({ok, <<"-1">>}, jsone_encode:encode(-1)) end},
      {"large number",
       fun() ->
-             ?assertEqual({ok, <<"11111111111111111111111111111111111111111111111111111111111111111111111">>},
-                          jsone_encode:encode(11111111111111111111111111111111111111111111111111111111111111111111111))
+              ?assertEqual({ok, <<"11111111111111111111111111111111111111111111111111111111111111111111111">>},
+                           jsone_encode:encode(11111111111111111111111111111111111111111111111111111111111111111111111))
       end},
 
      %% Numbers: Float",
@@ -73,7 +73,7 @@ encode_test_() ->
      {"string: contains escaped characters",
       fun() ->
               Input = <<"\"\/\\\b\f\n\r\t">>,
-              Expected = list_to_binary([$", [[$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t]], $"]),
+              Expected = list_to_binary([$", [ [$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t] ], $"]),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
@@ -87,7 +87,7 @@ encode_test_() ->
       fun() ->
               Ctrls = lists:seq(16#00, 16#1F) -- [$\b, $\f, $\n, $\r, $\t],
               Input = list_to_binary(Ctrls),
-              Expected = list_to_binary([$", [io_lib:format("\\u00~2.16.0b", [C]) || C <- Ctrls], $"]),
+              Expected = list_to_binary([$", [ io_lib:format("\\u00~2.16.0b", [C]) || C <- Ctrls ], $"]),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input)),
               ?assertEqual({ok, Expected}, jsone_encode:encode(Input, [native_utf8]))
       end},
@@ -342,7 +342,7 @@ encode_test_() ->
      {"wrong option", fun() -> ?assertError(badarg, jsone_encode:encode(1, [{no_such_option, hoge}])) end},
      {"canonical_form",
       fun() ->
-              Obj1 = ?OBJECT_FROM_LIST([{<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(1000, 0, -1)]),
-              Obj2 = ?OBJECT_FROM_LIST([{<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(0, 1000, 1)]),
+              Obj1 = ?OBJECT_FROM_LIST([ {<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(1000, 0, -1) ]),
+              Obj2 = ?OBJECT_FROM_LIST([ {<<"key", (integer_to_binary(I))/binary>>, I} || I <- lists:seq(0, 1000, 1) ]),
               ?assertEqual(jsone_encode:encode(Obj1, [canonical_form]), jsone_encode:encode(Obj2, [canonical_form]))
       end}].

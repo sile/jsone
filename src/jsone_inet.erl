@@ -44,10 +44,10 @@
         ?IS_IPV6_RANGE(A) andalso ?IS_IPV6_RANGE(B) andalso ?IS_IPV6_RANGE(C) andalso ?IS_IPV6_RANGE(D) andalso
         ?IS_IPV6_RANGE(E) andalso ?IS_IPV6_RANGE(F) andalso ?IS_IPV6_RANGE(G) andalso ?IS_IPV6_RANGE(H)).
 
-
 %%--------------------------------------------------------------------------------
 %% Exported Functions
 %%--------------------------------------------------------------------------------
+
 
 %% @doc Convert an IP address into a text representation.
 %%
@@ -86,7 +86,7 @@ ip_address_to_json_string(_) ->
 %%--------------------------------------------------------------------------------
 %% Internal Functions
 %%--------------------------------------------------------------------------------
--spec format_ipv6([0 .. 65535]) -> string().
+-spec format_ipv6([0..65535]) -> string().
 format_ipv6(Xs) ->
     case format_ipv6(Xs, 0, 0) of
         {Ys, shortening} ->
@@ -102,7 +102,7 @@ format_ipv6(Xs) ->
     end.
 
 
--spec format_ipv6([0 .. 65535], non_neg_integer(), non_neg_integer()) ->
+-spec format_ipv6([0..65535], non_neg_integer(), non_neg_integer()) ->
           {[string()], not_shortened | shortening | shortened}.
 format_ipv6([], _Zeros, _MaxZeros) ->
     {[], not_shortened};
@@ -130,6 +130,6 @@ format_ipv6([X | Xs], Zeros0, MaxZeros) ->
     end.
 
 
--spec to_hex(0 .. 65535) -> string().
+-spec to_hex(0..65535) -> string().
 to_hex(N) ->
     string:lowercase(integer_to_list(N, 16)).

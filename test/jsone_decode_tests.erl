@@ -12,7 +12,7 @@
 -define(OBJ2_DUP_KEY(K1, V1, K2, V2), ?OBJ2(K1, V1, K2, V2)).
 -else.
 -define(MAP_OBJECT_TYPE, map).
--define(OBJ0, #{}).
+-define(OBJ0,            #{}).
 -define(OBJ1(K, V), #{K => V}).
 -define(OBJ2(K1, V1, K2, V2), #{K1 => V1, K2 => V2}).
 -define(OBJ2_DUP_KEY(K1, V1, _K2, _V2), #{K1 => V1}).  % the first (leftmost) value is used
@@ -33,8 +33,8 @@ decode_test_() ->
      {"negative integer", fun() -> ?assertEqual({ok, -1, <<"">>}, jsone_decode:decode(<<"-1">>)) end},
      {"large integer (no limit on size)",
       fun() ->
-             ?assertEqual({ok, 111111111111111111111111111111111111111111111111111111111111111111111111111111, <<"">>},
-                          jsone_decode:decode(<<"111111111111111111111111111111111111111111111111111111111111111111111111111111">>))
+              ?assertEqual({ok, 111111111111111111111111111111111111111111111111111111111111111111111111111111, <<"">>},
+                           jsone_decode:decode(<<"111111111111111111111111111111111111111111111111111111111111111111111111111111">>))
       end},
      {"integer with leading zero (interpreted as zero and remaining binary)",
       fun() ->
@@ -77,7 +77,7 @@ decode_test_() ->
      {"simple string", fun() -> ?assertEqual({ok, <<"abc">>, <<"">>}, jsone_decode:decode(<<"\"abc\"">>)) end},
      {"string: escaped characters",
       fun() ->
-              Input = list_to_binary([$", [[$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t]], $"]),
+              Input = list_to_binary([$", [ [$\\, C] || C <- [$", $/, $\\, $b, $f, $n, $r, $t] ], $"]),
               Expected = <<"\"\/\\\b\f\n\r\t">>,
               ?assertEqual({ok, Expected, <<"">>}, jsone_decode:decode(Input))
       end},
@@ -113,14 +113,14 @@ decode_test_() ->
       fun() ->
               Ctrls = lists:seq(0, 16#1f),
               lists:foreach(fun(C) ->
-                                   %% Control characters are unacceptable
-                                   ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<$", C, $">>))
+                                    %% Control characters are unacceptable
+                                    ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<$", C, $">>))
                             end,
                             Ctrls),
               lists:foreach(fun(C) ->
-                                   %% `allow_ctrl_chars' option allows strings which contain unescaped control characters
-                                   ?assertEqual({ok, <<C>>, <<"">>},
-                                                jsone_decode:decode(<<$", C, $">>, [{allow_ctrl_chars, true}]))
+                                    %% `allow_ctrl_chars' option allows strings which contain unescaped control characters
+                                    ?assertEqual({ok, <<C>>, <<"">>},
+                                                 jsone_decode:decode(<<$", C, $">>, [{allow_ctrl_chars, true}]))
                             end,
                             Ctrls)
       end},
@@ -200,7 +200,7 @@ decode_test_() ->
       end},
      {"empty object: map",
       fun() ->
-             ?assertEqual({ok, ?OBJ0, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, ?MAP_OBJECT_TYPE}]))
+              ?assertEqual({ok, ?OBJ0, <<"">>}, jsone_decode:decode(<<"{}">>, [{object_format, ?MAP_OBJECT_TYPE}]))
       end},
      {"duplicated members: map",
       fun() ->
