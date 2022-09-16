@@ -9,11 +9,11 @@ on:
       - master
 jobs:
   ci:
-    name: Run checks and tests over ${{matrix.otp_vsn}} and ${{matrix.os}}
+    name: Run checks and tests over ${{matrix.otp}} and ${{matrix.os}}
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp: [20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
+        otp: [21.0, 22.0, 23.0, 24.0, 25.0]
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
