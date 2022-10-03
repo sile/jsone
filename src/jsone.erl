@@ -424,7 +424,7 @@ try_encode(JsonValue, Options) ->
 %% @doc Converts the given term `X' to its string representation (i.e., the result of `io_lib:format("~p", [X])').
 -spec term_to_json_string(term()) -> {ok, json_string()} | error.
 term_to_json_string(X) ->
-    {ok, list_to_binary(io_lib:format("~p", [X]))}.
+    {ok, list_to_binary(io_lib:format("~0p", [X]))}.
 
 
 %% @doc Convert an IP address into a text representation.
