@@ -137,6 +137,7 @@
 %% `decimals': <br />
 %% - The encoded string will contain at most `Decimals' number of digits past the decimal point. <br />
 %% - If `compact' is provided the trailing zeros at the end of the string are truncated. <br />
+%% - If `short' is provided the float is formatted with the smallest number of digits. <br />
 %%
 %% For more details, see <a href="http://erlang.org/doc/man/erlang.html#float_to_list-2">erlang:float_to_list/2</a>.
 %%
