@@ -130,7 +130,7 @@
 
 -type json_scalar() :: json_boolean() | json_number() | json_string().
 
--type float_format_option() :: {scientific, Decimals :: 0..249} | {decimals, Decimals :: 0..253} | compact.
+-type float_format_option() :: {scientific, Decimals :: 0..249} | {decimals, Decimals :: 0..253} | compact | short.
 %% `scientific': <br />
 %% - The float will be formatted using scientific notation with `Decimals' digits of precision. <br />
 %%
