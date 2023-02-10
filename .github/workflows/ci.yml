@@ -32,6 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: '25.0'
+          rebar3-version: '3.20.0'
       - run: rebar3 eunit
       - run: rebar3 cover
       - run: rebar3 covertool generate
