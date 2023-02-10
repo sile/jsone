@@ -13,10 +13,10 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp: [23.0, 24.0, 25.0]
+        otp: ['23.0', '24.0', '25.0']
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
@@ -30,7 +30,7 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: rebar3 eunit
       - run: rebar3 cover
       - run: rebar3 covertool generate
