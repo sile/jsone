@@ -1,7 +1,7 @@
 Benchmark
 =========
 
-Using [poision](https://github.com/devinus/poison)'s benchmark.
+Using [poison](https://github.com/devinus/poison)'s benchmark.
 Please execute the `./run.sh` script in this directory to run the benchmark.
 
 Benchmark Result
