@@ -38,7 +38,11 @@ encode_test_() ->
                                                      <<"bar">>,
                                                      {{json, [$", 233, "ok", $"]}}))),
               ?assertEqual({ok, <<"{\"json\":\"[1,2,3]\"}">>}, jsone_encode:encode([{json, <<"[1,2,3]">>}])),
-              ?assertEqual({ok, <<"[[1,2,3]]">>}, jsone_encode:encode([{{json, <<"[1,2,3]">>}}]))
+              ?assertEqual({ok, <<"[[1,2,3]]">>}, jsone_encode:encode([{{json, <<"[1,2,3]">>}}])),
+
+              %% Errors
+              ?assertMatch({error, {{invalid_json_utf8, _, _}, _}}, jsone_encode:encode({{json_utf8, <<200, 83, 1>>}})),
+              ?assertMatch({error, {{invalid_json_utf8, _, _}, _}}, jsone_encode:encode({{json_utf8, <<"abc", 192>>}}))
       end},
      %% Numbers: Integer
      {"zero", fun() -> ?assertEqual({ok, <<"0">>}, jsone_encode:encode(0)) end},
