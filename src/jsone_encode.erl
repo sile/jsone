@@ -143,6 +143,9 @@ value({{json_utf8, T}}, Nexts, Buf, Opt) ->
         {error, OK, Invalid} ->
             {error, {{invalid_json_utf8, OK, Invalid},
                      [{?MODULE, value, [{json_utf8, T}, Nexts, Buf, Opt], [{line, ?LINE}]}]}};
+        {incomplete, OK, Incomplete} ->
+            {error, {{invalid_json_utf8, OK, Incomplete},
+                     [{?MODULE, value, [{json_utf8, T}, Nexts, Buf, Opt], [{line, ?LINE}]}]}};
         B when is_binary(B) ->
             next(Nexts, <<Buf/binary, B/binary>>, Opt)
     catch
