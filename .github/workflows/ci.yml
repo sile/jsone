@@ -13,10 +13,10 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp: ['24.0', '25.0']
+        otp: ['24.0', '25.0', '26.0']
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
@@ -31,7 +31,7 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: '25.0'
