@@ -13,14 +13,14 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp: ['24.0', '25.0', '26.0']
+        otp: ['25.0', '26.0', '27.0']
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
-          rebar3-version: '3.20.0'
+          rebar3-version: '3.23.0'
       - run: rebar3 compile
       - run: rebar3 xref
       - run: rebar3 efmt -c
@@ -34,8 +34,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: '25.0'
-          rebar3-version: '3.20.0'
+          otp-version: '26.0'
+          rebar3-version: '3.23.0'
       - run: rebar3 eunit
       - run: rebar3 cover
       - run: rebar3 covertool generate
