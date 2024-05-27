@@ -52,7 +52,16 @@
 -define(ENCODE_MAP(Value, Nexts, Buf, Opt), ?ERROR(value, [Value, Nexts, Buf, Opt])).
 -else.
 -define(IS_MAP(X), is_map(X)).
+-ifdef('MAP_ITER_ORDERED').
+-if(?OTP_RELEASE >= 27).
+-define(ENCODE_MAP(Value, Nexts, Buf, Opt),
+        object(maps:to_list(maps:iterator(Value, ordered)), Nexts, Buf, Opt)).
+-else.
 -define(ENCODE_MAP(Value, Nexts, Buf, Opt), object(maps:to_list(Value), Nexts, Buf, Opt)).
+-endif.
+-else.
+-define(ENCODE_MAP(Value, Nexts, Buf, Opt), object(maps:to_list(Value), Nexts, Buf, Opt)).
+-endif.
 -endif.
 
 -type encode_result() :: {ok, binary()} | {error, {Reason :: term(), [jsone:stack_item()]}}.
