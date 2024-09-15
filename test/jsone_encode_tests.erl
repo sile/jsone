@@ -140,6 +140,23 @@ encode_test_() ->
                       ?assertMatch(<<"\"2015-06-25T14:57:25Z\"">>, Json)
               end
       end},
+     {"datetime: iso8601: local with daylight saving variable zone - summer time (2h offset)",
+      fun() -> 
+            test_time_module:set_localtime({{2024, 9, 15},{11, 00, 00}}),
+            test_time_module:mock_localtime_to_universaltime(fun(_) -> {{2024, 9, 15},{9, 00, 00}} end),
+
+            {ok, Json} = jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}}, [{datetime_format, {iso8601, local_dst}}]),
+            ?assertMatch(<<"\"2015-06-25T14:57:25+02:00\"">>, Json)
+      end},
+     {"datetime: iso8601: local with daylight saving variable zone - winter time (1h offset)",
+      fun() -> 
+            test_time_module:set_localtime({{2024, 12, 15},{11, 00, 00}}),
+            test_time_module:mock_localtime_to_universaltime(fun(_) -> {{2024, 12, 15},{10, 00, 00}} end),
+
+            {ok, Json} = jsone_encode:encode({{2015, 6, 25}, {14, 57, 25}}, [{datetime_format, {iso8601, local_dst}}]),
+            ?assertMatch(<<"\"2015-06-25T14:57:25+01:00\"">>, Json)
+       end
+     },
      {"datetime: iso8601: timezone",
       fun() ->
               ?assertEqual({ok, <<"\"2015-06-25T14:57:25Z\"">>},

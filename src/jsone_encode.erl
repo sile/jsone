@@ -580,6 +580,8 @@ parse_option([{datetime_format, Fmt} | T], Opt) ->
             parse_option(T, Opt?OPT{datetime_format = {iso8601, 0}});
         {iso8601, local} ->
             parse_option(T, Opt?OPT{datetime_format = {iso8601, local_offset()}});
+        {iso8601, local_dst} ->
+            parse_option(T, Opt?OPT{datetime_format = {iso8601, local_offset_dst()}});
         {iso8601, N} when -86400 < N, N < 86400 ->
             parse_option(T, Opt?OPT{datetime_format = {iso8601, N}});
         _ ->
@@ -600,3 +602,15 @@ local_offset() ->
     UTC = {{1970, 1, 2}, {0, 0, 0}},
     Local = calendar:universal_time_to_local_time({{1970, 1, 2}, {0, 0, 0}}),
     calendar:datetime_to_gregorian_seconds(Local) - calendar:datetime_to_gregorian_seconds(UTC).
+
+-ifndef(TIME_MODULE).
+
+-define(TIME_MODULE, erlang).
+
+-endif.
+
+-spec local_offset_dst () -> jsone:utc_offset_seconds().
+local_offset_dst() ->
+    LocalDateTime = ?TIME_MODULE:localtime(),
+    calendar:datetime_to_gregorian_seconds(LocalDateTime) 
+      - calendar:datetime_to_gregorian_seconds(?TIME_MODULE:localtime_to_universaltime(LocalDateTime)).
