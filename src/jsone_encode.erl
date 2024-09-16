@@ -603,14 +603,16 @@ local_offset() ->
     Local = calendar:universal_time_to_local_time({{1970, 1, 2}, {0, 0, 0}}),
     calendar:datetime_to_gregorian_seconds(Local) - calendar:datetime_to_gregorian_seconds(UTC).
 
+
 -ifndef(TIME_MODULE).
 
 -define(TIME_MODULE, erlang).
 
 -endif.
 
--spec local_offset_dst () -> jsone:utc_offset_seconds().
+
+-spec local_offset_dst() -> jsone:utc_offset_seconds().
 local_offset_dst() ->
     LocalDateTime = ?TIME_MODULE:localtime(),
-    calendar:datetime_to_gregorian_seconds(LocalDateTime) 
-      - calendar:datetime_to_gregorian_seconds(?TIME_MODULE:localtime_to_universaltime(LocalDateTime)).
+    calendar:datetime_to_gregorian_seconds(LocalDateTime) -
+    calendar:datetime_to_gregorian_seconds(?TIME_MODULE:localtime_to_universaltime(LocalDateTime)).
