@@ -43,7 +43,8 @@ decode_test_() ->
               ?assertEqual({ok, 0, <<"1">>}, jsone_decode:decode(<<"-01">>))
       end},
      {"integer can't begin with an explicit plus sign",
-      fun() -> ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"+1">>)) end},
+      fun() -> ?assertMatch({error, {badarg, _}}, jsone_decode:decode(<<"+1">>))
+      end},
 
      %% Numbers: Floats
      {"float: decimal notation", fun() -> ?assertEqual({ok, 1.23, <<"">>}, jsone_decode:decode(<<"1.23">>)) end},
