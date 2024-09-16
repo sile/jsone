@@ -46,24 +46,6 @@ $ make start
 [1,2,3]
 ```
 
-Enable HiPE
------------
-
-If you want to use HiPE compiled version, please add following code to your rebar.config.
-
-```erlang
-{overrides,
-  [
-    {override, jsone, [{erl_opts, [{d, 'ENABLE_HIPE'}, inline]}]}
-  ]}.
-```
-
-or use `native` profile. The `make` command supports profile as well. For example:
-
-```sh
-$ make start profile=native
-```
-
 Usage Example
 -------------
 
