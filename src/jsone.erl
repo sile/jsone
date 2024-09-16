@@ -176,6 +176,8 @@
 %% > jsone:encode({{2000, 3, 10}, {10, 3, 58}}, [{datetime_format, {iso8601, local}}]).
 %% <<"\"2000-03-10T10:03:58+09:00\"">>
 %%
+%% % Also you can use {iso8601, local_dst} to properly calculate the timezone according to the daylight saving procedure. Consider using it, if the executing computer is located in a country that implements this procedure
+%%
 %% %
 %% % Explicit TimeZone Offset
 %% %
@@ -184,7 +186,7 @@
 %% '''
 
 -type datetime_format() :: iso8601.
--type timezone() :: utc | local | utc_offset_seconds().
+-type timezone() :: utc | local | local_dst | utc_offset_seconds().
 -type utc_offset_seconds() :: -86399..86399.
 
 -type common_option() :: undefined_as_null.
