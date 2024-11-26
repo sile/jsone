@@ -385,7 +385,7 @@ encode(JsonValue) ->
 %% > jsone:encode([1, null, 2]).
 %% <<"[1,null,2]">>
 %%
-%% > jsone:encode([1, self(), 2]).  % A pid is not a json value
+%% > jsone:encode([1, self(), 2], [{map_unknown_value, undefined}]).  % PID is not a json value
 %% ** exception error: bad argument
 %%      in function  jsone_encode:value/3
 %%         called as jsone_encode:value(<0,34,0>,[{array_values,[2]}],<<"[1,">>)
@@ -414,7 +414,7 @@ try_encode(JsonValue) ->
 %% > jsone:try_encode([1, null, 2]).
 %% {ok,<<"[1,null,2]">>}
 %%
-%% > jsone:try_encode([1, hoge, 2]).  % 'hoge' atom is not a json value
+%% > jsone:try_encode([1, self(), 2], [{map_unknown_value, undefined}]).  % PID is not a json value
 %% {error,{badarg,[{jsone_encode,value,
 %%                               [hoge,[{array_values,[2]}],<<"[1,">>],
 %%                               [{line,86}]}]}}
