@@ -96,7 +96,7 @@ encode(Value) ->
     encode(Value, []).
 
 
--spec encode(jsone:json_value(), [jsone:encode_option()]) -> encode_result().
+-spec encode(jsone:json_value() | term(), [jsone:encode_option()]) -> encode_result().
 encode(Value, Options) ->
     Opt = parse_options(Options),
     value(Value, [], <<"">>, Opt).

@@ -379,7 +379,12 @@ encode(JsonValue) ->
 
 %% @doc Encodes an erlang term into json text (a utf8 encoded binary)
 %%
-%% Raises an error exception if input is not an instance of type `json_value()'
+%% Raises an error exception if input is not a valid `json_value()' and the
+%% `Options` includes `[{map_unknown_value, undefined}]`.
+%% 
+%% Note: Terms that are not `json_value()' will be handled by the function
+%% specified in the `map_unknown_value` option. By default, this function
+%% is `term_to_json_string/1'.
 %%
 %% ```
 %% > jsone:encode([1, null, 2]).
@@ -391,7 +396,7 @@ encode(JsonValue) ->
 %%         called as jsone_encode:value(<0,34,0>,[{array_values,[2]}],<<"[1,">>)
 %%      in call from jsone:encode/1 (src/jsone.erl, line 97)
 %% '''
--spec encode(json_value(), [encode_option()]) -> binary().
+-spec encode(json_value() | term(), [encode_option()]) -> binary().
 encode(JsonValue, Options) ->
     try
         {ok, Binary} = try_encode(JsonValue, Options),
@@ -403,7 +408,7 @@ encode(JsonValue, Options) ->
 
 
 %% @equiv try_encode(JsonValue, [])
--spec try_encode(json_value()) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
+-spec try_encode(json_value() | term()) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_encode(JsonValue) ->
     try_encode(JsonValue, []).
 
@@ -419,7 +424,7 @@ try_encode(JsonValue) ->
 %%                               [hoge,[{array_values,[2]}],<<"[1,">>],
 %%                               [{line,86}]}]}}
 %% '''
--spec try_encode(json_value(), [encode_option()]) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
+-spec try_encode(json_value() | term(), [encode_option()]) -> {ok, binary()} | {error, {Reason :: term(), [stack_item()]}}.
 try_encode(JsonValue, Options) ->
     jsone_encode:encode(JsonValue, Options).
 
