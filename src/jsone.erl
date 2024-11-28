@@ -382,7 +382,7 @@ encode(JsonValue) ->
 %% Raises an error exception if input is not a valid `json_value()' and the
 %% `Options` includes `[{map_unknown_value, undefined}]`.
 %%
- %% Note: Terms that are not `json_value()' will be handled by the function
+%% Note: Terms that are not `json_value()' will be handled by the function
 %% specified in the `map_unknown_value` option. By default, this function
 %% is `term_to_json_string/1'.
 %%
